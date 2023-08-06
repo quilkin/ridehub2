@@ -10,6 +10,7 @@ const email = ref('');
 const password1 = ref('');
 const password2 = ref('');
 const showPass = ref(false);
+const accountForm = ref(null);
 
 const distance = ref('k')
 const climbing = ref('y')
@@ -48,9 +49,11 @@ const pwConfirmRules = [
     return 'passwords do not match.'
   },
 ];
-function submit() {
-  alert("submitted");
-  //signupDialog.value = false;
+async function submit() {
+  const {valid} = await accountForm.value?.validate()
+  if (valid) {
+    alert("todo: send to server")
+  }
 }
 </script>
 
@@ -60,27 +63,33 @@ function submit() {
       <v-card-title class="headline black" primary-title>
         Your RideHub account
       </v-card-title>
-      <v-card-text class="pa-5">
-        <v-form @submit.prevent="submit" validate-on="lazy">
+      <v-card-text class="pa-3">
+        <v-form @submit.prevent="submit" >
           <v-row >
             <v-col   >
-              <v-text-field v-model="userName"  :rules="nameRules"  label="Username" placeholder="my name"></v-text-field>
+              <v-text-field v-model="userName"  :rules="nameRules"  label="Username"
+               placeholder="my name" hint="Leave blank if you don't want to change" persistent-hint>
+              </v-text-field>
             </v-col>
             <v-col   >
-              <v-text-field v-model="email"     :rules="emailRules" label="Email" placeholder="my@email.com"></v-text-field>
+              <v-text-field v-model="email"     :rules="emailRules" label="Email"
+               placeholder="my@email.com" hint="Leave blank if you don't want to change" persistent-hint>
+              </v-text-field>
             </v-col>
           </v-row>
           <v-row >
             <v-col   >
               <v-text-field v-model="password1" :append-inner-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
                 @click:append-inner="showPass = !showPass"   :type="showPass ? 'text' : 'password'" 
-                :rules="pwRules"  label="Password" placeholder="mypassword">
+                :rules="pwRules"  label="Password" placeholder="******"  
+                hint="Leave blank if you don't want to change" persistent-hint>
               </v-text-field>
             </v-col>
             <v-col    >
               <v-text-field v-model="password2" :append-inner-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
                 @click:append-inner="() => (showPass = !showPass)" :type="showPass ? 'text' : 'password'"
-                :rules="pwConfirmRules" label="Confirm password" placeholder="mypassword">
+                :rules="pwConfirmRules" label="Confirm password" placeholder="******"
+                 hint="Leave blank if you don't want to change" persistent-hint>
               </v-text-field>
             </v-col>
           </v-row>
@@ -119,9 +128,14 @@ function submit() {
             </v-col>
           </v-row>
   
-          <v-btn color="blue" type="submit"  block class="mt-2">
-            Update your account
-          </v-btn>
+          <v-row >
+            <v-col>
+              <v-btn color="blue"  variant="outlined"  class="mt-2">    Cancel       </v-btn>
+            </v-col>
+            <v-col>
+              <v-btn color="blue" type="submit"  class="mt-2">   Update your account   </v-btn>
+            </v-col>
+          </v-row>
         </v-form>
       </v-card-text>
     </v-container>

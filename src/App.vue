@@ -5,7 +5,11 @@ import account from './components/account.vue'
 import { ref } from 'vue'
 
 const tab = ref(null);
-const loggedIn = ref(true);
+const loggedIn = ref(false);
+const signingUp = ref(false);
+const loginDialog = ref(false);
+// const signUpDialog = ref(false);
+
 </script>
 
 
@@ -21,41 +25,59 @@ const loggedIn = ref(true);
       <v-tab value="new">New Ride</v-tab>
       <v-tab value="coffee">Coffee</v-tab>
       <v-tab value="library">Library</v-tab>
-      <v-tab value="account">Account</v-tab>
+      <v-tab value="account" @click="loginDialog=true">Account</v-tab>
     </v-tabs>
 
-    <v-card-text>
+    <!-- <v-card-text> -->
       <v-window v-model="tab">
         <v-window-item value="calendar">
-          One
+          <v-container>
+            <v-row>
+              <v-col>
+                will be list of month's rides
+              </v-col>
+              <v-col>
+                will be a map
+              </v-col>
+            </v-row>
+          </v-container>
+
         </v-window-item>
 
         <v-window-item value="routes">
-          Two
+          Routes
         </v-window-item>
 
 
         <v-window-item value="new">
-          Two
+          New ride
         </v-window-item>
         
         <v-window-item value="coffee">
-          Two
+          Coffee
         </v-window-item>
 
 
         <v-window-item value="library">
-          Two
+          library
+          <!-- <v-btn color="blue">
+            Log In
+            <login v-if="loggedIn===false"
+            @logged-in="loggedIn = true">
+          </login>
+          </v-btn> -->
         </v-window-item>
 
         <v-window-item value="account">
-          <v-btn v-if="loggedIn===false" color="blue">
-            Log In
-            <login></login>
-          </v-btn>
-          <account v-else></account>
+          <login v-model=loginDialog v-if="loggedIn===false && signingUp===false"
+            @logged-in="loggedIn = true"
+            @sign-up="signingUp = true"
+          >
+          </login>
+          <account v-else-if="signingUp===false"></account>
+          <signup v-model=signingUp v-else></signup>
         </v-window-item>
       </v-window>
-    </v-card-text>
+    <!-- </v-card-text> -->
   </v-sheet>
 </template>

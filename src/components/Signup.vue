@@ -8,6 +8,7 @@ const email = ref('');
 const password1 = ref('');
 const password2 = ref('');
 const showPass = ref(false);
+const signupForm = ref(null);
 
 const nameRules = [
   (value: string) => !!value || 'Required.',
@@ -42,9 +43,12 @@ const pwConfirmRules = [
     return 'passwords do not match.'
   },
 ];
-function submit() {
-  alert("submitted");
-  signupDialog.value = false;
+
+async function submit() {
+  const {valid} = await signupForm.value?.validate()
+  if (valid) {
+    signupDialog.value = false;
+  }
 }
 </script>
 
@@ -55,7 +59,7 @@ function submit() {
       Sign Up to RideHub
     </v-card-title>
     <v-card-text class="pa-5">
-      <v-form @submit.prevent validate-on="lazy">
+      <v-form @submit.prevent ref="signupForm">
         <v-text-field v-model="userName"  :rules="nameRules"  label="User name"></v-text-field>
         <v-text-field v-model="email"     :rules="emailRules" label="Email"></v-text-field>
         <v-text-field v-model="password1" :append-inner-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
