@@ -8,7 +8,7 @@ const password = ref('');
 const showPass = ref(false);
 
 
-const emit = defineEmits(['loggedIn','signUp'])
+const emit = defineEmits(['loggedIn','signUp','forgotPass','guestVisit'])
 
 const nameRules =   [ (value: string) => !!value || 'Required.', 
                       (value: string) => {
@@ -34,11 +34,11 @@ function signup() {
   loginDialog.value = false;
 }
 function guest() {
-  alert("guest");
+  emit('guestVisit');
   loginDialog.value = false;
 }
 function forgot() {
-  alert("forgot");
+  emit("forgotPass");
   loginDialog.value = false;
 }
 </script>
@@ -60,7 +60,7 @@ function forgot() {
         </v-text-field>
         <v-btn color="blue" type="submit" block class="mt-2">    Sign in     </v-btn>
         <v-btn color="blue" variant="outlined" @click="signup()" block class="mt-2">   No account? Sign up    </v-btn>
-        <v-btn color="blue" variant="outlined" @click="guest()" block class="mt-2">      Continue as a guest   </v-btn>
+        <v-btn color="blue" variant="outlined" @click="guest()" block class="mt-2">      Cancel / Continue as a guest   </v-btn>
         <v-btn color="blue" variant="outlined" @click="forgot()" block class="mt-2">      Forgot password?   </v-btn>
         
       </v-form>

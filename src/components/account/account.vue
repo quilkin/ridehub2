@@ -3,8 +3,6 @@
 
 import { ref } from 'vue'
 
-//const signupDialog = ref(false)
-
 const userName = ref('');
 const email = ref('');
 const password1 = ref('');

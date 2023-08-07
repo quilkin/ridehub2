@@ -1,35 +1,37 @@
 <script setup lang="ts">
-import signup from './components/Signup.vue'
-import login from './components/login.vue'
-import account from './components/account.vue'
+import accountActions from './components/accountActions.vue'
+
 import { ref } from 'vue'
 
-const tab = ref(null);
+const currentTab = ref('account');
 const loggedIn = ref(false);
-const signingUp = ref(false);
 const loginDialog = ref(false);
-// const signUpDialog = ref(false);
 
+
+function switchTab(tab: string) {
+  currentTab.value = tab;
+}
 </script>
 
 
 <template>
     <v-sheet width="auto" class="mx-auto">
     <v-tabs
-      v-model="tab"
+      v-model="currentTab"
       bg-color="blue"
       show-arrows
+      stacked
     >
-      <v-tab value="calendar">Calendar</v-tab>
-      <v-tab value="routes">All routes</v-tab>
-      <v-tab value="new">New Ride</v-tab>
-      <v-tab value="coffee">Coffee</v-tab>
-      <v-tab value="library">Library</v-tab>
-      <v-tab value="account" @click="loginDialog=true">Account</v-tab>
+      <v-tab value="calendar"><v-icon>mdi-calendar-month</v-icon>Calendar</v-tab>
+      <v-tab value="routes"><v-icon>mdi-map</v-icon>All routes</v-tab>
+      <v-tab value="new"><v-icon>mdi-bike</v-icon>New Ride</v-tab>
+      <v-tab value="coffee"><v-icon>mdi-coffee</v-icon>Coffee</v-tab>
+      <v-tab value="library"><v-icon>mdi-book-open-page-variant</v-icon>Library</v-tab>
+      <v-tab value="account" @click="loginDialog=true"><v-icon>mdi-account-edit</v-icon>Account</v-tab>
     </v-tabs>
 
     <!-- <v-card-text> -->
-      <v-window v-model="tab">
+      <v-window v-model="currentTab">
         <v-window-item value="calendar">
           <v-container>
             <v-row>
@@ -60,22 +62,14 @@ const loginDialog = ref(false);
 
         <v-window-item value="library">
           library
-          <!-- <v-btn color="blue">
-            Log In
-            <login v-if="loggedIn===false"
-            @logged-in="loggedIn = true">
-          </login>
-          </v-btn> -->
         </v-window-item>
 
         <v-window-item value="account">
-          <login v-model=loginDialog v-if="loggedIn===false && signingUp===false"
-            @logged-in="loggedIn = true"
-            @sign-up="signingUp = true"
-          >
-          </login>
-          <account v-else-if="signingUp===false"></account>
-          <signup v-model=signingUp v-else></signup>
+          <account-actions :logged-in="loggedIn"
+            @logged-in="loggedIn=true; switchTab('calendar')"
+            @guest="switchTab('calendar')"
+          ></account-actions>
+                   
         </v-window-item>
       </v-window>
     <!-- </v-card-text> -->

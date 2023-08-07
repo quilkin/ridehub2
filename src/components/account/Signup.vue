@@ -10,6 +10,8 @@ const password2 = ref('');
 const showPass = ref(false);
 const signupForm = ref(null);
 
+const emit = defineEmits(['doneSignUp'])
+
 const nameRules = [
   (value: string) => !!value || 'Required.',
   (value: string) => {
@@ -48,7 +50,12 @@ async function submit() {
   const {valid} = await signupForm.value?.validate()
   if (valid) {
     signupDialog.value = false;
+    emit('doneSignUp');
   }
+}
+function cancel() {
+    signupDialog.value = false;
+    emit('doneSignUp');
 }
 </script>
 
@@ -70,9 +77,8 @@ async function submit() {
           @click:append-inner="() => (showPass = !showPass)" :type="showPass ? 'text' : 'password'"
           :rules="pwConfirmRules" label="Confirm password">
         </v-text-field>
-        <v-btn color="blue" type="submit"  @click="submit()" block class="mt-2">
-          Submit
-        </v-btn>
+        <v-btn color="blue" type="submit"  @click="submit()" block class="mt-2">     Submit      </v-btn>
+        <v-btn color="blue" variant="outlined" @click="cancel()" block class="mt-2">   Cancel    </v-btn>
       </v-form>
     </v-card-text>
     <!-- <v-card-actions class="pa-5">
