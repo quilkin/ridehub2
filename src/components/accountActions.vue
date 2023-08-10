@@ -19,15 +19,14 @@ function showLogin() {
     if (props.loggedIn===false && signingUp.value===false && requestPass.value===false)
         return true;
 }
-onBeforeMount(() => {
-    status.value = props.loggedIn ? 'showAccount':'loggingIn';
-    console.log('before mount: ' + status.value + ' ' + props.loggedIn)
-});
-onUpdated(() => {
-    status.value = props.loggedIn ? 'showAccount':'loggingIn';
-    console.log('updated: ' + status.value + ' ' + props.loggedIn)
 
-});
+const setTabView = (loggedIn : Boolean) => {
+        loggingIn.value = !loggedIn;
+        //setTabView2(loggedIn);
+}
+// needs to be called from parent
+defineExpose({ setTabView })
+
 function loggedIn(user : User) {
   loggingIn.value=false;
   emit('loggedIn',user);

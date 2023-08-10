@@ -5,32 +5,29 @@ import myMap from './components/map.vue'
 import { User } from './utils/user'
 
 const currentTab = ref('account');
-const user = ref(new User);
+const currentUser = ref(new User);
+const accountTab = ref();
+const setAccountView = () => {
+  accountTab.value.setTabView(currentUser.value.role > 0);
+}
 
 function switchTab(tab: string) {
   currentTab.value = tab;
 }
 function loggedIn(user : User) {
   console.log("login by " + user.email);
+  currentUser.value = user;
   switchTab('calendar');
 }
+function switchedToAccountTab() {
+  setAccountView();
+}
 const items = [
-    {
-      title: 'Item #1',
-      value: 1,
-    },
-    {
-      title: 'Item #2',
-      value: 2,
-    },
-    {
-      title: 'Item #3',
-      value: 3,
-    },
+    { title: 'Item #1',  value: 1,   },
+    { title: 'Item #2', value: 2,    },
+    { title: 'Item #3', value: 3,    },
   ]
-
 </script>
-
 
 <template>
     <v-sheet width="auto" class="mx-auto">
@@ -46,7 +43,7 @@ const items = [
       <v-tab value="new"><v-icon>mdi-bike</v-icon>New Ride</v-tab>
       <v-tab value="coffee"><v-icon>mdi-coffee</v-icon>Coffee</v-tab>
       <v-tab value="library"><v-icon>mdi-book-open-page-variant</v-icon>Library</v-tab>
-      <v-tab value="account"><v-icon>mdi-account-edit</v-icon>Account</v-tab>
+      <v-tab value="account" @click="setAccountView"><v-icon>mdi-account-edit</v-icon>Account</v-tab>
     </v-tabs>
 
     <!-- <v-card-text> -->
@@ -91,7 +88,9 @@ const items = [
         </v-window-item>
 
         <v-window-item value="account">
-          <account-actions :logged-in="user.role>0"
+          <account-actions 
+            ref="accountTab" 
+            :logged-in="currentUser.role>0"
             @logged-in="loggedIn"
             @guest="switchTab('calendar')"
           ></account-actions>
