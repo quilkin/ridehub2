@@ -2,56 +2,33 @@
 <script setup lang="ts">
 
 import { ref } from 'vue'
+import {nameRules,pwRules,emailRules} from '../../utils/rules'
 
 const userName = ref('');
 const email = ref('');
 const password1 = ref('');
 const password2 = ref('');
 const showPass = ref(false);
-const accountForm = ref(null);
+const accountForm = ref();
 
 const distance = ref('k')
 const climbing = ref('y')
 const notify = ref('y')
 
-const nameRules = [
-    (value: string) => {
-    if (value.length == 0) return true;  // hasn't been changed
-    if (value.length >= 3 && value.length <= 10) return true
-    return 'If changed, Username must be 3 to 10 characters.'
-  },
-];
 
-const emailRules = [
-    (value: string) => {
-    if (value.length == 0) return true;  // hasn't been changed
-    if (/.+@.+\..+/.test(value)) return true
-    return 'If changed, E-mail must be a valid address.'
-  },
-];
-const pwRules = [
-    (value: string) => {
-      if (value.length == 0) return true;  // hasn't been changed
-    if (value?.length >= 6) return true
-    return 'If changed, password must be at least 6 characters.'
-  },
-];
 const pwConfirmRules = [
-   (value: string) => {
-    if (value.length == 0) return true;  // hasn't been changed
-    if (value?.length >= 6) return true
-    return 'If changed, password must be at least 6 characters.'
-  },
   (value: string) => {
     if (password1.value === value) return true;
     return 'passwords do not match.'
   },
 ];
 async function submit() {
-  const {valid} = await accountForm.value?.validate()
+  if (accountForm.value != null) {
+  const {valid} = await accountForm.value.validate()
   if (valid) {
     alert("todo: send to server")
   }
+}
 }
 </script>
 

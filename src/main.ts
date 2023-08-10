@@ -1,7 +1,9 @@
-import './assets/main.css'
 
 import { createApp } from 'vue'
 import App from './App.vue'
+//import Notifications from '@kyvg/vue3-notification'
+// @ts-ignore
+//import  {Alert}  from './components/alert.js'
 
 // Vuetify
 import 'vuetify/styles'

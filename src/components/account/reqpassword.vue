@@ -1,19 +1,12 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import {emailRules} from '../../utils/rules'
 
 const passDialog = ref(false)
-const passForm = ref(null);
+const passForm = ref();
 const email = ref('');
 
 const emit = defineEmits(['donePass'])
-
-const emailRules = [
-  (value: string) => !!value || 'Required.',
-  (value: string) => {
-    if (/.+@.+\..+/.test(value)) return true
-    return 'E-mail must be a valid address.'
-  },
-];
 
 
 async function submit() {

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import {nameRules,pwRules,emailRules} from '../../utils/rules'
 
 const signupDialog = ref(false)
 
@@ -8,38 +9,13 @@ const email = ref('');
 const password1 = ref('');
 const password2 = ref('');
 const showPass = ref(false);
-const signupForm = ref(null);
+const signupForm = ref();
 
 const emit = defineEmits(['doneSignUp'])
 
-const nameRules = [
-  (value: string) => !!value || 'Required.',
-  (value: string) => {
-    if (value.length >= 3 && value.length <= 10) return true
-    return 'Username must be 3 to 10 characters.'
-  },
-];
 
-const emailRules = [
-  (value: string) => !!value || 'Required.',
-  (value: string) => {
-    if (/.+@.+\..+/.test(value)) return true
-    return 'E-mail must be a valid address.'
-  },
-];
-const pwRules = [
-  (value: string) => !!value || 'Required.',
-  (value: string) => {
-    if (value?.length >= 6) return true
-    return 'password must be at least 6 characters.'
-  },
-];
-const pwConfirmRules = [
-  (value: string) => !!value || 'Required.',
-  (value: string) => {
-    if (value?.length >= 6) return true
-    return 'password must be at least 6 characters.'
-  },
+const pwConfirmRules  = [
+
   (value: string) => {
     if (password1.value === value) return true;
     return 'passwords do not match.'
