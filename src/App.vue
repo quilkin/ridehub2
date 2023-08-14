@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import accountActions from './components/accountActions.vue'
 import myMap from './components/map.vue'
 import { User } from './utils/user'
+import RideList from './components/ridelist.vue'
 
 const currentTab = ref('account');
 const currentUser = ref(new User);
@@ -15,18 +16,23 @@ function switchTab(tab: string) {
   currentTab.value = tab;
 }
 function loggedIn(user : User) {
+  if (user===null)
+  {
+    console.log("failed login");
+    accountTab.value.setTabView(false);
+    return;
+
+  }
+
   console.log("login by " + user.email);
   currentUser.value = user;
   switchTab('calendar');
+ 
 }
 function switchedToAccountTab() {
   setAccountView();
 }
-const items = [
-    { title: 'Item #1',  value: 1,   },
-    { title: 'Item #2', value: 2,    },
-    { title: 'Item #3', value: 3,    },
-  ]
+
 </script>
 
 <template>
@@ -49,21 +55,10 @@ const items = [
     <!-- <v-card-text> -->
       <v-window v-model="currentTab">
         <v-window-item value="calendar">
-          <v-container>
+          <v-container   height="100%">
             <v-row no-gutters>
-              <v-col>
-                <v-card
-   
-                >
-                  <v-list :items="items"></v-list>
-                </v-card>
-              </v-col>
-              <v-col>
-                <v-card
-                >
-                <myMap></myMap>
-              </v-card>
-              </v-col>
+              <v-col>    <RideList></RideList>   </v-col>
+              <v-col>    <myMap></myMap>         </v-col>
             </v-row>
           </v-container>
 

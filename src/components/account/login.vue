@@ -4,23 +4,24 @@ import { ref, onBeforeMount, inject } from 'vue'
 import {serverPost} from '../server.vue'
 import {nameRules,pwRules} from '../../utils/rules'
 import { User } from '../../utils/user'
-import Fetch from '../fetch.vue'
+import { myFetch } from '../fetch'
+import Swal from 'sweetalert2'
 
 const loginForm = ref();
 const userOrEmail = ref('');
 const password = ref('');
 const showPass = ref(false);
 const remember = ref(false);
-const register = ref(false);
+//const register = ref(false);
 
-const badCreds = ref(false);
-const fetching = ref (false);
 const creds = ref();
+//const badCreds = ref(false);
 
-const myChildFetch = ref();
-const callFetch = () => {
-  myChildFetch.value.myFetch()
-}
+// const fetching = ref (false);
+// const myChildFetch = ref();
+// const callFetch = () => {
+//   myChildFetch.value.myFetch()
+// }
 
 const emit = defineEmits(['loggedIn','signUp','forgotPass','guestVisit'])
 
@@ -37,38 +38,53 @@ onBeforeMount(() => {
 async function submit() {
   const {valid} = await loginForm.value?.validate()
   if (valid) {
-    const user = userOrEmail.value;
+    const username = userOrEmail.value;
     const pass = password.value;
     if (remember.value) {
-        window.localStorage.username = user;
+        window.localStorage.username = username;
         window.localStorage.password = pass;
       }
-    console.log(user + ' ' + pass);
-    creds.value = { name: user, pw: pass, email: "", code: 0 };
-    fetching.value = true;
-    callFetch();
-  }
-}
-
-  function fetched(res : User) {
-          fetching.value = false;
-          if (res != null) {
-            // if (res.id < 0) {
-            //       return;
-            // }
-            if (res.id > 0) {
-                if (res.role === 0) {
-                  register.value = true;
+    console.log(username + ' ' + pass);
+    creds.value = { name: username, pw: pass, email: "", code: 0 };
+    
+    myFetch('Login',creds.value,true)
+      .then((response) => {
+        console.log('response: ' + response);
+          const user : User = response;
+          if (user != null) {
+            if (user.id > 0) {
+                if (user.role === 0) {
+                  Swal.fire({
+                    title: 'Registration',
+                    text: 'You need to reply to your email to complete registration',
+                    icon: 'info',
+                    confirmButtonText: 'OK'
+                  }).then();
                   return;
                 }
-                emit('loggedIn',res);
+                emit('loggedIn',user);
 
             } else {
-                badCreds.value = true;
+              Swal.fire({
+                    title: 'Login unsuccessful',
+                    text: 'Username or password incorrect',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                  }).then();
+                  emit('loggedIn',null);
                 return;
             }
           }
+          Swal.fire({
+                    title: 'Login unsuccessful',
+                    text: 'Could not contact server',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                  }).then();
+                  emit('loggedIn',null);
+      })
   }
+}
 
 
 function signup() {
@@ -101,8 +117,8 @@ function forgot() {
           :rules="pwRules"  label="Password">
         </v-text-field>
 
-        <v-alert closable v-model = register  type="info"  text="You need to reply to your email to complete registration"/>
-        <v-alert closable v-model = badCreds  type="error" text="Username or password incorrect"/>
+        <!-- <v-alert closable v-model = register  type="info"  text="You need to reply to your email to complete registration"/>
+        <v-alert closable v-model = badCreds  type="error" text="Username or password incorrect"/> -->
 
         <v-checkbox
           v-model="remember"
@@ -110,13 +126,13 @@ function forgot() {
           value="false"
         ></v-checkbox>
         <v-btn color="blue" type="submit" block class="mt-2">    Sign in     </v-btn>
-        <fetch v-model="fetching"
+        <!-- <fetch v-model="fetching"
           ref="myChildFetch"
           :url="'login'"
           :data = creds
           :wait-dlg="true"
           @fetched="fetched"
-        ></fetch>
+        ></fetch> -->
         <v-btn color="blue" variant="outlined" @click="signup()" block class="mt-2">   No account? Sign up    </v-btn>
         <v-btn color="blue" variant="outlined" @click="guest()" block class="mt-2">      Cancel / Continue as a guest   </v-btn>
         <v-btn color="blue" variant="outlined" @click="forgot()" block class="mt-2">      Forgot password?   </v-btn>
@@ -129,5 +145,3 @@ function forgot() {
 
 </template>
 
-
-./server

@@ -1,19 +1,25 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onBeforeMount } from 'vue'
+
 import {nameRules,pwRules,emailRules} from '../../utils/rules'
+import { myFetch } from '../fetch'
+import Swal from 'sweetalert2'
 
 const signupDialog = ref(false)
 
 const userName = ref('');
-const email = ref('');
+const eMail = ref('');
 const password1 = ref('');
 const password2 = ref('');
+const creds = ref();
 const showPass = ref(false);
 const signupForm = ref();
 
 const emit = defineEmits(['doneSignUp'])
 
-
+onBeforeMount(() => {
+  console.log('signup starting');
+  })
 const pwConfirmRules  = [
 
   (value: string) => {
@@ -25,8 +31,23 @@ const pwConfirmRules  = [
 async function submit() {
   const {valid} = await signupForm.value?.validate()
   if (valid) {
-    signupDialog.value = false;
-    emit('doneSignUp');
+    const username = userName.value;
+    const pass = password1.value;
+    const email = eMail.value;
+
+    creds.value = { name: username, pw: pass, email: email, code: 0 };
+    
+    myFetch('Signup',creds.value,true)
+      .then((response) => {
+        Swal.fire({
+                    title: 'Registration',
+                    text: response,
+                    icon: 'info',
+                    confirmButtonText: 'OK'
+                  }).then();
+        signupDialog.value = false;
+        emit('doneSignUp');
+      })
   }
 }
 function cancel() {
@@ -44,7 +65,7 @@ function cancel() {
     <v-card-text class="pa-5">
       <v-form @submit.prevent ref="signupForm">
         <v-text-field v-model="userName"  :rules="nameRules"  label="User name"></v-text-field>
-        <v-text-field v-model="email"     :rules="emailRules" label="Email"></v-text-field>
+        <v-text-field v-model="eMail"     :rules="emailRules" label="Email"></v-text-field>
         <v-text-field v-model="password1" :append-inner-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
           @click:append-inner="showPass = !showPass"   :type="showPass ? 'text' : 'password'" 
           :rules="pwRules"  label="Password">
