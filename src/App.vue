@@ -7,31 +7,30 @@ import RideList from './components/ridelist.vue'
 
 const currentTab = ref('account');
 const currentUser = ref(new User);
-const accountTab = ref();
-const setAccountView = () => {
-  accountTab.value.setTabView(currentUser.value.role > 0);
-}
+//const accountTab = ref();
+// const setAccountView = () => {
+//   accountTab.value.setTabView(currentUser.value.role > 0);
+// }
 
 function switchTab(tab: string) {
   currentTab.value = tab;
 }
-function loggedIn(user : User) {
+function doneLogin(user : User) {
   if (user===null)
   {
-    console.log("failed login");
-    accountTab.value.setTabView(false);
-    return;
-
+    console.log("guest user");
+    //accountTab.value.setTabView(false);
   }
-
-  console.log("login by " + user.email);
-  currentUser.value = user;
+  else {
+    console.log("login by " + user.email);
+    currentUser.value = user;
+  }
   switchTab('calendar');
  
 }
-function switchedToAccountTab() {
-  setAccountView();
-}
+// function switchedToAccountTab() {
+//   setAccountView();
+// }
 
 </script>
 
@@ -49,7 +48,7 @@ function switchedToAccountTab() {
       <v-tab value="new"><v-icon>mdi-bike</v-icon>New Ride</v-tab>
       <v-tab value="coffee"><v-icon>mdi-coffee</v-icon>Coffee</v-tab>
       <v-tab value="library"><v-icon>mdi-book-open-page-variant</v-icon>Library</v-tab>
-      <v-tab value="account" @click="setAccountView"><v-icon>mdi-account-edit</v-icon>Account</v-tab>
+      <v-tab value="account"><v-icon>mdi-account-edit</v-icon>Account</v-tab>
     </v-tabs>
 
     <!-- <v-card-text> -->
@@ -84,10 +83,9 @@ function switchedToAccountTab() {
 
         <v-window-item value="account">
           <account-actions 
-            ref="accountTab" 
-            :logged-in="currentUser.role>0"
-            @logged-in="loggedIn"
-            @guest="switchTab('calendar')"
+       
+            :user="currentUser"
+            @done-login="doneLogin"
           ></account-actions>
                    
         </v-window-item>

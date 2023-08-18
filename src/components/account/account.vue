@@ -1,20 +1,41 @@
 
 <script setup lang="ts">
 
-import { ref } from 'vue'
+import { ref, onBeforeMount, onUpdated } from 'vue'
 import {nameRules,pwRules,emailRules} from '../../utils/rules'
+import { myFetch } from '../fetch'
+import Swal from 'sweetalert2'
+import { User } from '../../utils/user'
 
 const userName = ref('');
 const email = ref('');
 const password1 = ref('');
 const password2 = ref('');
 const showPass = ref(false);
+const accountDialog = ref(false)
 const accountForm = ref();
-
-const distance = ref('k')
+//const creds = ref();
+const units = ref('k')
 const climbing = ref('y')
 const notify = ref('y')
+const emit = defineEmits(['doneAccount'])
+const props = defineProps({
+  user : User
+})
 
+onBeforeMount(() => {
+        if (props.user != undefined) {
+            units.value = props.user.units;
+            climbing.value = props.user.climbs? 'y':'n';
+            notify.value = props.user.notifications? 'y':'n';
+            userName.value = props.user.name;
+            email.value = props.user.email;
+            password1.value = '';
+            password2.value = '';
+
+        }
+
+  })
 
 const pwConfirmRules = [
   (value: string) => {
@@ -25,30 +46,77 @@ const pwConfirmRules = [
 async function submit() {
   if (accountForm.value != null) {
   const {valid} = await accountForm.value.validate()
+
   if (valid) {
-    alert("todo: send to server")
+    let creds  = { 
+      name: userName.value,
+      pw: password1.value,
+      email: email.value,
+      units: units.value,
+      climbs: climbing.value === 'y'? 1:0,
+      notifications: notify.value === 'y'? 1:0
+    };
+    myFetch('ChangeAccount',creds,true)
+    .then((response) => {
+      if (response != null) {
+        if (response == 'OK') {
+          Swal.fire({
+                      title: 'Registration',
+                      text: "Your details have been saved",
+                      icon: 'info',
+                      confirmButtonText: 'OK'
+                    }).then();
+      
+          emit('doneAccount');
+        }
+        else {
+          Swal.fire({
+                      title: 'Registration',
+                      text: response,
+                      icon: 'error',
+                      confirmButtonText: 'OK'
+                    }).then();
+
+        }
+      }
+      else {
+        Swal.fire({
+                      title: 'Update unsuccessful',
+                      text: 'Could not contact server',
+                      icon: 'error',
+                      confirmButtonText: 'OK'
+                    }).then();
+      }
+            
+    })
   }
 }
+}
+function cancel() {
+    accountDialog.value = false;
+    emit('doneAccount');
 }
 </script>
 
 <template>
     
-    <v-container fluid>
+    <div class="d-flex align-center flex-column">
+  <!-- <v-dialog v-model="accountDialog" activator="parent" width="600"> -->
+   <v-card  width="600">
       <v-card-title class="headline black" primary-title>
         Your RideHub account
       </v-card-title>
       <v-card-text class="pa-3">
-        <v-form @submit.prevent="submit" >
+        <v-form @submit.prevent="submit" ref="accountForm">
           <v-row >
             <v-col   >
               <v-text-field v-model="userName"  :rules="nameRules"  label="Username"
-               placeholder="my name" hint="Leave blank if you don't want to change" persistent-hint>
+               :placeholder=userName  persistent-hint>
               </v-text-field>
             </v-col>
             <v-col   >
               <v-text-field v-model="email"     :rules="emailRules" label="Email"
-               placeholder="my@email.com" hint="Leave blank if you don't want to change" persistent-hint>
+               :placeholder=email  persistent-hint>
               </v-text-field>
             </v-col>
           </v-row>
@@ -56,32 +124,32 @@ async function submit() {
             <v-col   >
               <v-text-field v-model="password1" :append-inner-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
                 @click:append-inner="showPass = !showPass"   :type="showPass ? 'text' : 'password'" 
-                :rules="pwRules"  label="Password" placeholder="******"  
+                label="Password" placeholder="******"  
                 hint="Leave blank if you don't want to change" persistent-hint>
               </v-text-field>
             </v-col>
             <v-col    >
               <v-text-field v-model="password2" :append-inner-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
                 @click:append-inner="() => (showPass = !showPass)" :type="showPass ? 'text' : 'password'"
-                :rules="pwConfirmRules" label="Confirm password" placeholder="******"
+                label="Confirm password" placeholder="******"
                  hint="Leave blank if you don't want to change" persistent-hint>
               </v-text-field>
             </v-col>
           </v-row>
           
           <v-row >
-            <v-col>
+            <v-col align="right">
               <v-chip variant="outlined">Preferred distance units</v-chip>
             </v-col>
             <v-col>
-              <v-radio-group inline v-model="distance">
+              <v-radio-group inline v-model="units">
                 <v-radio label=" km " value="k"></v-radio>
                 <v-radio label="miles" value="m"></v-radio>
               </v-radio-group>
             </v-col>
           </v-row>
           <v-row >
-            <v-col>
+            <v-col align="right">
               <v-chip variant="outlined">Show amount of climbing in listings</v-chip>
             </v-col>
             <v-col>
@@ -92,7 +160,7 @@ async function submit() {
             </v-col>
           </v-row>
           <v-row >
-            <v-col>
+            <v-col align="right">
               <v-chip variant="outlined">Notify me when a new ride is posted</v-chip>
             </v-col>
             <v-col>
@@ -105,7 +173,7 @@ async function submit() {
   
           <v-row >
             <v-col>
-              <v-btn color="blue"  variant="outlined"  class="mt-2">    Cancel       </v-btn>
+              <v-btn color="blue"  variant="outlined" @click="cancel()" class="mt-2">    Cancel       </v-btn>
             </v-col>
             <v-col>
               <v-btn color="blue" type="submit"  class="mt-2">   Update your account   </v-btn>
@@ -113,7 +181,8 @@ async function submit() {
           </v-row>
         </v-form>
       </v-card-text>
-    </v-container>
+    </v-card>
+  </div>
 
   </template>
   <style scoped>

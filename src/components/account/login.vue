@@ -63,6 +63,7 @@ async function submit() {
                   return;
                 }
                 emit('loggedIn',user);
+                return;
 
             } else {
               Swal.fire({
@@ -102,8 +103,8 @@ function forgot() {
 </script>
 
 <template>
-  <v-dialog  activator="parent" width="300">
-  <v-card>
+  <div class="d-flex align-center flex-column">
+  <v-card  width="400">
     <v-card-title class="headline black" primary-title>
       Sign in to TCC RideHub
     </v-card-title>
@@ -140,8 +141,8 @@ function forgot() {
       </v-form>
     </v-card-text>
   </v-card>
-  
-</v-dialog>
+  </div>
+<!-- </v-dialog> -->
 
 </template>
 

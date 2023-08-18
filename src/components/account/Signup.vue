@@ -78,9 +78,7 @@ function cancel() {
         <v-btn color="blue" variant="outlined" @click="cancel()" block class="mt-2">   Cancel    </v-btn>
       </v-form>
     </v-card-text>
-    <!-- <v-card-actions class="pa-5">
-        <v-btn block class="mt-2"  type="submit" @click="submit()" color="blue">Submit</v-btn>
-    </v-card-actions> -->
+
   </v-card>
 </v-dialog>
 </template>
