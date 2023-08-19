@@ -2,14 +2,11 @@
 import { ref } from 'vue'
 import {emailRules} from '../../utils/rules'
 import { myFetch } from '../fetch'
-import Swal from 'sweetalert2'
+import  { Alert} from '../alert'
 
 const passDialog = ref(false)
 const passForm = ref();
 const email = ref('');
-const creds = ref('');
-// const pwReqDone = ref(false);
-// const pwMessage = ref();
 const emit = defineEmits(['donePass'])
 
 
@@ -19,16 +16,8 @@ async function submit() {
     //creds.value = email.value;
     myFetch('ForgetPassword',email.value,true)
     .then((response) => {
-      
-        Swal.fire({
-                    title: 'Registration',
-                    text: response,
-                    icon: 'info',
-                    confirmButtonText: 'OK'
-                  }).then();
-    
+        Alert('Registration',response,'info','OK');
         emit('donePass');
-          
     })
   }
   
@@ -51,8 +40,6 @@ function cancel() {
         </v-text-field>
 
         <v-btn color="blue" type="submit" block class="mt-2">    Request new password    </v-btn>
-
-        <!-- <v-alert closable v-model= pwReqDone  type="info" :text="pwMessage"/> -->
         <v-btn color="blue" variant="outlined" @click="cancel()" block class="mt-2">   Cancel    </v-btn>
        
       </v-form>

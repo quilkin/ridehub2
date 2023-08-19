@@ -3,7 +3,7 @@ import { ref, onBeforeMount } from 'vue'
 
 import {nameRules,pwRules,emailRules} from '../../utils/rules'
 import { myFetch } from '../fetch'
-import Swal from 'sweetalert2'
+import  { Alert} from '../alert'
 
 const signupDialog = ref(false)
 
@@ -39,12 +39,7 @@ async function submit() {
     
     myFetch('Signup',creds.value,true)
       .then((response) => {
-        Swal.fire({
-                    title: 'Registration',
-                    text: response,
-                    icon: 'info',
-                    confirmButtonText: 'OK'
-                  }).then();
+        Alert('Registration',response,'info','OK');
         signupDialog.value = false;
         emit('doneSignUp');
       })

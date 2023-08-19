@@ -1,4 +1,4 @@
-import Swal from 'sweetalert2'
+import  { Alert,CloseAlert } from './alert'
 
 function quilkinUrlBase() {
 
@@ -22,13 +22,7 @@ export async function myFetch(url : String, data : Object, waitDlg : Boolean)  {
         body: bodyData
     }
     if (waitDlg) {
-      Swal.fire({
-        title: 'Loading',
-        text: 'Please wait...',
-        icon: 'info',
-        width: '300px',
-        showConfirmButton: false
-      }).then();
+      Alert('Loading','Please wait...','info','');
     }
 
     const fullUrl = quilkinUrlBase() + url;
@@ -55,7 +49,7 @@ export async function myFetch(url : String, data : Object, waitDlg : Boolean)  {
     try {
       res = await fetch(fullUrl, options);
       if (res.ok) {
-        Swal.close();
+        CloseAlert();
         return res.json();
       }
       else {
@@ -67,13 +61,8 @@ export async function myFetch(url : String, data : Object, waitDlg : Boolean)  {
 
       err = error;
     }
-    Swal.close();
-    Swal.fire({
-      title: 'Web error',
-      text: err,
-      icon: 'error',
-      confirmButtonText: 'OK'
-    }).then();
+    CloseAlert();
+    Alert('Web error',err,'error','OK')
     return null;
  
   }

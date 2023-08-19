@@ -7,10 +7,6 @@ import RideList from './components/ridelist.vue'
 
 const currentTab = ref('account');
 const currentUser = ref(new User);
-//const accountTab = ref();
-// const setAccountView = () => {
-//   accountTab.value.setTabView(currentUser.value.role > 0);
-// }
 
 function switchTab(tab: string) {
   currentTab.value = tab;
@@ -28,9 +24,6 @@ function doneLogin(user : User) {
   switchTab('calendar');
  
 }
-// function switchedToAccountTab() {
-//   setAccountView();
-// }
 
 </script>
 
@@ -92,5 +85,4 @@ function doneLogin(user : User) {
       </v-window>
     <!-- </v-card-text> -->
   </v-sheet>
-  <!-- <notifications position="top center" duration="-1"/> -->
 </template>

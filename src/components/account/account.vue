@@ -2,9 +2,9 @@
 <script setup lang="ts">
 
 import { ref, onBeforeMount, onUpdated } from 'vue'
-import {nameRules,pwRules,emailRules} from '../../utils/rules'
+import {nameRules, emailRules} from '../../utils/rules'
 import { myFetch } from '../fetch'
-import Swal from 'sweetalert2'
+import  { Alert} from '../alert'
 import { User } from '../../utils/user'
 
 const userName = ref('');
@@ -14,7 +14,6 @@ const password2 = ref('');
 const showPass = ref(false);
 const accountDialog = ref(false)
 const accountForm = ref();
-//const creds = ref();
 const units = ref('k')
 const climbing = ref('y')
 const notify = ref('y')
@@ -37,21 +36,17 @@ onBeforeMount(() => {
 
   })
 
-const pwConfirmRules = [
-  (value: string) => {
-    if (password1.value === value) return true;
-    return 'passwords do not match.'
-  },
-];
 async function submit() {
   if (accountForm.value != null) {
   const {valid} = await accountForm.value.validate()
 
   if (valid) {
     let creds  = { 
-      name: userName.value,
+      id: props.user?.id,
+      // only send user and email if they have been changed
+      name: props.user?.name === userName.value? '':userName.value,
+      email: props.user?.email === email.value? '' : email.value,
       pw: password1.value,
-      email: email.value,
       units: units.value,
       climbs: climbing.value === 'y'? 1:0,
       notifications: notify.value === 'y'? 1:0
@@ -60,34 +55,16 @@ async function submit() {
     .then((response) => {
       if (response != null) {
         if (response == 'OK') {
-          Swal.fire({
-                      title: 'Registration',
-                      text: "Your details have been saved",
-                      icon: 'info',
-                      confirmButtonText: 'OK'
-                    }).then();
-      
+          Alert('Registration', "Your details have been saved",'info','OK');
           emit('doneAccount');
         }
         else {
-          Swal.fire({
-                      title: 'Registration',
-                      text: response,
-                      icon: 'error',
-                      confirmButtonText: 'OK'
-                    }).then();
-
+          Alert('Registration',response,'error','OK');
         }
       }
       else {
-        Swal.fire({
-                      title: 'Update unsuccessful',
-                      text: 'Could not contact server',
-                      icon: 'error',
-                      confirmButtonText: 'OK'
-                    }).then();
+        Alert( 'Update unsuccessful','Could not contact server','error','OK');
       }
-            
     })
   }
 }
@@ -100,8 +77,7 @@ function cancel() {
 
 <template>
     
-    <div class="d-flex align-center flex-column">
-  <!-- <v-dialog v-model="accountDialog" activator="parent" width="600"> -->
+  <div class="d-flex align-center flex-column">
    <v-card  width="600">
       <v-card-title class="headline black" primary-title>
         Your RideHub account
@@ -111,12 +87,12 @@ function cancel() {
           <v-row >
             <v-col   >
               <v-text-field v-model="userName"  :rules="nameRules"  label="Username"
-               :placeholder=userName  persistent-hint>
+               :placeholder=userName >
               </v-text-field>
             </v-col>
             <v-col   >
               <v-text-field v-model="email"     :rules="emailRules" label="Email"
-               :placeholder=email  persistent-hint>
+               :placeholder=email >
               </v-text-field>
             </v-col>
           </v-row>

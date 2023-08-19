@@ -1,27 +1,16 @@
 <script setup lang="ts">
-import { ref, onBeforeMount, inject } from 'vue'
+import { ref, onBeforeMount} from 'vue'
 // @ts-ignore
-import {serverPost} from '../server.vue'
 import {nameRules,pwRules} from '../../utils/rules'
 import { User } from '../../utils/user'
 import { myFetch } from '../fetch'
-import Swal from 'sweetalert2'
+import  { Alert} from '../alert'
 
 const loginForm = ref();
 const userOrEmail = ref('');
 const password = ref('');
 const showPass = ref(false);
 const remember = ref(false);
-//const register = ref(false);
-
-const creds = ref();
-//const badCreds = ref(false);
-
-// const fetching = ref (false);
-// const myChildFetch = ref();
-// const callFetch = () => {
-//   myChildFetch.value.myFetch()
-// }
 
 const emit = defineEmits(['loggedIn','signUp','forgotPass','guestVisit'])
 
@@ -45,44 +34,29 @@ async function submit() {
         window.localStorage.password = pass;
       }
     console.log(username + ' ' + pass);
-    creds.value = { name: username, pw: pass, email: "", code: 0 };
+    let creds = { name: username, pw: pass, email: "", code: 0 };
     
-    myFetch('Login',creds.value,true)
+    myFetch('Login',creds,true)
       .then((response) => {
         console.log('response: ' + response);
           const user : User = response;
           if (user != null) {
             if (user.id > 0) {
                 if (user.role === 0) {
-                  Swal.fire({
-                    title: 'Registration',
-                    text: 'You need to reply to your email to complete registration',
-                    icon: 'info',
-                    confirmButtonText: 'OK'
-                  }).then();
+                  Alert('Registration','You need to reply to your email to complete registration','info','OK')
                   return;
                 }
                 emit('loggedIn',user);
                 return;
 
             } else {
-              Swal.fire({
-                    title: 'Login unsuccessful',
-                    text: 'Username or password incorrect',
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                  }).then();
-                  emit('loggedIn',null);
-                return;
+              Alert('Login unsuccessful','Username or password incorrect','error', 'OK')
+              emit('loggedIn',null);
+              return;
             }
           }
-          Swal.fire({
-                    title: 'Login unsuccessful',
-                    text: 'Could not contact server',
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                  }).then();
-                  emit('loggedIn',null);
+          Alert('Login unsuccessful','Could not contact server','error','OK');
+          emit('loggedIn',null);
       })
   }
 }
@@ -118,22 +92,13 @@ function forgot() {
           :rules="pwRules"  label="Password">
         </v-text-field>
 
-        <!-- <v-alert closable v-model = register  type="info"  text="You need to reply to your email to complete registration"/>
-        <v-alert closable v-model = badCreds  type="error" text="Username or password incorrect"/> -->
-
         <v-checkbox
           v-model="remember"
           label="Remember me"
           value="false"
         ></v-checkbox>
         <v-btn color="blue" type="submit" block class="mt-2">    Sign in     </v-btn>
-        <!-- <fetch v-model="fetching"
-          ref="myChildFetch"
-          :url="'login'"
-          :data = creds
-          :wait-dlg="true"
-          @fetched="fetched"
-        ></fetch> -->
+
         <v-btn color="blue" variant="outlined" @click="signup()" block class="mt-2">   No account? Sign up    </v-btn>
         <v-btn color="blue" variant="outlined" @click="guest()" block class="mt-2">      Cancel / Continue as a guest   </v-btn>
         <v-btn color="blue" variant="outlined" @click="forgot()" block class="mt-2">      Forgot password?   </v-btn>
