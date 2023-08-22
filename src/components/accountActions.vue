@@ -6,9 +6,9 @@ import account from './account/account.vue'
 import reqpass from './account/reqpassword.vue'
 import { User } from '../utils/user'
 
-const props = defineProps({
+const props = defineProps<{
   user : User
-})
+}>()
 
 const status = ref('loggingIn')
 var updated = false;

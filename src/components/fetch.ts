@@ -7,13 +7,10 @@ function quilkinUrlBase() {
 
 }
 
-//export const myFetch = async(url : String, data : Object, waitDlg : Boolean) => {
 export async function myFetch(url : String, data : Object, waitDlg : Boolean)  {
 
-     
-  console.log('data: ' + JSON.stringify(data,null,4));
     const bodyData = JSON.stringify(data);
-    console.log('body: ' +bodyData);
+    //console.log('body: ' +bodyData);
     const options = {
         method: 'POST',
         headers: {

@@ -18,9 +18,9 @@ const units = ref('k')
 const climbing = ref('y')
 const notify = ref('y')
 const emit = defineEmits(['doneAccount'])
-const props = defineProps({
+const props = defineProps<{
   user : User
-})
+}>()
 
 onBeforeMount(() => {
         if (props.user != undefined) {

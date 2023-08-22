@@ -33,19 +33,21 @@ async function submit() {
         window.localStorage.username = username;
         window.localStorage.password = pass;
       }
-    console.log(username + ' ' + pass);
+    //console.log(username + ' ' + pass);
     let creds = { name: username, pw: pass, email: "", code: 0 };
     
     myFetch('Login',creds,true)
       .then((response) => {
-        console.log('response: ' + response);
+        
           const user : User = response;
           if (user != null) {
+            
             if (user.id > 0) {
                 if (user.role === 0) {
                   Alert('Registration','You need to reply to your email to complete registration','info','OK')
                   return;
                 }
+                console.log('user: ' + user.name);
                 emit('loggedIn',user);
                 return;
 

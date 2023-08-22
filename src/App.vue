@@ -6,7 +6,8 @@ import { User } from './utils/user'
 import RideList from './components/ridelist.vue'
 
 const currentTab = ref('account');
-const currentUser = ref(new User);
+const currentUser = ref(new User());
+const ridesDate = ref(new Date());
 
 function switchTab(tab: string) {
   currentTab.value = tab;
@@ -49,7 +50,7 @@ function doneLogin(user : User) {
         <v-window-item value="calendar">
           <v-container   height="100%">
             <v-row no-gutters>
-              <v-col>    <RideList></RideList>   </v-col>
+              <v-col>    <RideList :date = "ridesDate" :user="currentUser"></RideList>   </v-col>
               <v-col>    <myMap></myMap>         </v-col>
             </v-row>
           </v-container>
