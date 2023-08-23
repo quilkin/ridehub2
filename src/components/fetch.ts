@@ -25,18 +25,12 @@ export async function myFetch(url : String, data : Object, waitDlg : Boolean)  {
     const fullUrl = quilkinUrlBase() + url;
     // fetch(fullUrl, options)
     //   .then(res=>res.json()).then((response) => {
-    //       Swal.close();
+    //     CloseAlert();
     //       return response;
     //       })
     //   .catch((error) => {
-    //       Swal.close();
-    //       Swal.fire({
-    //         title: 'Web error',
-    //         text: error.message,
-    //         icon: 'error',
-    //         width: '300px',
-    //         confirmButtonText: 'OK'
-    //       }).then();
+    //     CloseAlert();
+    //     Alert('Web error',error,'error','OK')
     //       return null;
     //     });
     //   }
@@ -47,7 +41,7 @@ export async function myFetch(url : String, data : Object, waitDlg : Boolean)  {
       res = await fetch(fullUrl, options);
       if (res.ok) {
         CloseAlert();
-        return res.json();
+        return await res.json();
       }
       else {
         err = res.statusText;

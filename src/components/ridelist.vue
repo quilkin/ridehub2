@@ -49,12 +49,25 @@ var alreadyRidingDest ='', alreadyRidingDate=0,
 var numRiders: Number[];
 
 onBeforeMount(async() => {
+  initialiseArrays();
   await getRides();
 });
 onUpdated(async() => {
+  initialiseArrays(); 
   await getRides();
 });
 
+function initialiseArrays() {
+
+  pp.value = [] as string[][];
+  rs.value = [] as string[][];
+  participants.value = [] as string[];
+  reserves.value = [] as string[];
+  destination.value = [] as string[];
+  distanceStr.value = [] as string[];
+  climbingStr.value = [] as string[];
+  joinButton.value = [] as string[];
+}
 async function getRides() {
   console.log('getRides')
   var intdays = Dates.toIntDays(props.date);
@@ -62,6 +75,7 @@ async function getRides() {
     myFetch("GetRidesForDate",intdays,true)
       .then( (response) => {
         rides.value = response;
+        console.log('got rides');
         if (rides.value.length === 0) {
             // $('#ridelist').empty();  // this will also remove any handlers
             Alert( Dates.dateString(props.date),'No rides found for 60 days','info','OK');
@@ -72,16 +86,16 @@ async function getRides() {
         });
         GetParticipants(rideIDs);
       })
+     
 };
+
 function GetParticipants(rideIDs : number[]) {
-        pp.value = [] as string[][];
-        rs.value = [] as string[][];
-        participants.value = [] as string[];
-        reserves.value = [] as string[];
+
         numRiders = [];
   
         myFetch("GetParticipants", rideIDs, true)
           .then ((response) => {
+            console.log('got participants');
             for (let index in rideIDs)
             {
               // get a list of all participants and reserves for the ride, split into two lists
@@ -114,9 +128,11 @@ function GetParticipants(rideIDs : number[]) {
             // all ready now to show the rides list??
             createRideList();
         });
+
 }
 
  function createRideList() {
+    console.log('createRideList');
   // initialise checks for invalid entries
     alreadyRidingDest = '';
     alreadyReservedDest = '';
@@ -141,10 +157,7 @@ function GetParticipants(rideIDs : number[]) {
         console.log(err.message);
       }
     };
-    destination.value = [] as string[];
-    distanceStr.value = [] as string[];
-    climbingStr.value = [] as string[];
-    joinButton.value = [] as string[];
+
 
     rides.value.forEach((ride,index) => {
       destination.value[index] = "dest todo";
@@ -225,34 +238,33 @@ function testClick(data : String) {
 <v-list lines="three"  density="compact">
     <v-list-item v-for="(item, i) in rides" :key="i" >
       <v-row  no-gutters>
-        <v-col>
+        <!-- <v-col>
           <v-list-item-title v-text="item.time"></v-list-item-title>
+        </v-col> -->
+        <v-col cols="1">
+          <small>{{ item.time }}</small> 
         </v-col>
-
-        <v-col>
+        <v-col cols="3">
           <v-btn variant='tonal' density="compact" @click="testClick(item.meetingAt )">
-            <!-- {{ destination[i]  }} -->
-            dest
+            {{ destination[i]  }}
           </v-btn>
         </v-col>
-        <v-col>
-          <small>dist</small>
-          <!-- <small>{{ distanceStr[i] }}</small> -->
+        <v-col cols="1">
+          <small>{{ distanceStr[i] }}</small> 
         </v-col>
-        <v-col>
-          <small>climb</small>
-          <!-- <small>{{ climbingStr[i] }}</small> -->
+        <v-col cols="1">
+          <small>{{ climbingStr[i] }}</small>
         </v-col>
-        <v-col>
+        <v-col cols="2">
           <v-list-item-title v-text="item.leaderName"></v-list-item-title>
         </v-col>
-        <v-col>
+        <v-col cols="1">
           <v-btn variant='tonal' size="small" @click="testClick(item.meetingAt + 'B')">
-            join
-            <!-- {{ joinButton[i] }} -->
+            {{ joinButton[i] }} 
           </v-btn>
         </v-col>
-        <v-col>
+        <v-spacer></v-spacer>
+        <v-col  cols="2">
           <v-btn variant='tonal' size="small" @click="testClick(item.meetingAt + 'B')">
             Rider List
           </v-btn>
