@@ -1,10 +1,12 @@
 <script setup  lang="ts">
 import { ref, reactive, onBeforeMount, onUpdated, type Ref } from 'vue'
 import { myFetch } from './fetch'
-import  Dates  from '../utils/timesdates'
+import  TimesDates  from '../utils/timesdates'
 import { Ride } from '../utils/ride'
 import  { Alert} from './alert'
 import { User } from '../utils/user'
+import Routes  from '../utils/route'
+import Route  from '../utils/route'
 
 const props = defineProps<{
   date : Date
@@ -35,6 +37,7 @@ const rs= ref() as Ref<string[][]>;
 const joinButton = ref() as Ref<string[]>;
 const distanceStr = ref() as Ref<string[]>;
 const climbingStr = ref() as Ref<string[]>;
+const climbingColour = ref() as Ref<string[]>;
 const destination = ref() as Ref<string[]>;
 
 
@@ -66,11 +69,12 @@ function initialiseArrays() {
   destination.value = [] as string[];
   distanceStr.value = [] as string[];
   climbingStr.value = [] as string[];
+  climbingColour.value = [] as string[];
   joinButton.value = [] as string[];
 }
 async function getRides() {
   console.log('getRides')
-  var intdays = Dates.toIntDays(props.date);
+  var intdays = TimesDates.toIntDays(props.date);
   var rideIDs: number[] = [];
     myFetch("GetRidesForDate",intdays,true)
       .then( (response) => {
@@ -78,7 +82,7 @@ async function getRides() {
         console.log('got rides');
         if (rides.value.length === 0) {
             // $('#ridelist').empty();  // this will also remove any handlers
-            Alert( Dates.dateString(props.date),'No rides found for 60 days','info','OK');
+            Alert( TimesDates.dateString(props.date),'No rides found for 60 days','info','OK');
             return null;
         }
         rides.value.forEach((ride) => {
@@ -160,9 +164,14 @@ function GetParticipants(rideIDs : number[]) {
 
 
     rides.value.forEach((ride,index) => {
-      destination.value[index] = "dest todo";
-      distanceStr.value[index] = "xx km";
-      climbingStr.value[index] = "mm m ";
+      const route  = Routes.findRoute(ride.routeID);
+      if (route != null)
+      {
+        destination.value[index] = route?.dest;
+        distanceStr.value[index] = Routes.distanceStr(route,props.user.units);
+        climbingStr.value[index] = Routes.climbingStr(route,props.user.units);
+        climbingColour.value[index] = Routes.climbingColour(route,props.user.units);
+      }
     });
 
     // now see if this rider is already booked on a  ride for this date
@@ -238,22 +247,19 @@ function testClick(data : String) {
 <v-list lines="three"  density="compact">
     <v-list-item v-for="(item, i) in rides" :key="i" >
       <v-row  no-gutters>
-        <!-- <v-col>
-          <v-list-item-title v-text="item.time"></v-list-item-title>
-        </v-col> -->
         <v-col cols="1">
-          <small>{{ item.time }}</small> 
+          <small>{{ TimesDates.fromIntTime( item.time) }}</small> 
         </v-col>
         <v-col cols="3">
-          <v-btn variant='tonal' density="compact" @click="testClick(item.meetingAt )">
-            {{ destination[i]  }}
+          <v-btn variant='tonal' density="compact"  class="ellipsis" @click="testClick(item.meetingAt )">
+            <span class="text-truncate" style="max-width:100px" >{{ destination[i]  }}</span>
           </v-btn>
         </v-col>
         <v-col cols="1">
           <small>{{ distanceStr[i] }}</small> 
         </v-col>
         <v-col cols="1">
-          <small>{{ climbingStr[i] }}</small>
+          <small v-bind:style="{'color': climbingColour[i]}"><b>&uarr;</b>{{ climbingStr[i] }}<b>&darr;</b></small>
         </v-col>
         <v-col cols="2">
           <v-list-item-title v-text="item.leaderName"></v-list-item-title>
@@ -275,3 +281,10 @@ function testClick(data : String) {
     </v-list-item>
   </v-list>
 </template>
+
+<!-- <style scoped>
+small.climbColour {
+  color: v-bind('climbingColour[i]');
+  /* color: red; */
+}
+</style> -->

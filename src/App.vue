@@ -1,18 +1,22 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref , type Ref } from 'vue'
 import accountActions from './components/accountActions.vue'
 import myMap from './components/map.vue'
 import { User } from './utils/user'
+import { myFetch } from './components/fetch'
 import RideList from './components/ridelist.vue'
+import Routes  from './utils/route'
+
 
 const currentTab = ref('account');
 const currentUser = ref(new User());
 const ridesDate = ref(new Date());
 
+
 function switchTab(tab: string) {
   currentTab.value = tab;
 }
-function doneLogin(user : User) {
+async function doneLogin(user : User) {
   if (user===null)
   {
     console.log("guest user");
@@ -22,9 +26,12 @@ function doneLogin(user : User) {
     console.log("login by " + user.email);
     currentUser.value = user;
   }
+  await Routes.getRouteSummaries();
+
   switchTab('calendar');
  
 }
+
 
 </script>
 
