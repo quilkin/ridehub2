@@ -17,7 +17,8 @@ const routes = ref() as Ref<Route[]>;
 const Routes = {
     getRouteSummaries: async function()
     {
-    myFetch("GetRoutes",0, true)
+        console.log('getting route summaries');
+        myFetch("GetRoutes",0, true)
         .then ((response) => {
             routes.value = response;
             if (routes.value.length === 0) {
@@ -59,30 +60,22 @@ const Routes = {
             climbing = route.climbing;
             if (climbing ===0)
                 return '';
-            // if (route.distance > 0) {
-            //     var climbRatio = route.climbing / route.distance;
-            //     if (climbRatio < 12)
-            //         style = '<span style="color:green; ';
-            //     else if (climbRatio > 17)
-            //         style = '<span style="color:red; ';
-            // }
             if (userUnits === 'm') {
                 units = 'ft';
                 climbing = Math.round(climbing * 3.3);
             }
-            //var climbingStr = '&uarr;' + climbing + units + '&darr;';
             var climbingStr =  climbing + units ;
             return climbingStr;
         }
         return '';
     },
-    climbingColour: function(route : Route, userUnits : string) {
+    climbingColour: function(route : Route) {
         var colour = 'orange';
         var climbing = 0;
         if (route.climbing !== undefined) {
             climbing = route.climbing;
             if (climbing ===0)
-                return '';
+                return 'white';
             if (route.distance > 0) {
                 var climbRatio = route.climbing / route.distance;
                 if (climbRatio < 12)
@@ -92,7 +85,7 @@ const Routes = {
             }
             return colour;
         }
-        return '';
+        return 'white';
     }
 }
 export default Routes;

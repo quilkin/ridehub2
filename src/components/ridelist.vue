@@ -39,7 +39,7 @@ const distanceStr = ref() as Ref<string[]>;
 const climbingStr = ref() as Ref<string[]>;
 const climbingColour = ref() as Ref<string[]>;
 const destination = ref() as Ref<string[]>;
-
+//const numRiders = ref() as Ref<number[]>;
 
 // curently chosen ride from the list, used for getting participants
 var currentIndex = 0;
@@ -49,7 +49,7 @@ var alreadyRidingDest ='', alreadyRidingDate=0,
     alreadyLeadingDest='', alreadyLeadingDate=0;
 
 // number of signed-up riders for each ride
-var numRiders: Number[];
+var numRiders: number[];
 
 onBeforeMount(async() => {
   initialiseArrays();
@@ -71,6 +71,7 @@ function initialiseArrays() {
   climbingStr.value = [] as string[];
   climbingColour.value = [] as string[];
   joinButton.value = [] as string[];
+  numRiders = [] as number[];
 }
 async function getRides() {
   console.log('getRides')
@@ -95,7 +96,7 @@ async function getRides() {
 
 function GetParticipants(rideIDs : number[]) {
 
-        numRiders = [];
+
   
         myFetch("GetParticipants", rideIDs, true)
           .then ((response) => {
@@ -147,7 +148,6 @@ function GetParticipants(rideIDs : number[]) {
 
  // split participant and reserve lists into arrays for each ride
 
-    //$.each(rides, function (index, ride) {
     for (let index in rides.value) {
       try {
           if (participants.value.length > 0)
@@ -170,7 +170,7 @@ function GetParticipants(rideIDs : number[]) {
         destination.value[index] = route?.dest;
         distanceStr.value[index] = Routes.distanceStr(route,props.user.units);
         climbingStr.value[index] = Routes.climbingStr(route,props.user.units);
-        climbingColour.value[index] = Routes.climbingColour(route,props.user.units);
+        climbingColour.value[index] = Routes.climbingColour(route);
       }
     });
 
@@ -240,18 +240,55 @@ function GetParticipants(rideIDs : number[]) {
 function testClick(data : String) {
   alert('Item: ' + data)
 };
+var prevDate = 'x';
+var thisDate = '';
+function newDateReqd(date : number) {
+  thisDate = TimesDates.fromIntDays(date);
+  if (thisDate != prevDate) {
+    prevDate = thisDate;
+    return true;
+  }
+  return false;
+}
+function rideDateString(date : number) {
+  return TimesDates.fromIntDays(date);
+}
+function riderList(index : number) {
+    
+    var popupContent;
+    var participantsWithCommas = participants.value[index].replace(/ /g, ", ");
+    var ride : Ride = rides.value[index];
+    var popupTitle = destination.value[index] + ": " + '(Leader: ' + ride.leaderName + '), ';
+    var spacesLeft = ride.groupSize - numRiders[index];
+    var spacesLeftStr = "Riders (" + spacesLeft + " spaces left):";
+    if (reserves.value[index].length > 4) {
+        popupTitle += participantsWithCommas + " (full)";
+        popupContent = 'Reserves: ' + reserves.value[index];
+    }
+    else if (participantsWithCommas.length < 4) {
+        popupTitle += 'Riders: ';
+        popupContent = 'none (yet)';
+    }
+    else {
+        popupTitle += spacesLeftStr;
+        popupContent = participantsWithCommas;
+    }
+    Alert(popupTitle,popupContent,'info','OK')
+
+}
 
 </script>
 
 <template>
 <v-list lines="three"  density="compact">
     <v-list-item v-for="(item, i) in rides" :key="i" >
+      <v-list-item-title v-if="newDateReqd(item.date)" style="background-color:rgb(46, 195, 245);" >{{rideDateString(item.date)}}</v-list-item-title>
       <v-row  no-gutters>
         <v-col cols="1">
           <small>{{ TimesDates.fromIntTime( item.time) }}</small> 
         </v-col>
-        <v-col cols="3">
-          <v-btn variant='tonal' density="compact"  class="ellipsis" @click="testClick(item.meetingAt )">
+        <v-col cols="3.5">
+          <v-btn variant='tonal' density="compact"  @click="testClick(item.meetingAt )">
             <span class="text-truncate" style="max-width:100px" >{{ destination[i]  }}</span>
           </v-btn>
         </v-col>
@@ -259,9 +296,9 @@ function testClick(data : String) {
           <small>{{ distanceStr[i] }}</small> 
         </v-col>
         <v-col cols="1">
-          <small v-bind:style="{'color': climbingColour[i]}"><b>&uarr;</b>{{ climbingStr[i] }}<b>&darr;</b></small>
+          <small v-bind:style="{'color': climbingColour[i]}"><b>&uarr;&darr;</b>{{ climbingStr[i] }}</small>
         </v-col>
-        <v-col cols="2">
+        <v-col cols="2.5">
           <v-list-item-title v-text="item.leaderName"></v-list-item-title>
         </v-col>
         <v-col cols="1">
@@ -269,9 +306,8 @@ function testClick(data : String) {
             {{ joinButton[i] }} 
           </v-btn>
         </v-col>
-        <v-spacer></v-spacer>
         <v-col  cols="2">
-          <v-btn variant='tonal' size="small" @click="testClick(item.meetingAt + 'B')">
+          <v-btn variant='tonal' size="small"  @click="riderList(i)">
             Rider List
           </v-btn>
         </v-col>

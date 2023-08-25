@@ -2,7 +2,9 @@ function pad2(num : number) {
     var s = "00" + num;
     return s.substring(s.length - 2);
 };
-
+function dateString (date : Date) {
+    return date.toDateString();
+};
 const TimesDates = {
 
 
@@ -30,7 +32,12 @@ const TimesDates = {
         var mins = intTime % 60;
         return pad2(hours) + ':' +pad2(mins);
     },
-
+    fromIntDays: function (intdays : number) {
+        // return normal date from number of whole days since 01/01/1970
+        var msecs = intdays * 86400000;
+        var date = new Date(msecs);
+        return dateString(date);
+    },
 }
 
 

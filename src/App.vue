@@ -6,6 +6,7 @@ import { User } from './utils/user'
 import { myFetch } from './components/fetch'
 import RideList from './components/ridelist.vue'
 import Routes  from './utils/route'
+import { myAlert } from './utils/myAlert'
 
 
 const currentTab = ref('account');
@@ -17,6 +18,7 @@ function switchTab(tab: string) {
   currentTab.value = tab;
 }
 async function doneLogin(user : User) {
+  myAlert();
   if (user===null)
   {
     console.log("guest user");
@@ -94,3 +96,10 @@ async function doneLogin(user : User) {
     <!-- </v-card-text> -->
   </v-sheet>
 </template>
+
+<style>
+.v-btn {
+  text-transform: none;
+  padding: 0;
+}
+</style>
