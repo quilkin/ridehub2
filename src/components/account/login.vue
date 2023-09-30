@@ -44,7 +44,7 @@ async function submit() {
             
             if (user.id > 0) {
                 if (user.role === 0) {
-                  Alert('Registration','You need to reply to your email to complete registration','info','OK')
+                  Alert('Registration','You need to reply to your email to complete registration','','info','OK')
                   return;
                 }
                 console.log('user: ' + user.name);
@@ -52,12 +52,12 @@ async function submit() {
                 return;
 
             } else {
-              Alert('Login unsuccessful','Username or password incorrect','error', 'OK')
+              Alert('Login unsuccessful','Username or password incorrect','','error', 'OK')
               emit('loggedIn',null);
               return;
             }
           }
-          Alert('Login unsuccessful','Could not contact server','error','OK');
+          Alert('Login unsuccessful','Could not contact server','','error','OK');
           emit('loggedIn',null);
       })
   }

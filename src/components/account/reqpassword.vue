@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import {emailRules} from '../../utils/rules'
-import { myFetch } from '../fetch'
-import  { Alert} from '../alert'
+import { myFetch } from '../../utils/fetch'
+import  { Alert} from '../../utils/alert'
 
 const passDialog = ref(false)
 const passForm = ref();
@@ -16,7 +16,7 @@ async function submit() {
     //creds.value = email.value;
     myFetch('ForgetPassword',email.value,true)
     .then((response) => {
-        Alert('Registration',response,'info','OK');
+        Alert('Registration',response,'','info','OK');
         emit('donePass');
     })
   }
@@ -49,3 +49,4 @@ function cancel() {
 </template>
 
 
+../../utils/alert

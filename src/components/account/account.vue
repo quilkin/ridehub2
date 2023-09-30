@@ -3,8 +3,8 @@
 
 import { ref, onBeforeMount, onUpdated } from 'vue'
 import {nameRules, emailRules} from '../../utils/rules'
-import { myFetch } from '../fetch'
-import  { Alert} from '../alert'
+import { myFetch } from '../../utils/fetch'
+import  { Alert} from '../../utils/alert'
 import { User } from '../../utils/user'
 
 const userName = ref('');
@@ -55,15 +55,15 @@ async function submit() {
     .then((response) => {
       if (response != null) {
         if (response == 'OK') {
-          Alert('Registration', "Your details have been saved",'info','OK');
+          Alert('Registration', "Your details have been saved",'','info','OK');
           emit('doneAccount');
         }
         else {
-          Alert('Registration',response,'error','OK');
+          Alert('Registration',response,'','error','OK');
         }
       }
       else {
-        Alert( 'Update unsuccessful','Could not contact server','error','OK');
+        Alert( 'Update unsuccessful','Could not contact server','','error','OK');
       }
     })
   }
@@ -163,4 +163,4 @@ function cancel() {
   </template>
   <style scoped>
  
-  </style>
+  </style>../../utils/alert

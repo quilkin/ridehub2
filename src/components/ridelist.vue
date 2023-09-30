@@ -1,17 +1,19 @@
 <script setup  lang="ts">
-import { ref, reactive, onBeforeMount, onUpdated, type Ref } from 'vue'
-import { myFetch } from './fetch'
+import { ref, reactive, onBeforeMount, onBeforeUpdate, type Ref } from 'vue'
+import { myFetch } from '../utils/fetch'
 import  TimesDates  from '../utils/timesdates'
 import { Ride } from '../utils/ride'
-import  { Alert} from './alert'
+import  { Alert} from '../utils/alert'
 import { User } from '../utils/user'
-import Routes  from '../utils/route'
-import Route  from '../utils/route'
+import Routes  from '../utils/routes'
+import {Route}  from '../utils/route'
 
 const props = defineProps<{
   date : Date
   user : User
 }>()
+
+const emit = defineEmits(['showRoute']);
 
 // text for buttons etc
 
@@ -41,6 +43,8 @@ const climbingColour = ref() as Ref<string[]>;
 const destination = ref() as Ref<string[]>;
 //const numRiders = ref() as Ref<number[]>;
 
+    // the latest one to be downloaded from web. Includes URL only, not full gpx
+var currentride : Ride;
 // curently chosen ride from the list, used for getting participants
 var currentIndex = 0;
     // to check that riders don't join two rides on same day
@@ -53,9 +57,10 @@ var numRiders: number[];
 
 onBeforeMount(async() => {
   initialiseArrays();
+  
   await getRides();
 });
-onUpdated(async() => {
+onBeforeUpdate(async() => {
   initialiseArrays(); 
   await getRides();
 });
@@ -74,32 +79,41 @@ function initialiseArrays() {
   numRiders = [] as number[];
 }
 async function getRides() {
-  console.log('getRides')
+
   var intdays = TimesDates.toIntDays(props.date);
   var rideIDs: number[] = [];
-    myFetch("GetRidesForDate",intdays,true)
-      .then( (response) => {
-        rides.value = response;
-        console.log('got rides');
-        if (rides.value.length === 0) {
-            // $('#ridelist').empty();  // this will also remove any handlers
-            Alert( TimesDates.dateString(props.date),'No rides found for 60 days','info','OK');
-            return null;
-        }
-        rides.value.forEach((ride) => {
-            rideIDs.push(ride.rideID);
-        });
-        GetParticipants(rideIDs);
-      })
-     
-};
+  const result = await Routes.getRouteSummaries();
+  console.log('getRoutes: result: '+ result) ;
+  if (result === null) 
+    return;
+  console.log('gettingRides');
+  const response : Ride[]  = await myFetch("GetRidesForDate",intdays,true);
 
-function GetParticipants(rideIDs : number[]) {
+  if (response != null)
+  {
+    rides.value = response;
+    console.log('got rides');
+    if (rides.value.length === 0) {
+        // $('#ridelist').empty();  // this will also remove any handlers
+        Alert( TimesDates.dateString(props.date),'No rides found for 60 days','','info','OK');
+        return null;
+    }
+    rides.value.forEach((ride) => {
+        rideIDs.push(ride.rideID);
+    });
+    GetParticipants(rideIDs);
+  }
+  else
+  {
+      Alert('Unsuccessful','Could not get rides from server','','error','OK');
+  }
+}   
 
 
-  
-        myFetch("GetParticipants", rideIDs, true)
-          .then ((response) => {
+async function GetParticipants(rideIDs : number[]) {
+
+  const response = await myFetch("GetParticipants", rideIDs, true)
+        //  .then ((response) => {
             console.log('got participants');
             for (let index in rideIDs)
             {
@@ -132,7 +146,7 @@ function GetParticipants(rideIDs : number[]) {
 
             // all ready now to show the rides list??
             createRideList();
-        });
+    //    });
 
 }
 
@@ -235,6 +249,9 @@ function GetParticipants(rideIDs : number[]) {
     // // load new map
     // TCCMap.showRoute();
 
+    // show first in list by default
+    viewRoute(0);
+
  }
 
 function testClick(data : String) {
@@ -253,28 +270,113 @@ function newDateReqd(date : number) {
 function rideDateString(date : number) {
   return TimesDates.fromIntDays(date);
 }
+
+async function viewRoute(index : number) {
+  console.log('*****viewRoute');
+  var ride : Ride = rides.value[index];
+  currentride = ride;
+  var route = Routes.findRoute(ride.routeID);
+  if (route === null) {
+    Alert('internal problem','Route not found for this ride','','error','OK');
+    return;
+  }
+  
+  console.log('getting GPX data');
+  const gpxdata  = await myFetch("GetGPXforRoute", route.id, true);
+  if (gpxdata != null) {
+
+      route.url = gpxdata;
+      emit('showRoute',route);
+  }
+
+}
+
+
+
 function riderList(index : number) {
     
-    var popupContent;
+    var riderList;
     var participantsWithCommas = participants.value[index].replace(/ /g, ", ");
     var ride : Ride = rides.value[index];
-    var popupTitle = destination.value[index] + ": " + '(Leader: ' + ride.leaderName + '), ';
+    var popupDest = destination.value[index] + ": " + '(Leader: ' + ride.leaderName + ') ';
     var spacesLeft = ride.groupSize - numRiders[index];
-    var spacesLeftStr = "Riders (" + spacesLeft + " spaces left):";
+    var spacesLeftStr = "Riders (" + spacesLeft + " spaces left): ";
     if (reserves.value[index].length > 4) {
-        popupTitle += participantsWithCommas + " (full)";
-        popupContent = 'Reserves: ' + reserves.value[index];
+        //popupDest += participantsWithCommas + " (full)";
+        riderList = participantsWithCommas + " (full): Reserves: " + reserves.value[index];
     }
     else if (participantsWithCommas.length < 4) {
-        popupTitle += 'Riders: ';
-        popupContent = 'none (yet)';
+        //popupDest += 'Riders: ';
+        riderList = 'No riders (yet)';
     }
     else {
-        popupTitle += spacesLeftStr;
-        popupContent = participantsWithCommas;
+        ///popupTitle += spacesLeftStr;
+        riderList = spacesLeftStr + participantsWithCommas;
     }
-    Alert(popupTitle,popupContent,'info','OK')
+    Alert('',riderList,popupDest,'info','OK')
 
+}
+
+function joinRide(index: number) {
+
+        //     currentride = ride;
+        //     login.Then(function () {
+
+        //         var buttontext = $('#join' + index).text();
+        //         if (buttontext === joinText) {
+        //             if (OK2Join(ride) === true) {
+        //                 rideData.saveParticipant(ride.rideID, login.User());
+        //             }
+        //         }
+        //         else if (buttontext === editRideText) {
+        //             currentIndex = index;
+        //             $('#editRideModal').modal();
+        //         }
+        //         else if (buttontext === reserveText) {
+        //             if (OK2Join(ride) === true) {
+        //                 rideData.saveReserveParticipant(ride.rideID, login.User());
+        //             }
+        //         }
+        //         else if (buttontext === meText) {
+        //             qPopup.Choose2("You are signed up for this ride", "What do you want to do?",
+        //                 "Leave the ride", "Add a guest rider",
+        //                 function (choice) {
+        //                     if (choice == '1')
+        //                         rideData.leaveParticipant(ride.rideID, login.User())
+        //                     else if (choice == '2')
+        //                         rideData.saveGuest(ride.rideID, login.User())
+        //                 },
+        //                 100);
+        //             ;
+        //         }
+        //         else if (buttontext === mePlusText) {
+        //             qPopup.Choose2("You have signed a guest for this ride", "What do you want to do?",
+        //                 "Remove your guest", "Both leave the ride",
+        //                 function (choice) {
+        //                     if (choice == '2') {
+        //                         rideData.leaveBoth(ride.rideID, login.User());
+        //                     }
+        //                     else if (choice == '1') {
+        //                         rideData.leaveGuest(ride.rideID, login.User());
+        //                     }
+        //                 },
+        //                 100);
+        //             ;
+        //         }
+        //         else if (buttontext === leaveReserveText) {
+        //             var reserve = '+' + login.User();
+        //             rideData.leaveParticipant(ride.rideID, reserve);
+        //         }
+        //         // refresh to show new status
+        //         showRideList(rides);
+        //     })
+        // });
+}
+
+function descriptionText(item: { description: string; meetingAt: string })
+{
+  var text = item.description + '....Meeting at: ' + item.meetingAt;
+  return text;
 }
 
 </script>
@@ -288,7 +390,7 @@ function riderList(index : number) {
           <small>{{ TimesDates.fromIntTime( item.time) }}</small> 
         </v-col>
         <v-col cols="3.5">
-          <v-btn variant='tonal' density="compact"  @click="testClick(item.meetingAt )">
+          <v-btn variant='tonal' density="compact"  @click="viewRoute(i)">
             <span class="text-truncate" style="max-width:100px" >{{ destination[i]  }}</span>
           </v-btn>
         </v-col>
@@ -302,7 +404,7 @@ function riderList(index : number) {
           <v-list-item-title v-text="item.leaderName"></v-list-item-title>
         </v-col>
         <v-col cols="1">
-          <v-btn variant='tonal' size="small" @click="testClick(item.meetingAt + 'B')">
+          <v-btn variant='tonal' size="small" @click="joinRide(i)">
             {{ joinButton[i] }} 
           </v-btn>
         </v-col>
@@ -312,8 +414,9 @@ function riderList(index : number) {
           </v-btn>
         </v-col>
       </v-row>
-      <v-list-item-subtitle v-text="item.description"></v-list-item-subtitle>
-      <v-list-item-subtitle v-text="item.meetingAt"></v-list-item-subtitle>
+      <v-list-item-subtitle v-text="descriptionText(item)"></v-list-item-subtitle>
+      
+      <!-- <v-list-item-subtitle v-text="item.meetingAt"></v-list-item-subtitle> -->
     </v-list-item>
   </v-list>
 </template>
@@ -323,4 +426,4 @@ small.climbColour {
   color: v-bind('climbingColour[i]');
   /* color: red; */
 }
-</style> -->
+</style> -->../utils/alert../utils/routes../utils/routes

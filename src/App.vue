@@ -1,37 +1,49 @@
 <script setup lang="ts">
 import { ref , type Ref } from 'vue'
 import accountActions from './components/accountActions.vue'
-import myMap from './components/map.vue'
+import RideMap from './components/ridemap.vue'
+
 import { User } from './utils/user'
-import { myFetch } from './components/fetch'
+import { myFetch } from './utils/fetch'
 import RideList from './components/ridelist.vue'
-import Routes  from './utils/route'
+import { Route }  from './utils/route'
 import { myAlert } from './utils/myAlert'
+//import { MapData } from './utils/mapdata'
 
 
 const currentTab = ref('account');
 const currentUser = ref(new User());
 const ridesDate = ref(new Date());
+const currentRoute = ref(new Route());
+//const mapData = ref(new MapData());
 
 
 function switchTab(tab: string) {
   currentTab.value = tab;
 }
 async function doneLogin(user : User) {
-  myAlert();
+  //myAlert();
   if (user===null)
   {
     console.log("guest user");
     //accountTab.value.setTabView(false);
   }
   else {
-    console.log("login by " + user.email);
+    console.log("login by " + user.name);
     currentUser.value = user;
   }
-  await Routes.getRouteSummaries();
+  //await Routes.getRouteSummaries();
 
   switchTab('calendar');
  
+}
+
+function showRoute(route : Route) {
+    //mapData.value.currentRoute = route;
+    //mapData.value.currentTab = 'calendar';
+    currentRoute.value = route;
+    currentTab.value = 'calendar';
+    console.log('*****showRoute: '+ (route.url.length > 100? 'OK' : 'no route'));
 }
 
 
@@ -54,13 +66,26 @@ async function doneLogin(user : User) {
       <v-tab value="account"><v-icon>mdi-account-edit</v-icon>Account</v-tab>
     </v-tabs>
 
-    <!-- <v-card-text> -->
       <v-window v-model="currentTab">
         <v-window-item value="calendar">
           <v-container   height="100%">
             <v-row no-gutters>
-              <v-col>    <RideList :date = "ridesDate" :user="currentUser"></RideList>   </v-col>
-              <v-col>    <myMap></myMap>         </v-col>
+              <v-col> 
+                <RideList
+                 :date = "ridesDate" 
+                 :user = "currentUser"
+                 @showRoute = "showRoute"
+                 >
+                </RideList>
+              </v-col>
+              <v-col>
+                <RideMap
+                 :route = "currentRoute"
+                 :tab = "currentTab"
+                 :user = "currentUser"
+                ></RideMap>
+
+              </v-col>
             </v-row>
           </v-container>
 
@@ -93,7 +118,7 @@ async function doneLogin(user : User) {
                    
         </v-window-item>
       </v-window>
-    <!-- </v-card-text> -->
+
   </v-sheet>
 </template>
 
@@ -103,3 +128,9 @@ async function doneLogin(user : User) {
   padding: 0;
 }
 </style>
+<style scoped>
+#mapContainer {
+  width: auto;
+  height: 80vh;
+}
+</style>./utils/routes

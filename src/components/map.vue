@@ -25,6 +25,47 @@ onBeforeUnmount(() => {
     }
   })
   
+const Map = {
+  showRoute = async function () {
+
+// will call stage 2 when ready
+
+var currentroute = Route.currentRoute();
+if (currentroute === null) {
+    qPopup.Alert("No route found!");
+    return null;
+}
+if (currentroute.hasGPX === false) {
+
+    TCCMap.showRouteStage2(null, false);
+    return null;
+}
+var gpxdata = currentroute.url;
+if (gpxdata !== null && gpxdata.length > 1000) {
+    // already have it
+    TCCMap.showRouteStage2(gpxdata, true);
+    return null;
+}
+
+
+rideData.Post("GetGPXforRoute", currentroute.id)
+    .then((result) => {
+        gpxdata = result;
+        if (gpxdata.length === 0) {
+            TCCMap.showRouteStage2(null, false);
+            return null;
+        }
+        TCCMap.showRouteStage2(gpxdata, true);
+        currentroute.url = gpxdata;
+        return gpxdata;
+    })
+
+
+
+}
+
+}
+export default Map;
 
 </script>
 <template>
