@@ -3,8 +3,8 @@ import { ref, onBeforeMount} from 'vue'
 // @ts-ignore
 import {nameRules,pwRules} from '../../utils/rules'
 import { User } from '../../utils/user'
-import { myFetch } from '../fetch'
-import  { Alert} from '../alert'
+import { myFetch } from '../../utils/fetch'
+import  { Alert, Message} from '../../utils/alert'
 
 const loginForm = ref();
 const userOrEmail = ref('');
@@ -14,7 +14,8 @@ const remember = ref(false);
 
 const emit = defineEmits(['loggedIn','signUp','forgotPass','guestVisit'])
 
-onBeforeMount(() => {
+onBeforeMount( () => {
+ // Message("login alert");
   if (window.localStorage.username !== undefined && window.localStorage.password !== undefined) {
     if (window.localStorage.username !== 'undefined' && window.localStorage.password !== 'undefined') {
             userOrEmail.value = window.localStorage.username;

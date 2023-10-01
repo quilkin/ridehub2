@@ -5,6 +5,7 @@ import login from './account/login.vue'
 import account from './account/account.vue'
 import reqpass from './account/reqpassword.vue'
 import { User } from '../utils/user'
+import Swal from 'sweetalert2'
 
 const props = defineProps<{
   user : User
@@ -14,6 +15,7 @@ const status = ref('loggingIn')
 var updated = false;
 
 onBeforeMount(() => {
+        
         if (props.user != undefined)
                 status.value =  props.user.role>0 ? 'loggedIn' : 'loggingIn'
   })

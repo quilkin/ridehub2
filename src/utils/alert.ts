@@ -1,6 +1,6 @@
 import Swal, { type SweetAlertIcon } from 'sweetalert2'
 
-export function Alert(
+export async function Alert(
   title: string,
   text: string,
   footer: string,
@@ -9,7 +9,7 @@ export function Alert(
 ) {
   // console.log(title + ' ' + text);
   // return;
-  Swal.fire({
+  await Swal.fire({
     title: title,
     text: text,
     footer: footer,
@@ -25,3 +25,31 @@ export function CloseAlert() {
   Swal.close();
 }
 
+export async function Message(
+  title: string
+
+) {
+   await Swal.fire(title).then();
+}
+export async function YesNo(
+  title: string,
+  yesfunc: (() => void) | undefined 
+
+) {
+    await Swal.fire({
+        title: title,
+        showDenyButton: true,
+        showCancelButton: true,
+        confirmButtonText: 'Yes',
+        denyButtonText: 'No',
+
+      }) .then((result) => {
+        if (result.isConfirmed && yesfunc != undefined) {
+          //Swal.fire('ok', '', 'success').then();
+          yesfunc();
+        } // else if (result.isDenied) {
+        //   Swal.fire('Changes are not saved', '', 'info').then();
+        // }
+
+    })
+}

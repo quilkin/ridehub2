@@ -1,19 +1,21 @@
 <script setup  lang="ts">
-import { ref, reactive, onBeforeMount, onBeforeUpdate, type Ref } from 'vue'
+import { ref, reactive, onBeforeMount, onBeforeUpdate, onMounted, onUpdated, type Ref } from 'vue'
 import { myFetch } from '../utils/fetch'
 import  TimesDates  from '../utils/timesdates'
 import { Ride } from '../utils/ride'
-import  { Alert} from '../utils/alert'
+import  { Alert, Message} from '../utils/alert'
+//import  { YesNo } from '../utils/question'
 import { User } from '../utils/user'
 import Routes  from '../utils/routes'
-import {Route}  from '../utils/route'
+import rideData  from '../utils/ridedata'
+import Swal from 'sweetalert2'
 
 const props = defineProps<{
   date : Date
   user : User
 }>()
 
-const emit = defineEmits(['showRoute']);
+const emit = defineEmits(['showRoute','logIn']);
 
 // text for buttons etc
 
@@ -56,15 +58,33 @@ var alreadyRidingDest ='', alreadyRidingDate=0,
 var numRiders: number[];
 
 onBeforeMount(async() => {
+  console.log('onBeforeMount');
+  //await Message('onBeforeMount test message 1');
   initialiseArrays();
+  //await Message('onBeforeMount test message 2');
+  getRides();
+});
+// onBeforeMount(() => {
+//   Message('test message');
+//   initialiseArrays();
   
-  await getRides();
-});
-onBeforeUpdate(async() => {
-  initialiseArrays(); 
-  await getRides();
-});
+//  // await getRides();
+// });
 
+// onBeforeUpdate(async() => {
+//   console.log('onBeforeUpdate');
+//   await Swal.fire('onBeforeUpdate 1');
+//   initialiseArrays();
+//   await Swal.fire('onBeforeUpdate 2'); 
+//   getRides();
+// });
+
+// onMounted(() => {
+//   createRideList();
+// });
+// onAfterUpdate(() => {
+//   createRideList();
+// });
 function initialiseArrays() {
 
   pp.value = [] as string[][];
@@ -80,32 +100,42 @@ function initialiseArrays() {
 }
 async function getRides() {
 
+  //await Alert( 'test message 1','No rides found for 60 days','','info','OK');
   var intdays = TimesDates.toIntDays(props.date);
   var rideIDs: number[] = [];
-  const result = await Routes.getRouteSummaries();
-  console.log('getRoutes: result: '+ result) ;
-  if (result === null) 
-    return;
-  console.log('gettingRides');
-  const response : Ride[]  = await myFetch("GetRidesForDate",intdays,true);
+  try {
+    const result = await Routes.getRouteSummaries();
+    console.log('getRoutes: result: '+ result) ;
+    if (result === null) 
+      return;
+    //await Alert( 'test message 2','No rides found for 60 days','','info','OK');
+    //return null;
+    console.log('gettingRides');
+    const response : Ride[]  = await myFetch("GetRidesForDate",intdays,true);
 
-  if (response != null)
-  {
-    rides.value = response;
-    console.log('got rides');
-    if (rides.value.length === 0) {
-        // $('#ridelist').empty();  // this will also remove any handlers
-        Alert( TimesDates.dateString(props.date),'No rides found for 60 days','','info','OK');
-        return null;
+    
+    if (response != null)
+    {
+      //await Alert( 'test message 3','No rides found for 60 days','','info','OK');
+      rides.value = response;
+      console.log('got rides');
+      if (rides.value.length === 0) {
+          // $('#ridelist').empty();  // this will also remove any handlers
+          Alert( TimesDates.dateString(props.date),'No rides found for 60 days','','info','OK');
+          return null;
+      }
+      rides.value.forEach((ride) => {
+          rideIDs.push(ride.rideID);
+      });
+      await GetParticipants(rideIDs);
     }
-    rides.value.forEach((ride) => {
-        rideIDs.push(ride.rideID);
-    });
-    GetParticipants(rideIDs);
+    else
+    {
+        Alert('Unsuccessful','Could not get rides from server','','error','OK');
+    }
   }
-  else
-  {
-      Alert('Unsuccessful','Could not get rides from server','','error','OK');
+  catch (err) {
+    Alert('Unsuccessful','Could not get rides from server','','error','OK');
   }
 }   
 
@@ -144,8 +174,8 @@ async function GetParticipants(rideIDs : number[]) {
               numRiders.push(numberOfRiders);
             };
 
-            // all ready now to show the rides list??
-            createRideList();
+            // // all ready now to show the rides list??
+             createRideList();
     //    });
 
 }
@@ -159,6 +189,10 @@ async function GetParticipants(rideIDs : number[]) {
     alreadyRidingDate = 0;
     alreadyReservedDate = 0;
     alreadyLeadingDate = 0;
+   // alert('js test message');
+
+    //Swal.fire('swal test message');
+    Message('createRideList test message');
 
  // split participant and reserve lists into arrays for each ride
 
@@ -241,15 +275,7 @@ async function GetParticipants(rideIDs : number[]) {
         }
         joinButton.value[index] =  joinButtonText;
     });
-    ///$('#rides-tab').tab('show');
-    //showRideList(rides);
 
-    // var route = TCCroutes.findRoute(currentride.routeID);
-    // TCCroutes.SetRoute(route);
-    // // load new map
-    // TCCMap.showRoute();
-
-    // show first in list by default
     viewRoute(0);
 
  }
@@ -317,61 +343,101 @@ function riderList(index : number) {
 
 }
 
-function joinRide(index: number) {
 
-        //     currentride = ride;
-        //     login.Then(function () {
 
-        //         var buttontext = $('#join' + index).text();
-        //         if (buttontext === joinText) {
-        //             if (OK2Join(ride) === true) {
-        //                 rideData.saveParticipant(ride.rideID, login.User());
-        //             }
-        //         }
-        //         else if (buttontext === editRideText) {
-        //             currentIndex = index;
-        //             $('#editRideModal').modal();
-        //         }
-        //         else if (buttontext === reserveText) {
-        //             if (OK2Join(ride) === true) {
-        //                 rideData.saveReserveParticipant(ride.rideID, login.User());
-        //             }
-        //         }
-        //         else if (buttontext === meText) {
-        //             qPopup.Choose2("You are signed up for this ride", "What do you want to do?",
-        //                 "Leave the ride", "Add a guest rider",
-        //                 function (choice) {
-        //                     if (choice == '1')
-        //                         rideData.leaveParticipant(ride.rideID, login.User())
-        //                     else if (choice == '2')
-        //                         rideData.saveGuest(ride.rideID, login.User())
-        //                 },
-        //                 100);
-        //             ;
-        //         }
-        //         else if (buttontext === mePlusText) {
-        //             qPopup.Choose2("You have signed a guest for this ride", "What do you want to do?",
-        //                 "Remove your guest", "Both leave the ride",
-        //                 function (choice) {
-        //                     if (choice == '2') {
-        //                         rideData.leaveBoth(ride.rideID, login.User());
-        //                     }
-        //                     else if (choice == '1') {
-        //                         rideData.leaveGuest(ride.rideID, login.User());
-        //                     }
-        //                 },
-        //                 100);
-        //             ;
-        //         }
-        //         else if (buttontext === leaveReserveText) {
-        //             var reserve = '+' + login.User();
-        //             rideData.leaveParticipant(ride.rideID, reserve);
-        //         }
-        //         // refresh to show new status
-        //         showRideList(rides);
-        //     })
-        // });
+async function joinRide( index: number) {
+  
+  function OK2Join(ride : Ride, rider : string) {
+    //await Message('ok2join  test message')
+        const cannotJoin = ", and cannot join more than one ride each day";
+        if (ride.leaderName === rider) {
+            Message("You cannot join your own ride!!");
+            return false;
+        }
+        else if (alreadyReservedDest.length > 0 && alreadyReservedDate == ride.date) {
+            Message("You are aleady reserved for " + alreadyReservedDest + cannotJoin);
+            return false;
+        }
+        else if (alreadyRidingDest.length > 0 && alreadyRidingDate == ride.date) {
+            Message("You are aleady listed for " + alreadyRidingDest + cannotJoin);
+            return false;
+        }
+        else if (alreadyLeadingDest.length > 0 && alreadyLeadingDate == ride.date) {
+            Message("You are aleady leading " + alreadyLeadingDest + cannotJoin);
+            return false;
+        }
+        return true;
+  };
+  // async function saveParticipant(rideID : number, rider : string) {
+  //       var list = "";
+  //       //await Swal.fire("saveParticipant");
+  //       //Alert('test message','Please wait...','','info','OK');
+  //       await Message('saveParticipant test message')
+
+  //       return null;
+  //   };
+
+  var ride : Ride = rides.value[index];
+  currentride = ride;
+  if (props.user.role === 0)
+  {
+    // not logged in, not allowed to join a ride
+    emit('logIn');
+    return;
+  }
+  const rider = props.user.name;
+  const buttontext = joinButton.value[index];
+
+  if (buttontext === joinText) {
+      if (OK2Join(ride, rider)) {
+        
+          await rideData.saveParticipant(ride.rideID, rider);
+      }
+  }
+                // else if (buttontext === editRideText) {
+                //     currentIndex = index;
+                //     $('#editRideModal').modal();
+                // }
+                // else if (buttontext === reserveText) {
+                //     if (OK2Join(ride) === true) {
+                //         rideData.saveReserveParticipant(ride.rideID, login.User());
+                //     }
+                // }
+                // else if (buttontext === meText) {
+                //     qPopup.Choose2("You are signed up for this ride", "What do you want to do?",
+                //         "Leave the ride", "Add a guest rider",
+                //         function (choice) {
+                //             if (choice == '1')
+                //                 rideData.leaveParticipant(ride.rideID, login.User())
+                //             else if (choice == '2')
+                //                 rideData.saveGuest(ride.rideID, login.User())
+                //         },
+                //         100);
+                //     ;
+                // }
+                // else if (buttontext === mePlusText) {
+                //     qPopup.Choose2("You have signed a guest for this ride", "What do you want to do?",
+                //         "Remove your guest", "Both leave the ride",
+                //         function (choice) {
+                //             if (choice == '2') {
+                //                 rideData.leaveBoth(ride.rideID, login.User());
+                //             }
+                //             else if (choice == '1') {
+                //                 rideData.leaveGuest(ride.rideID, login.User());
+                //             }
+                //         },
+                //         100);
+                //     ;
+                // }
+                // else if (buttontext === leaveReserveText) {
+                //     var reserve = '+' + login.User();
+                //     rideData.leaveParticipant(ride.rideID, reserve);
+                // }
+                // refresh to show new status
+                //showRideList(rides);
+    createRideList();
 }
+
 
 function descriptionText(item: { description: string; meetingAt: string })
 {

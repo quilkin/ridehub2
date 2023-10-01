@@ -2,11 +2,13 @@
 import {  ref, onMounted,onBeforeMount, onUpdated} from 'vue'
 import type { Ref } from 'vue'
 import { Line } from 'vue-chartjs'
-import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale, type ChartData, type ChartOptions  } from 'chart.js'
+import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale, Filler, type ChartData, type ChartOptions } from 'chart.js'
+import type { Chart} from 'chart.js'
+import { getRelativePosition } from 'chart.js/helpers';
 
 import "leaflet/dist/leaflet.css";
 import * as L from 'leaflet';
-import 'leaflet-gpx';
+import 'leaflet-gpx-coords';
 import 'leaflet-polylineDecorator';
 import { Alert} from '../utils/alert'
 import type { LeafletEvent } from 'leaflet';
@@ -19,6 +21,11 @@ const props = defineProps<{
 
 }>()
 
+const emit = defineEmits(['latlng'])
+
+const chart = ref() as Ref<Chart>;
+const datapoints = 200;
+
 const chartData   = ref({
         // dummy distance/height data 
         labels: [ { data: [10,20,39] } ],
@@ -27,12 +34,13 @@ const chartData   = ref({
 
 
 const chartOptions  = ref( {
-          responsive: true
-        }) as Ref<ChartOptions>;
+          responsive: true,
+          
+    }) as Ref<ChartOptions>;
 
 onBeforeMount(() => {
     
-    ChartJS.register(Title, Tooltip, Legend, PointElement,LineElement, CategoryScale, LinearScale);
+    ChartJS.register(Title, Tooltip, Legend, PointElement,LineElement, CategoryScale, LinearScale, Filler);
     console.log('profile: onBeforeMount');
 
 })
@@ -40,34 +48,22 @@ onMounted(() => {
     console.log('updating profile: onMounted')
   
     if (props.tab !== 'new' && props.gpx != null) {
-        //const route = props.route;
-        
-        //mapMessage.value = route.dest;
         showProfile(props.gpx);
     }
 })
-// onUpdated(() => {
-//     console.log('updating profile: onUpdated')
-//     // if (chart !== undefined)
-//     //             chart.dispose();
-//     if (props.tab !== 'new' && props.gpx != null) {
-//         //const route = props.route;
-//         //console.log('updating profile: onUpdated')
-//         //mapMessage.value = route.dest;
-//         showProfile(props.gpx);
-//     }
-
-// })
 
 
-function get_latlngs(gpx :LeafletEvent["target"]) { return gpx._info.latlngs; }
+// function get_latlngs(gpx :LeafletEvent["target"]) { 
+//     //return gpx._info.coords; 
+//     return gpx.get_coords();
+// }
 
 function showProfile(gpx : L.GPX) {
     console.log('showProfile')
     
     var elev_data;
     var latlng_data;
-    var distance = Math.floor(gpx.get_distance() / 1000);
+    var maxDistance = Math.floor(gpx.get_distance() / 1000);
     var elev_gain = Math.floor(gpx.get_elevation_gain());
     var elev_loss = Math.floor(gpx.get_elevation_loss());
 
@@ -79,71 +75,111 @@ function showProfile(gpx : L.GPX) {
 
     var metric = (props.user.units === 'k');
 
-
-
     if (! metric) {
 
         distanceUnits = ' miles';
         heightUnits = ' ft';
-        distance = Math.round(distance * 0.62137);
+        maxDistance = Math.round(maxDistance * 0.62137);
         elev_gain = Math.round(elev_gain * 3.28);
         elev_loss = Math.round(elev_loss * 3.28);
 
     }
-    distanceText = distance.toString() + distanceUnits;
+    distanceText = maxDistance.toString() + distanceUnits;
     elevGainText= elev_gain.toString() + heightUnits;
     elevLossText = elev_loss.toString() + heightUnits;
 
-    latlng_data = get_latlngs(gpx);
+        // no type info for my added method as yet
+    latlng_data = gpx.get_coords();
 
-    if (gpx.get_elevation_gain() > 0 && gpx.get_elevation_loss() > 0) {
-        var maxheight = 0;
-        if (metric) {
-            elev_data = gpx.get_elevation_data();
-            maxheight = gpx.get_elevation_max();
-        }
-        else {
-            elev_data = gpx.get_elevation_data_imp();
-            maxheight = gpx.get_elevation_max_imp();
-        }
-        // convert array to json for profile 
-        var i, n = elev_data.length;
-        // 200 points should be enough to show trend
-        const spacing = Math.round(n / 200);
-        let json_elev : { Distance : number, Height : number} [] = []
-        for (i = 0; i < n; i+=spacing) {
-            json_elev.push({Distance: Math.round(elev_data[i][0]), Height: Math.round(elev_data[i][1])});
+    if (gpx.get_elevation_gain() < 1 ||  gpx.get_elevation_loss() < 1 )
+    {
+        console.log('Insufficient or no elevation data');
+        return;
+    } 
 
-        }
-        drawProfile( json_elev, maxheight, distance, metric);
+    var maxheight = 0;
+    if (metric) {
+        elev_data = gpx.get_elevation_data();
+        maxheight = gpx.get_elevation_max();
     }
+    else {
+        elev_data = gpx.get_elevation_data_imp();
+        maxheight = gpx.get_elevation_max_imp();
+    }
+    // convert array to json for profile 
+    var i, n = elev_data.length;
+    // 200 points should be enough to show trend
+   const spacing = Math.round(n / datapoints);
+   //const spacing = 1;
+    let json_elev : { Distance : number, Height : number} [] = []
+    let json_latlng: any[]  = []
+    for (i = 0; i < n; i+=spacing) {
+        json_elev.push({Distance: Math.round(elev_data[i][0]), Height: Math.round(elev_data[i][1])});
+        json_latlng.push(latlng_data[i]);
 
-}
-
-
-function drawProfile(elevationData: { Distance : number, Height : number}[], maxheight: number, distance : number,metric: boolean) {
+    }
 
     chartData.value =      {
 
-            labels: elevationData.map(row => row.Distance),
+           labels: json_elev.map(row => row.Distance),
+           
             datasets: [
             {
-                label: 'Elevation',
-                data: elevationData.map(row => row.Height)
+                label: '',
+                data: json_elev.map(row => row.Height),
+                fill : true,
+                pointStyle: 'false',
             }
             ]
         };
-    
-   // var dist = metric ? 'km' : 'miles';
-   // var height = metric ? 'm' : 'ft';
+    chartOptions.value = {
+        responsive: true,
+          scales: {
+            x: {
+                type: 'linear',
+                ticks:{maxRotation: 0},
+                display: true,
+                title: {
+                    display: true,
+                    text: metric ? 'km' : 'miles'
+                },
+            },
+            y: {
+                display: true,
+                title: {
+                    display: true,
+                    text: metric ? 'metres' : 'feet'
+                },
 
+            }
+        },
+        onHover: (e) => {
+            if (chart.value === null)
+                return;
+            const thisChart = chart.value.chart;
+            const canvasPosition = getRelativePosition(e, thisChart);
 
+            // Substitute the appropriate scale IDs
+            const points = json_latlng.length;
+            const dataX = thisChart.scales.x.getValueForPixel(canvasPosition.x);
+            const indexX = Math.round(dataX *  points / maxDistance); 
+            if (indexX >= 0 && indexX < points) {
+                //console.log(indexX);
+                const latlng =  json_latlng[indexX];
+
+                // send to map for animation.....
+                emit("latlng",latlng);
+            }
+        }
+        
+    }
 
 };
 </script>
 
 <template>
     <Line
+        ref="chart"
         :data = "chartData"
         :options = "chartOptions"
     />

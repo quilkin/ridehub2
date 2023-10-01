@@ -4,7 +4,8 @@ import {  ref, computed,onMounted,onBeforeUnmount, onUpdated} from 'vue'
 import type { Map } from 'leaflet';
 import "leaflet/dist/leaflet.css";
 import * as L from 'leaflet';
-import 'leaflet-gpx';
+import 'leaflet-gpx-coords';
+
 import 'leaflet-polylineDecorator';
 import { Route } from '../utils/route'
 import { Alert} from '../utils/alert'
@@ -13,6 +14,7 @@ import type { LeafletEvent } from 'leaflet';
 import Profile from './profile.vue'
 import  bartest  from './bartest.vue'
 import type { User } from '@/utils/user';
+
 
 const props = defineProps<{
   route : Route
@@ -27,8 +29,11 @@ const gpxLinkText = ref('no link available');
 const gpxLink = ref('');
 const downloadName = ref('');
 let gpx : L.GPX;
+let marker : L.Marker;
 
-function get_latlngs(gpx :LeafletEvent["target"]) { return gpx._info.latlngs; }
+//function get_latlngs(gpx :LeafletEvent["target"]) { return gpx._info.latlngs; }
+
+
 
 onMounted(() => {
     console.log('map: ' + (props.route.dest.length>2 ? props.route.dest : 'General' ))
@@ -63,16 +68,6 @@ function showRoute(route : Route, listedRoute  : boolean)
 // listedRoute is true only if the route has already been added to the list of routes
 
     const tab = props.tab;
-    // var mapid = "routes-map";
-    // var elevid = "routes-elev";
-
-
-
-//     $("#" + mapid).show();
-//     $("#" + elevid).show();
-//     $('.info').show();
-// function _t(t) { return map_pane.getElementsByTagName(t)[0]; }
-// function _c(c) { return map_pane.getElementsByClassName(c)[0]; }
 
 if (map !== null) { map.remove(); }
 
@@ -83,6 +78,8 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: 'Map data &copy; <a href="https://www.osm.org">OpenStreetMap</a>'
 }).addTo(map);
 window.dispatchEvent(new Event('resize'));
+
+
 var pl = new L.GPX(route.url, {
     async: true,
     marker_options: {
@@ -102,9 +99,11 @@ var pl = new L.GPX(route.url, {
 
     gpx = e.target;
 
+    // no type info for my added method as yet
+    const coords = gpx.get_coords();
 
     // add direction arrows to GPX polyline
-    L.polylineDecorator(get_latlngs(gpx), {
+    L.polylineDecorator(coords, {
         patterns: [{
             offset: 50,
             repeat: 50,
@@ -186,7 +185,18 @@ var pl = new L.GPX(route.url, {
     }).addTo(map);
 
 
-  }        
+  }    
+  
+  function updateMarker(latlng: L.LatLngExpression ) {
+    if (map === null)
+        return;
+    if (marker != null) {
+        map.removeLayer(marker);
+        
+    }
+    marker = new L.Marker(latlng).addTo(map);
+
+  }
   function help() {
    // ++helpClicks.clicks;
             var win = window.open("Rides-signup.htm");
@@ -210,11 +220,11 @@ var pl = new L.GPX(route.url, {
         Help
     </v-btn>
     <div id="mapContainer"></div> 
-    <!-- <bartest></bartest>   -->
     <Profile v-if="gpx != undefined"
         :gpx = "gpx"
         :tab= "props.tab"
         :user = "props.user"
+        @latlng = "updateMarker"
     ></Profile>
 </template>
 <style>

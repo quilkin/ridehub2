@@ -21,6 +21,10 @@ const currentRoute = ref(new Route());
 function switchTab(tab: string) {
   currentTab.value = tab;
 }
+function logIn()
+{
+  switchTab('account');
+}
 async function doneLogin(user : User) {
   //myAlert();
   if (user===null)
@@ -75,6 +79,7 @@ function showRoute(route : Route) {
                  :date = "ridesDate" 
                  :user = "currentUser"
                  @showRoute = "showRoute"
+                 @log-in="logIn"
                  >
                 </RideList>
               </v-col>
