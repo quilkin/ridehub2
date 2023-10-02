@@ -2,13 +2,11 @@
 import { ref , type Ref } from 'vue'
 import accountActions from './components/accountActions.vue'
 import RideMap from './components/ridemap.vue'
-
 import { User } from './utils/user'
-import { myFetch } from './utils/fetch'
 import RideList from './components/ridelist.vue'
 import { Route }  from './utils/route'
-import { myAlert } from './utils/myAlert'
-//import { MapData } from './utils/mapdata'
+
+import  baseDatePicker  from './components/baseDatePicker.vue'
 
 
 const currentTab = ref('account');
@@ -16,7 +14,7 @@ const currentUser = ref(new User());
 const ridesDate = ref(new Date());
 const currentRoute = ref(new Route());
 //const mapData = ref(new MapData());
-
+const datepicker = ref(null);
 
 function switchTab(tab: string) {
   currentTab.value = tab;
@@ -49,12 +47,18 @@ function showRoute(route : Route) {
     currentTab.value = 'calendar';
     console.log('*****showRoute: '+ (route.url.length > 100? 'OK' : 'no route'));
 }
+//const datePickerActive = ref(false);
 
-
+function newDate(date : Date) {
+  console.log('App.vue New Date: ' + date);
+  //datePickerActive.value = false;
+  ridesDate.value = date;
+}
 </script>
 
 <template>
     <v-sheet width="auto" class="mx-auto">
+
     <v-tabs
       v-model="currentTab"
       bg-color="transparent"
@@ -75,7 +79,9 @@ function showRoute(route : Route) {
           <v-container   height="100%">
             <v-row no-gutters>
               <v-col> 
+                <baseDatePicker    :date="ridesDate"    @new-date="newDate"   />
                 <RideList
+                 :key = "ridesDate"
                  :date = "ridesDate" 
                  :user = "currentUser"
                  @showRoute = "showRoute"

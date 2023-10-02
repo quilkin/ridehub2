@@ -7,8 +7,7 @@ export async function Alert(
   icon: SweetAlertIcon,
   confirmText : string
 ) {
-  // console.log(title + ' ' + text);
-  // return;
+
   await Swal.fire({
     title: title,
     text: text,
@@ -21,7 +20,6 @@ export async function Alert(
 }
 
 export function CloseAlert() {
-  //return;
   Swal.close();
 }
 
@@ -45,11 +43,34 @@ export async function YesNo(
 
       }) .then((result) => {
         if (result.isConfirmed && yesfunc != undefined) {
-          //Swal.fire('ok', '', 'success').then();
-          yesfunc();
-        } // else if (result.isDenied) {
-        //   Swal.fire('Changes are not saved', '', 'info').then();
-        // }
 
+          yesfunc();
+        } 
+    })
+}
+export async function chooseFromTwo(
+  title: string,
+  choice1 : string,
+  choice2 : string,
+  // func1: (() => Promise<void>) | undefined ,
+  // func2: (() => Promise<void>) | undefined 
+  func1: (() => void) | undefined ,
+  func2: (() => void) | undefined 
+
+) {
+    await Swal.fire({
+        title: title,
+        showDenyButton: true,
+        showCancelButton: true,
+        confirmButtonText: choice1,
+        denyButtonText: choice2,
+
+      }) .then(async (result) => {
+        if (result.isConfirmed && func1 != undefined) {
+          await func1();
+        } 
+        else if (result.isDenied && func2 != undefined) {
+          await func2();
+        }
     })
 }

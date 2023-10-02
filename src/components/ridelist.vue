@@ -3,12 +3,11 @@ import { ref, reactive, onBeforeMount, onBeforeUpdate, onMounted, onUpdated, typ
 import { myFetch } from '../utils/fetch'
 import  TimesDates  from '../utils/timesdates'
 import { Ride } from '../utils/ride'
-import  { Alert, Message} from '../utils/alert'
-//import  { YesNo } from '../utils/question'
+import  { Alert, Message, chooseFromTwo} from '../utils/alert'
 import { User } from '../utils/user'
 import Routes  from '../utils/routes'
 import rideData  from '../utils/ridedata'
-import Swal from 'sweetalert2'
+
 
 const props = defineProps<{
   date : Date
@@ -59,32 +58,10 @@ var numRiders: number[];
 
 onBeforeMount(async() => {
   console.log('onBeforeMount');
-  //await Message('onBeforeMount test message 1');
   initialiseArrays();
-  //await Message('onBeforeMount test message 2');
   getRides();
 });
-// onBeforeMount(() => {
-//   Message('test message');
-//   initialiseArrays();
-  
-//  // await getRides();
-// });
 
-// onBeforeUpdate(async() => {
-//   console.log('onBeforeUpdate');
-//   await Swal.fire('onBeforeUpdate 1');
-//   initialiseArrays();
-//   await Swal.fire('onBeforeUpdate 2'); 
-//   getRides();
-// });
-
-// onMounted(() => {
-//   createRideList();
-// });
-// onAfterUpdate(() => {
-//   createRideList();
-// });
 function initialiseArrays() {
 
   pp.value = [] as string[][];
@@ -100,7 +77,6 @@ function initialiseArrays() {
 }
 async function getRides() {
 
-  //await Alert( 'test message 1','No rides found for 60 days','','info','OK');
   var intdays = TimesDates.toIntDays(props.date);
   var rideIDs: number[] = [];
   try {
@@ -108,15 +84,15 @@ async function getRides() {
     console.log('getRoutes: result: '+ result) ;
     if (result === null) 
       return;
-    //await Alert( 'test message 2','No rides found for 60 days','','info','OK');
-    //return null;
+
+
     console.log('gettingRides');
     const response : Ride[]  = await myFetch("GetRidesForDate",intdays,true);
 
     
     if (response != null)
     {
-      //await Alert( 'test message 3','No rides found for 60 days','','info','OK');
+
       rides.value = response;
       console.log('got rides');
       if (rides.value.length === 0) {
@@ -189,9 +165,7 @@ async function GetParticipants(rideIDs : number[]) {
     alreadyRidingDate = 0;
     alreadyReservedDate = 0;
     alreadyLeadingDate = 0;
-   // alert('js test message');
 
-    //Swal.fire('swal test message');
     Message('createRideList test message');
 
  // split participant and reserve lists into arrays for each ride
@@ -228,7 +202,7 @@ async function GetParticipants(rideIDs : number[]) {
         riderName = props.user?.name;
     rides.value.forEach((ride,index) => {
         try {
-            //const dest = TCCroutes.findDestFromID(ride.routeID);
+
             const dest = destination.value[index]
             if (pp.value[index].includes(riderName)) {
                 alreadyRidingDest = dest;
@@ -280,9 +254,7 @@ async function GetParticipants(rideIDs : number[]) {
 
  }
 
-function testClick(data : String) {
-  alert('Item: ' + data)
-};
+
 var prevDate = 'x';
 var thisDate = '';
 function newDateReqd(date : number) {
@@ -328,15 +300,12 @@ function riderList(index : number) {
     var spacesLeft = ride.groupSize - numRiders[index];
     var spacesLeftStr = "Riders (" + spacesLeft + " spaces left): ";
     if (reserves.value[index].length > 4) {
-        //popupDest += participantsWithCommas + " (full)";
         riderList = participantsWithCommas + " (full): Reserves: " + reserves.value[index];
     }
     else if (participantsWithCommas.length < 4) {
-        //popupDest += 'Riders: ';
         riderList = 'No riders (yet)';
     }
     else {
-        ///popupTitle += spacesLeftStr;
         riderList = spacesLeftStr + participantsWithCommas;
     }
     Alert('',riderList,popupDest,'info','OK')
@@ -348,7 +317,7 @@ function riderList(index : number) {
 async function joinRide( index: number) {
   
   function OK2Join(ride : Ride, rider : string) {
-    //await Message('ok2join  test message')
+
         const cannotJoin = ", and cannot join more than one ride each day";
         if (ride.leaderName === rider) {
             Message("You cannot join your own ride!!");
@@ -368,14 +337,6 @@ async function joinRide( index: number) {
         }
         return true;
   };
-  // async function saveParticipant(rideID : number, rider : string) {
-  //       var list = "";
-  //       //await Swal.fire("saveParticipant");
-  //       //Alert('test message','Please wait...','','info','OK');
-  //       await Message('saveParticipant test message')
-
-  //       return null;
-  //   };
 
   var ride : Ride = rides.value[index];
   currentride = ride;
@@ -390,45 +351,26 @@ async function joinRide( index: number) {
 
   if (buttontext === joinText) {
       if (OK2Join(ride, rider)) {
-        
-          await rideData.saveParticipant(ride.rideID, rider);
+           await rideData.saveParticipant(ride.rideID, rider);
       }
   }
-                // else if (buttontext === editRideText) {
-                //     currentIndex = index;
-                //     $('#editRideModal').modal();
-                // }
-                // else if (buttontext === reserveText) {
-                //     if (OK2Join(ride) === true) {
-                //         rideData.saveReserveParticipant(ride.rideID, login.User());
-                //     }
-                // }
-                // else if (buttontext === meText) {
-                //     qPopup.Choose2("You are signed up for this ride", "What do you want to do?",
-                //         "Leave the ride", "Add a guest rider",
-                //         function (choice) {
-                //             if (choice == '1')
-                //                 rideData.leaveParticipant(ride.rideID, login.User())
-                //             else if (choice == '2')
-                //                 rideData.saveGuest(ride.rideID, login.User())
-                //         },
-                //         100);
-                //     ;
-                // }
-                // else if (buttontext === mePlusText) {
-                //     qPopup.Choose2("You have signed a guest for this ride", "What do you want to do?",
-                //         "Remove your guest", "Both leave the ride",
-                //         function (choice) {
-                //             if (choice == '2') {
-                //                 rideData.leaveBoth(ride.rideID, login.User());
-                //             }
-                //             else if (choice == '1') {
-                //                 rideData.leaveGuest(ride.rideID, login.User());
-                //             }
-                //         },
-                //         100);
-                //     ;
-                // }
+  else if (buttontext === editRideText) {
+      currentIndex = index;
+     // $('#editRideModal').modal();
+  }
+  else if (buttontext === reserveText) {
+      if (OK2Join(ride, rider) === true) {
+          await rideData.saveReserveParticipant(ride.rideID, rider);
+      }
+  }
+  else if (buttontext === meText) {
+      await rideData.meParticipant(ride.rideID, rider);
+      
+  }
+  else if (buttontext === mePlusText) {
+    await rideData.mePlusParticipant(ride.rideID, rider);
+
+  }
                 // else if (buttontext === leaveReserveText) {
                 //     var reserve = '+' + login.User();
                 //     rideData.leaveParticipant(ride.rideID, reserve);

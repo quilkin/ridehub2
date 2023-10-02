@@ -1,11 +1,12 @@
 sort out missing ts definitions
-finiish npm pakage for leaflet-gpx
+finiish npm package for leaflet-gpx
 change some alerts to messages
 change some vars to const or let
 prettify profile chart
-bike icon for map
 height of profile chart
 prettify buttons etc in ride list
 link to help file
 treeshake mdi icons
 treeshake other packages
+function for getting ride dest from route (e.g. to use in 'join ride' )
+sort out promises in 'chooseFrom2'

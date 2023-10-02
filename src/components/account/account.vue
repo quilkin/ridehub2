@@ -161,6 +161,3 @@ function cancel() {
   </div>
 
   </template>
-  <style scoped>
- 
-  </style>../../utils/alert

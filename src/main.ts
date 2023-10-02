@@ -11,6 +11,7 @@ import { fa } from "vuetify/iconsets/fa";
 import { aliases, mdi } from "vuetify/iconsets/mdi";
 import "@mdi/font/css/materialdesignicons.css";
 import "@fortawesome/fontawesome-free/css/all.css";
+import { VDatePicker } from 'vuetify/labs/VDatePicker';
 
 const vuetify = createVuetify({
     icons: {
@@ -22,7 +23,9 @@ const vuetify = createVuetify({
         },
       },
 
-    components,
+      components: {
+        VDatePicker,
+      },
     directives,
   })
 

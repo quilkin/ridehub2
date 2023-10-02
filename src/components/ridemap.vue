@@ -14,7 +14,7 @@ import type { LeafletEvent } from 'leaflet';
 import Profile from './profile.vue'
 import  bartest  from './bartest.vue'
 import type { User } from '@/utils/user';
-
+import bikeMarker from '../assets/bike2.png';
 
 const props = defineProps<{
   route : Route
@@ -28,11 +28,9 @@ const mapMessage = ref('no map available');
 const gpxLinkText = ref('no link available');
 const gpxLink = ref('');
 const downloadName = ref('');
-let gpx : L.GPX;
+let gpx : L.GPX ;
 let marker : L.Marker;
-
-//function get_latlngs(gpx :LeafletEvent["target"]) { return gpx._info.latlngs; }
-
+let mapKey = 0;
 
 
 onMounted(() => {
@@ -60,6 +58,8 @@ onUpdated(() => {
   console.log('updated map: ' + (route.dest.length>2 ? route.dest : 'General' ))
   mapMessage.value = route.dest;
   showRoute(route, true);
+  // force profile to update
+  ++mapKey;
 
 })
 
@@ -186,6 +186,15 @@ var pl = new L.GPX(route.url, {
 
 
   }    
+
+  var bikeIcon = L.icon({
+    iconUrl: bikeMarker,
+    iconSize:     [40, 35], // size of the icon
+    shadowSize:   [50, 40], // size of the shadow
+    iconAnchor:   [20, 17], // point of the icon which will correspond to marker's location
+    shadowAnchor: [4, 2],  // the same for the shadow
+    popupAnchor:  [-3, -7] // point from which the popup should open relative to the iconAnchor
+});
   
   function updateMarker(latlng: L.LatLngExpression ) {
     if (map === null)
@@ -194,7 +203,8 @@ var pl = new L.GPX(route.url, {
         map.removeLayer(marker);
         
     }
-    marker = new L.Marker(latlng).addTo(map);
+
+    marker = new L.Marker(latlng, {icon: bikeIcon}).addTo(map);
 
   }
   function help() {
@@ -220,7 +230,7 @@ var pl = new L.GPX(route.url, {
         Help
     </v-btn>
     <div id="mapContainer"></div> 
-    <Profile v-if="gpx != undefined"
+    <Profile v-if="gpx != undefined" :key="mapKey"
         :gpx = "gpx"
         :tab= "props.tab"
         :user = "props.user"
