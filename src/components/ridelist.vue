@@ -14,7 +14,7 @@ const props = defineProps<{
   user : User
 }>()
 
-const emit = defineEmits(['showRoute','logIn']);
+const emit = defineEmits(['showRoute','logIn','editRide']);
 
 // text for buttons etc
 
@@ -351,11 +351,12 @@ async function joinRide( index: number) {
 
   if (buttontext === joinText) {
       if (OK2Join(ride, rider)) {
-           await rideData.saveParticipant(ride.rideID, rider);
+           await rideData.saveParticipant(ride.rideID, rider, destination.value[index]);
       }
   }
   else if (buttontext === editRideText) {
-      currentIndex = index;
+      //currentIndex = index;
+      emit('editRide',ride);
      // $('#editRideModal').modal();
   }
   else if (buttontext === reserveText) {
@@ -429,9 +430,3 @@ function descriptionText(item: { description: string; meetingAt: string })
   </v-list>
 </template>
 
-<!-- <style scoped>
-small.climbColour {
-  color: v-bind('climbingColour[i]');
-  /* color: red; */
-}
-</style> -->../utils/alert../utils/routes../utils/routes

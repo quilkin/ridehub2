@@ -17,7 +17,7 @@
 
 <template>
   <div class="text-center">
-    <v-btn color="blue"  variant="outlined" prepend-icon="mdi-calendar-month">
+    <v-btn  color="blue" variant=outlined prepend-icon="mdi-calendar-month" width="200">
       <!-- <template v-slot:prepend>
         <v-icon  color="success"></v-icon>
       </template> -->

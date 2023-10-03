@@ -1,20 +1,26 @@
 <script setup lang="ts">
 import { ref , type Ref } from 'vue'
 import accountActions from './components/accountActions.vue'
+import RideEdit from './components/editRide.vue'
 import RideMap from './components/ridemap.vue'
 import { User } from './utils/user'
 import RideList from './components/ridelist.vue'
 import { Route }  from './utils/route'
+import { Ride }  from './utils/ride'
+import type { Map } from 'leaflet';
 
 import  baseDatePicker  from './components/baseDatePicker.vue'
 
 
 const currentTab = ref('account');
 const currentUser = ref(new User());
-const ridesDate = ref(new Date());
+const ridesDate = ref(new Date('2022-03-01'));
 const currentRoute = ref(new Route());
+const currentRide = ref(new Ride());
 //const mapData = ref(new MapData());
 const datepicker = ref(null);
+
+var map: Map | null = null;
 
 function switchTab(tab: string) {
   currentTab.value = tab;
@@ -23,7 +29,12 @@ function logIn()
 {
   switchTab('account');
 }
-async function doneLogin(user : User) {
+function editRide(ride : Ride)
+{
+  currentRide.value = ride;
+  switchTab('newRide');
+}
+function doneLogin(user : User) {
   //myAlert();
   if (user===null)
   {
@@ -39,6 +50,11 @@ async function doneLogin(user : User) {
   switchTab('calendar');
  
 }
+function doneRideEdit() {
+  console.log("done ride edit");
+
+
+}
 
 function showRoute(route : Route) {
     //mapData.value.currentRoute = route;
@@ -47,28 +63,39 @@ function showRoute(route : Route) {
     currentTab.value = 'calendar';
     console.log('*****showRoute: '+ (route.url.length > 100? 'OK' : 'no route'));
 }
-//const datePickerActive = ref(false);
+const dateChanged = ref(0);
 
 function newDate(date : Date) {
-  console.log('App.vue New Date: ' + date);
-  //datePickerActive.value = false;
+ // console.log('App.vue New Date: ' + date);
   ridesDate.value = date;
+  ++dateChanged.value;
+}
+function tabChanged() {
+  console.log('tab: '+ currentTab);
+  if (currentTab.value === 'newRide') {
+    currentRoute.value = new Route();
+  }
+}
+function defineMap(newmap : Map) {
+  map = newmap;
 }
 </script>
 
 <template>
     <v-sheet width="auto" class="mx-auto">
-
+      <v-row no-gutters>
+              <v-col> 
     <v-tabs
       v-model="currentTab"
       bg-color="transparent"
       color="blue"
       show-arrows
       stacked
+      @update:model-value="tabChanged"
     >
       <v-tab value="calendar"><v-icon>mdi-calendar-month</v-icon>Calendar</v-tab>
       <v-tab value="routes"><v-icon>mdi-map</v-icon>All routes</v-tab>
-      <v-tab value="new"><v-icon>mdi-bike</v-icon>New Ride</v-tab>
+      <v-tab value="newRide"><v-icon>mdi-bike</v-icon>New Ride</v-tab>
       <v-tab value="coffee"><v-icon>mdi-coffee</v-icon>Coffee</v-tab>
       <v-tab value="library"><v-icon>mdi-book-open-page-variant</v-icon>Library</v-tab>
       <v-tab value="account"><v-icon>mdi-account-edit</v-icon>Account</v-tab>
@@ -79,24 +106,28 @@ function newDate(date : Date) {
           <v-container   height="100%">
             <v-row no-gutters>
               <v-col> 
-                <baseDatePicker    :date="ridesDate"    @new-date="newDate"   />
+                
                 <RideList
-                 :key = "ridesDate"
+                 :key = "dateChanged"
                  :date = "ridesDate" 
                  :user = "currentUser"
                  @showRoute = "showRoute"
                  @log-in="logIn"
+                 @edit-ride="editRide"
                  >
                 </RideList>
+                <baseDatePicker    :date="ridesDate"    @new-date="newDate"   />
               </v-col>
-              <v-col>
+              <!-- <v-col>
                 <RideMap
+                  :map="map"
                  :route = "currentRoute"
                  :tab = "currentTab"
                  :user = "currentUser"
+                 @define-map="defineMap"
                 ></RideMap>
 
-              </v-col>
+              </v-col> -->
             </v-row>
           </v-container>
 
@@ -107,8 +138,29 @@ function newDate(date : Date) {
         </v-window-item>
 
 
-        <v-window-item value="new">
-          New ride
+        <v-window-item value="newRide">
+          <v-container   height="100%">
+            <v-row no-gutters>
+              <v-col> 
+                <RideEdit
+                :ride="currentRide"
+                :user="currentUser"
+                @done-ride-edit="doneRideEdit"
+                >
+              </RideEdit>
+              </v-col>
+              <!-- <v-col>
+                <RideMap
+                 :map="map"
+                 :route = "currentRoute"
+                 :tab = "currentTab"
+                 :user = "currentUser"
+                 @define-map="defineMap"
+                ></RideMap>
+
+              </v-col> -->
+            </v-row>
+          </v-container>
         </v-window-item>
         
         <v-window-item value="coffee">
@@ -129,7 +181,18 @@ function newDate(date : Date) {
                    
         </v-window-item>
       </v-window>
+    </v-col>
+    <v-col>
+      <RideMap
+        :map="map"
+        :route = "currentRoute"
+        :tab = "currentTab"
+        :user = "currentUser"
+        @define-map="defineMap"
+      ></RideMap>
 
+</v-col>
+    </v-row>
   </v-sheet>
 </template>
 
@@ -139,9 +202,3 @@ function newDate(date : Date) {
   padding: 0;
 }
 </style>
-<style scoped>
-#mapContainer {
-  width: auto;
-  height: 80vh;
-}
-</style>./utils/routes

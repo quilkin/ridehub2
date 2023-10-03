@@ -53,11 +53,6 @@ onMounted(() => {
 })
 
 
-// function get_latlngs(gpx :LeafletEvent["target"]) { 
-//     //return gpx._info.coords; 
-//     return gpx.get_coords();
-// }
-
 function showProfile(gpx : L.GPX) {
     console.log('showProfile')
     
@@ -109,8 +104,8 @@ function showProfile(gpx : L.GPX) {
     // convert array to json for profile 
     var i, n = elev_data.length;
     // 200 points should be enough to show trend
-   const spacing = Math.round(n / datapoints);
-   //const spacing = 1;
+   //const spacing = Math.round(n / datapoints);
+   const spacing = 1;
     let json_elev : { Distance : number, Height : number} [] = []
     let json_latlng: any[]  = []
     for (i = 0; i < n; i+=spacing) {
@@ -129,11 +124,23 @@ function showProfile(gpx : L.GPX) {
                 data: json_elev.map(row => row.Height),
                 fill : true,
                 pointStyle: 'false',
+                pointRadius: 0
             }
             ]
         };
     chartOptions.value = {
         responsive: true,
+ 
+        plugins: {
+            decimation: {
+                enabled: true,
+                algorithm: 'lttb',
+                samples: datapoints
+            },
+            legend: {
+    	        display: false
+            },
+          },
           scales: {
             x: {
                 type: 'linear',

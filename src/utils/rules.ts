@@ -20,3 +20,17 @@ export const emailRules = [
                             return 'E-mail must be a valid address.'
                             },
                         ];
+export const destinationRules =   [ 
+                            (value: string) => !!value || 'Required.', 
+                            (value: string) => {
+                                if (value.length >= 3 && value.length <= 20) return true
+                                return 'Destination should be 3 to 20 characters.'
+                                },
+                            ];
+export const distanceRules = [ 
+                            (value: number) => !!value || 'Required.', 
+                            (value: number) => {
+                                if (value >= 3 ) return true
+                                return 'Distance should be more than this!'
+                                },
+                            ];

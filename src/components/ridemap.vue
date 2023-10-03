@@ -12,7 +12,6 @@ import { Alert} from '../utils/alert'
 import { myFetch } from '../utils/fetch'
 import type { LeafletEvent } from 'leaflet';
 import Profile from './profile.vue'
-import  bartest  from './bartest.vue'
 import type { User } from '@/utils/user';
 import bikeMarker from '../assets/bike2.png';
 
@@ -20,7 +19,10 @@ const props = defineProps<{
   route : Route
   tab : string
   user : User
+  map : Map | null
 }>()
+
+const emit = defineEmits(['defineMap']);
 
 const currentGPX = computed(()=>props.route.url);
 var map: Map | null = null;
@@ -32,19 +34,29 @@ let gpx : L.GPX ;
 let marker : L.Marker;
 let mapKey = 0;
 
-
-onMounted(() => {
+function setupMap() {
+    if (map != null) {
+        map.off();
+        map.remove();
+    }
     console.log('map: ' + (props.route.dest.length>2 ? props.route.dest : 'General' ))
         map = L.map('mapContainer', {
-          center: [50,-5],    // or centre of cornwall?
-          zoom:     10
+          center: [50.18,-5.05],    // or centre of cornwall?
+          zoom:     9.5
         });
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19,
           attribution: '© OpenStreetMap'
-          }).addTo(map);
-          //window.dispatchEvent(new Event('resize'));
+        }).addTo(map);
+        emit('defineMap',map)
+        //window.dispatchEvent(new Event('resize'));
      
+}
+
+onMounted(() => {
+    map = props.map;
+    setupMap();
+    
     
 })
 onBeforeUnmount(() => {
@@ -68,17 +80,13 @@ function showRoute(route : Route, listedRoute  : boolean)
 // listedRoute is true only if the route has already been added to the list of routes
 
     const tab = props.tab;
+    setupMap();
 
-if (map !== null) { map.remove(); }
 
-map = L.map('mapContainer', {
-          zoom:     10
-        });
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: 'Map data &copy; <a href="https://www.osm.org">OpenStreetMap</a>'
-}).addTo(map);
 window.dispatchEvent(new Event('resize'));
 
+if (route.url === '')
+    return;
 
 var pl = new L.GPX(route.url, {
     async: true,

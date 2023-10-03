@@ -13,9 +13,9 @@ class Participant {
 }
 const rideData = {
 
-    saveParticipant: async function (rideID : number, rider : string) {
+    saveParticipant: async function (rideID : number, rider : string, dest : string) {
         //var list = "";
-        await YesNo("Join this ride?",async ()=> {
+        await YesNo(dest + ": Join this ride?",async ()=> {
 
             const pp = new Participant(rider, rideID);
             const response = await myFetch("SaveParticipant", pp, true);
