@@ -1,13 +1,16 @@
 
 <script setup lang="ts">
 
-import { ref, onBeforeMount, onMounted} from 'vue'
+import { ref, type Ref, onBeforeMount} from 'vue'
 import {destinationRules, distanceRules} from '../utils/rules'
 import { myFetch } from '../utils/fetch'
 import  { Alert} from '../utils/alert'
 import { User } from '../utils/user'
 import { Ride } from '../utils/ride'
+import { Route } from '../utils/route'
 import Routes  from '../utils/routes'
+import RouteList from './routeList.vue'
+
 
 const thisRide = ref(new Ride);
 const userName = ref('');
@@ -16,12 +19,14 @@ const distance = ref(0);
 const rideDialog = ref(false);
 const rideForm = ref();
 const routeType = ref();
-const units = ref('k')
-const emit = defineEmits(['doneRideEdit'])
+const units = ref('k');
+const emit = defineEmits(['doneRideEdit','showRoute'])
+
 const props = defineProps<{
   ride : Ride
   user : User
 }>()
+
 
 onBeforeMount(() => {
     if (props.user === undefined || props.ride === undefined)
@@ -40,9 +45,7 @@ onBeforeMount(() => {
     
 
   })
-  onMounted(() => {
-    console.log('***** edit ride mounted')
-})
+
 async function submit() {
   if (rideForm.value != null) {
   const {valid} = await rideForm.value.validate()
@@ -83,6 +86,11 @@ function routeTypeChanged()
 function DistanceStr() {
     return 'Distance (' + (props.user.units==='k'?'km':'miles') + ')';
 }
+
+function showRoute(route : Route) {
+  emit('showRoute',route,false);
+}
+
 function cancel() {
     rideDialog.value = false;
     emit('doneRideEdit');
@@ -99,24 +107,21 @@ function cancel() {
       <v-card-text class="pa-3">
         <v-form @submit.prevent="submit" ref="rideForm">
           <v-row >
-            <!-- <v-col align="right">
-              <v-chip variant="outlined">What would you like to do?</v-chip>
-            </v-col> -->
-            <!-- <v-col> -->
-                First, please choose one of the following:
+              A ride needs a route of some sort. So, please choose one of the following:
               <v-radio-group inline v-model="routeType" @update:model-value="routeTypeChanged">
-                <v-radio label="Use an existing route from the RideHub list (there's over 100 of them!)" value="oldGpx"></v-radio>
+                <v-radio id="route-menu-activator" label="Use an existing route from the RideHub list (there's over 100 of them!)" value="oldGpx"></v-radio>
                 <v-radio label="Upload a GPX route that you have created or found elsewhere" value="newGpx"></v-radio>
-                <v-radio label="Enter a simple ride without using a defined route" value="noGpx"></v-radio>
+                <v-radio label="Enter a simple ride to somewhere, with an undefined route" value="noGpx"></v-radio>
               </v-radio-group>
-            <!-- </v-col> -->
+              <RouteList activator="#route-menu-activator" :user="props.user" @show-route="showRoute"></RouteList>
+              
           </v-row>
           <v-row >
             <v-col>
-                <v-text-field v-model="destination"  :rules="destinationRules"  label="Destination" v-if="routeType==='noGpx'" />
+                <v-text-field v-model="destination"  :rules="destinationRules"  label="Destination" :enabled="routeType==='noGpx'" />
             </v-col>
             <v-col>
-                <v-text-field v-model="distance"  :rules="distanceRules"  :label="DistanceStr()" v-if="routeType==='noGpx'" />
+                <v-text-field v-model="distance"  :rules="distanceRules"  :label="DistanceStr()"  :enabled="routeType==='noGpx'" />
             </v-col>
           </v-row>
           
@@ -135,3 +140,4 @@ function cancel() {
   </div>
 
   </template>
+

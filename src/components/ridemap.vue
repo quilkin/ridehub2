@@ -17,6 +17,7 @@ import bikeMarker from '../assets/bike2.png';
 
 const props = defineProps<{
   route : Route
+  showProfile : boolean
   tab : string
   user : User
   map : Map | null
@@ -48,6 +49,26 @@ function setupMap() {
           maxZoom: 19,
           attribution: '© OpenStreetMap'
         }).addTo(map);
+
+        // add a title to the map, on the map itself.
+        // code from here https://stackoverflow.com/questions/33767463/overlaying-a-text-box-on-a-leaflet-js-map
+        // worls but not typed correctly.....
+        L.Control.textbox = L.Control.extend({
+            onAdd: function(map) {
+                
+            var text = L.DomUtil.create('div');
+            text.id = "info_text";
+            text.innerHTML = "<strong>" + mapMessage.value + "</strong>"
+            return text;
+            },
+
+            // onRemove: function(map) {
+            //     // Nothing to do here
+            // }
+        });
+        L.control.textbox = function(opts: any) { return new L.Control.textbox(opts);}
+        L.control.textbox({ position: 'topleft' }).addTo(map);
+
         emit('defineMap',map)
         //window.dispatchEvent(new Event('resize'));
      
@@ -88,7 +109,8 @@ window.dispatchEvent(new Event('resize'));
 if (route.url === '')
     return;
 
-var pl = new L.GPX(route.url, {
+
+new L.GPX(route.url, {
     async: true,
     marker_options: {
         startIconUrl: '',
@@ -110,18 +132,20 @@ var pl = new L.GPX(route.url, {
     // no type info for my added method as yet
     const coords = gpx.get_coords();
 
-    // add direction arrows to GPX polyline
-    L.polylineDecorator(coords, {
-        patterns: [{
-            offset: 50,
-            repeat: 50,
-            symbol: L.Symbol.arrowHead({
-                pixelSize: 10,
-                polygon: false,
-                pathOptions: { stroke: true, color: 'blue', }
-            })
-        }]
-    }).addTo(map);
+    if (props.showProfile) {
+        // add direction arrows to GPX polyline
+        L.polylineDecorator(coords, {
+            patterns: [{
+                offset: 50,
+                repeat: 50,
+                symbol: L.Symbol.arrowHead({
+                    pixelSize: 10,
+                    polygon: false,
+                    pathOptions: { stroke: true, color: 'blue', }
+                })
+            }]
+        }).addTo(map);
+    }
     var bounds : L.LatLngBounds = gpx.getBounds();
     map.fitBounds(bounds);
 
@@ -227,7 +251,8 @@ var pl = new L.GPX(route.url, {
 </script>
 
 <template>
-    <v-chip> {{ mapMessage }}</v-chip>
+    <!--     do we need these?    -->
+    <!-- <v-chip> {{ mapMessage }}</v-chip>
     <v-btn  density="compact"  
         :href="gpxLink"
         :download="downloadName"
@@ -236,9 +261,9 @@ var pl = new L.GPX(route.url, {
     </v-btn>
     <v-btn density="compact"   @click="help()" >
         Help
-    </v-btn>
+    </v-btn> -->
     <div id="mapContainer"></div> 
-    <Profile v-if="gpx != undefined" :key="mapKey"
+    <Profile v-if="gpx != undefined && props.showProfile" :key="mapKey"
         :gpx = "gpx"
         :tab= "props.tab"
         :user = "props.user"

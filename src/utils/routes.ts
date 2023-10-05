@@ -8,6 +8,22 @@ const routes = ref() as Ref<Route[]>;
 var currentRoute : Route;
 
 const Routes = {
+    getIndex: function(index : number) {
+        return routes.value[index];
+    },
+    filteredList: function(minRouteLength : number, maxRouteLength: number, alphaOrder: boolean) {
+        const partRoutes = [] as Route[];
+        for (const route of routes.value) {
+            if (route.distance > minRouteLength && route.distance < maxRouteLength) {
+                partRoutes.push(route);
+            }
+        }
+        if (alphaOrder)
+            partRoutes.sort((a,b) => (a.dest < b.dest ? -1:1));
+        else
+            partRoutes.sort((a,b) => a.distance - b.distance);
+        return partRoutes;
+    },
     currentRoute: function() {
         return currentRoute;
     },

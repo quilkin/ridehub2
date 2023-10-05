@@ -284,7 +284,7 @@ async function viewRoute(index : number) {
   if (gpxdata != null) {
 
       route.url = gpxdata;
-      emit('showRoute',route);
+      emit('showRoute',route,true);
   }
 
 }

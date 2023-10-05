@@ -17,8 +17,10 @@ const currentUser = ref(new User());
 const ridesDate = ref(new Date('2022-03-01'));
 const currentRoute = ref(new Route());
 const currentRide = ref(new Ride());
+const showProfile = ref(true);
 //const mapData = ref(new MapData());
-const datepicker = ref(null);
+//const datepicker = ref(null);
+const routes= ref() as Ref<Route[]>
 
 var map: Map | null = null;
 
@@ -52,21 +54,17 @@ function doneLogin(user : User) {
 }
 function doneRideEdit() {
   console.log("done ride edit");
-
-
 }
 
-function showRoute(route : Route) {
-    //mapData.value.currentRoute = route;
-    //mapData.value.currentTab = 'calendar';
+function showRoute(route : Route, profile : boolean) {
     currentRoute.value = route;
-    currentTab.value = 'calendar';
-    console.log('*****showRoute: '+ (route.url.length > 100? 'OK' : 'no route'));
+    showProfile.value = profile;
+    //currentTab.value = 'calendar';
+    //console.log('*****showRoute: '+ (route.url.length > 100? 'OK' : 'no route'));
 }
 const dateChanged = ref(0);
 
 function newDate(date : Date) {
- // console.log('App.vue New Date: ' + date);
   ridesDate.value = date;
   ++dateChanged.value;
 }
@@ -146,6 +144,7 @@ function defineMap(newmap : Map) {
                 :ride="currentRide"
                 :user="currentUser"
                 @done-ride-edit="doneRideEdit"
+                @showRoute = "showRoute"
                 >
               </RideEdit>
               </v-col>
@@ -185,6 +184,7 @@ function defineMap(newmap : Map) {
     <v-col>
       <RideMap
         :map="map"
+        :show-profile="showProfile"
         :route = "currentRoute"
         :tab = "currentTab"
         :user = "currentUser"

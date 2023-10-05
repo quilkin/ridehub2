@@ -10,3 +10,4 @@ treeshake mdi icons
 treeshake other packages
 function for getting ride dest from route (e.g. to use in 'join ride' )
 sort out promises in 'chooseFrom2'
+save route gpx when it's fetched

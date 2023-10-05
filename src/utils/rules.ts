@@ -23,8 +23,8 @@ export const emailRules = [
 export const destinationRules =   [ 
                             (value: string) => !!value || 'Required.', 
                             (value: string) => {
-                                if (value.length >= 3 && value.length <= 20) return true
-                                return 'Destination should be 3 to 20 characters.'
+                                if (value.length >= 3 && value.length <= 30) return true
+                                return 'Destination should be 3 to 30 characters. More info can be entered into the ride deatils'
                                 },
                             ];
 export const distanceRules = [ 
