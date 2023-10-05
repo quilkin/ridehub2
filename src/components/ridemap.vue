@@ -132,7 +132,7 @@ new L.GPX(route.url, {
     // no type info for my added method as yet
     const coords = gpx.get_coords();
 
-    if (props.showProfile) {
+    // if (props.showProfile) {
         // add direction arrows to GPX polyline
         L.polylineDecorator(coords, {
             patterns: [{
@@ -145,7 +145,7 @@ new L.GPX(route.url, {
                 })
             }]
         }).addTo(map);
-    }
+    // }
     var bounds : L.LatLngBounds = gpx.getBounds();
     map.fitBounds(bounds);
 

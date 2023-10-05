@@ -258,7 +258,7 @@ async function GetParticipants(rideIDs : number[]) {
 var prevDate = 'x';
 var thisDate = '';
 function newDateReqd(date : number) {
-  thisDate = TimesDates.fromIntDays(date);
+  thisDate = TimesDates.StrFromIntDays(date);
   if (thisDate != prevDate) {
     prevDate = thisDate;
     return true;
@@ -266,7 +266,7 @@ function newDateReqd(date : number) {
   return false;
 }
 function rideDateString(date : number) {
-  return TimesDates.fromIntDays(date);
+  return TimesDates.StrFromIntDays(date);
 }
 
 async function viewRoute(index : number) {
@@ -278,14 +278,20 @@ async function viewRoute(index : number) {
     Alert('internal problem','Route not found for this ride','','error','OK');
     return;
   }
-  
-  console.log('getting GPX data');
-  const gpxdata  = await myFetch("GetGPXforRoute", route.id, true);
-  if (gpxdata != null) {
-
-      route.url = gpxdata;
-      emit('showRoute',route,true);
+  if (route.url != null && route.url.length > 100) {
+    console.log(route.dest + ': route gpx aleady in store');
   }
+  else {
+    console.log('getting GPX data');
+    const gpxdata  = await myFetch("GetGPXforRoute", route.id, true);
+    if (gpxdata != null) {
+
+        route.url = gpxdata;
+
+
+    }
+  }
+  emit('showRoute',route,true);
 
 }
 

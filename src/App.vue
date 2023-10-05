@@ -114,7 +114,8 @@ function defineMap(newmap : Map) {
                  @edit-ride="editRide"
                  >
                 </RideList>
-                <baseDatePicker    :date="ridesDate"    @new-date="newDate"   />
+                 
+                <baseDatePicker  :large='false' text="Select other dates" :date="ridesDate"    @new-date="newDate"   />
               </v-col>
               <!-- <v-col>
                 <RideMap

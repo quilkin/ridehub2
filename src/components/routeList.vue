@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import { ref , watch, type Ref } from 'vue'
+import { ref , onMounted, watch, emit, type Ref } from 'vue'
 import { myFetch } from '../utils/fetch'
 import  { Alert} from '../utils/alert'
 import { User } from '../utils/user'
@@ -9,9 +9,12 @@ import Routes  from '../utils/routes'
 
 const minRouteLength = ref(0);
 const alphaOrder = ref(true);
-const maxRouteLength = ref(999);
-const emit = defineEmits(['showRoute']);
+const maxRouteLength = ref(50);
+const emit = defineEmits(['showRoute','routeChosen']);
 const routeList= ref() as Ref<Route[]>;
+const chosenRoute = ref() as Ref<Route>;
+const menuClosed = ref(true);
+
 //const hover = ref() as Ref<boolean[]>;
 //const hover= ref(false);
 
@@ -19,13 +22,24 @@ const props = defineProps<{
   user : User
 }>()
 
-// watch(hover, (hover, prevCount) => {
-//   console.log('hover')
-// })
+
+watch(menuClosed, () => {
+  console.log('menu open/close');
+  if (menuClosed.value == true && chosenRoute.value != null) {
+    emit("routeChosen",chosenRoute.value);
+  }
+})
+
+onMounted(() => {
+    //maxRouteLength.value = 50;
+    routeList.value = Routes.filteredList(minRouteLength.value,maxRouteLength.value,alphaOrder.value);
+   
+})
 
 function DestinationString(dest : string) {
   return (dest.length > 30) ? dest.slice(0, 29) + '...' : dest;
 }
+
 function RouteDetail(route : Route) {
   var distance = 0;
   var climbingStr = '';
@@ -82,6 +96,8 @@ async function viewRoute( index : number) {
     }
   }
   emit('showRoute',route,false);
+
+  chosenRoute.value = route;
 }
 function changeDistance(min: number,max: number)
 {
@@ -93,32 +109,48 @@ function changeOrder(alpha: boolean) {
     alphaOrder.value = alpha;
     routeList.value = Routes.filteredList(minRouteLength.value,maxRouteLength.value,alphaOrder.value);
 }
+function distanceColour(distance : number)
+{
+    if (maxRouteLength.value === distance)
+        return "blue";
+    return "gray;"
+}
+function orderColour(alpha : boolean)
+{
+    if (alphaOrder.value === alpha)
+        return "blue";
+    return "gray;"
+}
+function routeChosen()
+{
+    console.log("route chosen")
+}
 
 </script>
 
 <template>
-    <v-menu :close-on-content-click='false'>
+    <v-menu activator="#route-menu-activator" :close-on-content-click='false' v-model="menuClosed">
         <v-list density="compact" min-width="480" >
             <v-list-subheader >Choose route distance and sorting order:</v-list-subheader>
                 <v-list-item>
                     <v-row  no-gutters>
                         <v-col>
-                            <v-chip   @click="changeDistance(0,50)">Short </v-chip>
-                            <v-chip   @click="changeDistance(50,75)">Medium </v-chip>
-                            <v-chip   @click="changeDistance(75,999)">Long </v-chip>
+                            <v-chip :color="distanceColour(50)"  @click="changeDistance(0,50)">Short </v-chip>
+                            <v-chip :color="distanceColour(75)"   @click="changeDistance(50,75)">Medium </v-chip>
+                            <v-chip :color="distanceColour(999)"  @click="changeDistance(75,999)">Long </v-chip>
                         </v-col>
                         <v-col class="text-right">
-                            <v-chip   @click="changeOrder(true)">Alphabetic</v-chip>
-                            <v-chip   @click="changeOrder(false)">Distance</v-chip>
+                            <v-chip  :color="orderColour(true)"  @click="changeOrder(true)">Alphabetic</v-chip>
+                            <v-chip  :color="orderColour(false)" @click="changeOrder(false)">Distance</v-chip>
                         </v-col>
                     </v-row>
                 </v-list-item>
       
-            <v-list-subheader >Click to show route, double-click to select:</v-list-subheader>
+            <v-list-subheader >Click destination to show route, double-click/hold to select:</v-list-subheader>
 
             
             <v-list-item density="compact" 
-                v-for="(item, i) in routeList" :key="i"  :value="i">
+                v-for="(item, i) in routeList" :key="i"  :value="i" :active="item === chosenRoute">
                 
                     <v-row  no-gutters>
                         <v-col cols="7" >

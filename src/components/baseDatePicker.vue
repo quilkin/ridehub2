@@ -1,12 +1,16 @@
 <script setup lang="ts">
-  import { ref  } from 'vue'
+  import { ref, onMounted  } from 'vue'
   import { VDatePicker } from 'vuetify/labs/VDatePicker'
 
-  const props = defineProps<{ date : Date }>()
+  const props = defineProps<{ date : Date, text : string, large: boolean }>()
   const emit = defineEmits(['newDate']);
   const datePickerActive = ref(false);
   const workingDate = ref(props.date);
 
+  onMounted(() => {
+    console.log('baseDatePicker onMounted');
+
+  });
   function newDate() {
     console.log('DatePicker New Date: ' + workingDate.value);
     datePickerActive.value = false;
@@ -17,11 +21,8 @@
 
 <template>
   <div class="text-center">
-    <v-btn  color="blue" variant=outlined prepend-icon="mdi-calendar-month" width="200">
-      <!-- <template v-slot:prepend>
-        <v-icon  color="success"></v-icon>
-      </template> -->
-        Select other dates
+    <v-btn  :size="props.large?'large':'medium'" :color="props.large? 'grey':'blue'" variant=outlined prepend-icon="mdi-calendar-month" width="200">
+        {{props.text}}
       <v-dialog
         v-model="datePickerActive"
         activator="parent"
