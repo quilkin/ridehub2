@@ -42,22 +42,69 @@ const rideData = {
         });
     },
     meParticipant: async function (rideID : number, rider : string) {
-        // await chooseFromTwo(
-        //     "You are signed up for this ride: what do you want to do?",
-        //     "Leave the ride",
-        //     "Add a guest rider",
-        //     this.leaveParticipant(rideID,  rider),
-        //     this.saveGuest(rideID,  rider)
-        // )
+        await chooseFromTwo(
+            "You are signed up for this ride: what do you want to do?",
+            "Leave the ride",
+            "Add a guest rider",
+            async ()=> {
+                var pp = new Participant(rider, rideID);
+                const response = await myFetch("LeaveParticipant", pp, true);
+                if (response === 'OK') {
+                    await Message("You have left this ride");
+                }
+                else {
+                    await Message(response);
+                }
+            },
+            async ()=> {
+                var guest = rider + '+';
+                var pp = new Participant(guest, rideID);
+                const response = await myFetch("SaveParticipant", pp, true);
+                if (response[0] === '*') {
+                    await Message("A guest has been added to this ride. Guest will need to complete a guest form at the start");
+                }
+                else {
+                    await Message(response);
+                }
+            });
+      
     },
     mePlusParticipant: async function (rideID : number, rider : string) {
-        // await chooseFromTwo(
-        //     "You have signed a guest for this ride: what do you want to do?",
-        //     "Remove your guest",
-        //     "Both leave the ride",
-        //     this.leaveGuest(rideID,  rider),
-        //     this.leaveBoth(rideID,  rider)
-        // )
+        var guest = rider + '+';
+        await chooseFromTwo(
+            "You have signed a guest for this ride: what do you want to do?",
+            "Remove your guest",
+            "Both leave the ride",
+            async ()=> {
+                
+                var pp = new Participant(guest, rideID);
+                const response = await myFetch("LeaveParticipant", pp, true);
+                if (response === 'OK') {
+                    await Message("Your guest has left this ride");
+                    }
+                    else {
+                        await Message(response);
+                    }
+                },
+                async ()=> {
+                    var pp = new Participant(guest, rideID);
+                    var response = await myFetch("LeaveParticipant", pp, true);
+                    if (response === 'OK') {
+                        pp = new Participant(rider, rideID);
+                        response = await myFetch("LeaveParticipant", pp, true);
+                        if (response === 'OK') {
+                                await Message("You have both left this ride");
+                            }
+                            else {
+                                await Message(response);
+                            }
+                        }
+                    else {
+                        await Message(response);
+                    }
+                }
+
+        )
     },
 
     saveGuest: async function (rideID : number, rider : string) {

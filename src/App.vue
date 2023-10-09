@@ -62,11 +62,11 @@ function showRoute(route : Route, profile : boolean) {
     //currentTab.value = 'calendar';
     //console.log('*****showRoute: '+ (route.url.length > 100? 'OK' : 'no route'));
 }
-const dateChanged = ref(0);
+const dataChanged = ref(0);
 
 function newDate(date : Date) {
   ridesDate.value = date;
-  ++dateChanged.value;
+  ++dataChanged.value;
 }
 function tabChanged() {
   console.log('tab: '+ currentTab);
@@ -106,12 +106,13 @@ function defineMap(newmap : Map) {
               <v-col> 
                 
                 <RideList
-                 :key = "dateChanged"
+                 :key = "dataChanged"
                  :date = "ridesDate" 
                  :user = "currentUser"
                  @showRoute = "showRoute"
                  @log-in="logIn"
                  @edit-ride="editRide"
+                 @ride-details-updated="++dataChanged"
                  >
                 </RideList>
                  

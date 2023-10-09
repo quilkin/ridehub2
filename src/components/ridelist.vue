@@ -16,7 +16,7 @@ const props = defineProps<{
   user : User
 }>()
 
-const emit = defineEmits(['showRoute','logIn','editRide']);
+const emit = defineEmits(['showRoute','logIn','editRide','rideDetailsUpdated']);
 const showTooltips = ref(true);
 
 const rides = ref() as Ref<Ride[]>
@@ -272,6 +272,7 @@ async function viewRoute(index : number) {
             :dest="destination[i]"
             :already="already"
             @log-in="$emit('logIn')"
+            @details-updated="$emit('rideDetailsUpdated')"
           > </RideDetails>
           <!-- <v-btn variant='tonal' size="small"  @click="riderList(i)">
             Rider List

@@ -14,7 +14,7 @@
     dest : string,
     already : Already
     }>();
-  const emit = defineEmits(['logIn','detailsDone','editRide']);
+  const emit = defineEmits(['logIn','detailsDone','detailsUpdated','editRide']);
   const detailsActive = ref(false);
   const ride = props.ride;
   const rider = props.user.name;
@@ -31,7 +31,7 @@
     const editRideText = 'Edit/Cancel';
 
   onMounted(() => {
-    console.log('rideDetails: onBeforeMount');
+    //console.log('rideDetails: onBeforeMount');
     numberOfRiders = participants.length;
     spacesLeft = ride.groupSize - numberOfRiders - 1; // allow for ride leader!
     //var spacesLeftStr = "Riders (" + spacesLeft + " spaces left): ";
@@ -130,6 +130,8 @@
         var reserve = '+' + rider;
         rideData.leaveParticipant(ride.rideID, reserve);
     }
+    // force re-render of whole rides list
+    emit("detailsUpdated");
 
 }
 
@@ -172,9 +174,9 @@
             </v-list>
         </v-menu>
         <v-card-actions>
-            <v-btn id="rider-list" color="primary" >Rider list</v-btn>
-            <v-btn id="join" color="primary" @click="joinRide()">{{buttonText}}</v-btn>
-            <v-btn text="OK" color="blue" @click="detailsActive = false"></v-btn>
+            <v-btn variant="outlined" id="rider-list" color="primary" >Rider list</v-btn>
+            <v-btn variant="outlined" id="join" color="primary" @click="joinRide()">{{buttonText}}</v-btn>
+            <v-btn variant="outlined" text="OK" color="blue" @click="detailsActive = false"></v-btn>
         </v-card-actions>
     </v-card>
       </v-dialog>
@@ -182,3 +184,10 @@
   </div>
 </template>
   
+<style scoped>
+.v-list-item {
+  min-height: 10px !important;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+</style>
