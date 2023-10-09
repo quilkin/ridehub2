@@ -33,7 +33,7 @@ const Routes = {
     getRouteSummaries: async function()
     {
         console.log('getting route summaries');
-        const response : Route[]  = await myFetch("GetRoutes",0, true);
+        const response : Route[]  = await myFetch("GetRoutes",0);
         if (response != null) {
             routes.value = response;
             if (routes.value.length === 0) {

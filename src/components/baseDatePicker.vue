@@ -27,6 +27,7 @@
         v-model="datePickerActive"
         activator="parent"
         width="auto"
+        content-class="datepicker-dialog"
       >
         <v-date-picker title="Start Date" width = "200" v-model="workingDate" @click:save="newDate"/>
       </v-dialog>
@@ -34,4 +35,13 @@
   </div>
 </template>
   
- 
+<style scoped>
+  .v-dialog  :deep(.datepicker-dialog) {
+    /* align-self: flex-start; */
+    /* align-items: start;
+    justify-content: start; */
+    position: absolute;
+    bottom: 0;
+    left: 0;
+  }
+</style>

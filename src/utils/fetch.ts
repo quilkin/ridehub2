@@ -7,7 +7,7 @@ function quilkinUrlBase() {
 
 }
 
-export async function myFetch(url : String, data : Object, waitDlg : Boolean)  {
+export async function myFetch(url : String, data : Object, waitDlg : Boolean = false)  {
 
     const bodyData = JSON.stringify(data);
     const options = {
@@ -17,9 +17,8 @@ export async function myFetch(url : String, data : Object, waitDlg : Boolean)  {
         },
         body: bodyData
     }
-    if (waitDlg) {
-      Alert('Loading','Please wait...','','info','');
-    }
+    if (waitDlg)   Alert('Loading','Please wait...','','info','');
+    
     console.log('fetch: ' + url)
     const fullUrl = quilkinUrlBase() + url;
 
@@ -28,25 +27,19 @@ export async function myFetch(url : String, data : Object, waitDlg : Boolean)  {
   
     try {
       res = await fetch(fullUrl, options);
-      if (res.ok) {
-        console.log('fetched: ' + url)
-        CloseAlert();
-        return await res.json();
+      if (!res.ok) {
+        if (waitDlg) CloseAlert();
+        throw new Error(`HTTP error: ${res.status}`);
       }
-      else {
-        console.log('failed fetch: ' + url)
-        err = res.statusText;
-      }
+      console.log('fetched: ' + url)
+      if (waitDlg) CloseAlert();
+      return await res.json();
     }
 
    catch (error : any) {
-
-      err = error;
+      Alert('Web error',err,'','error','OK')
     }
-    CloseAlert();
-    Alert('Web error',err,'','error','OK')
-    return null;
- 
+  
   }
 
 
