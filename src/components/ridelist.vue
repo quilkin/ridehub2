@@ -237,11 +237,11 @@ async function viewRoute(index : number) {
 
 <template>
 <v-list lines="three"  density="compact">
-    <v-list-item v-for="(item, i) in rides" :key="i" >
-      <v-list-item-title v-if="newDateReqd(item.date)" style="background-color:rgb(46, 195, 245);" >{{rideDateString(item.date)}}</v-list-item-title>
+    <v-list-item v-for="(ride, i) in rides" :key="i" >
+      <v-list-item-title v-if="newDateReqd(ride.date)" style="background-color:rgb(46, 195, 245);" >{{rideDateString(ride.date)}}</v-list-item-title>
       <v-row  no-gutters>
         <v-col cols="1">
-          <small>{{ TimesDates.fromIntTime( item.time) }}</small> 
+          <small>{{ TimesDates.fromIntTime( ride.time) }}</small> 
         </v-col>
         <v-col cols="3.5">
           <v-btn variant='tonal' density="compact"  @click="viewRoute(i)">
@@ -256,7 +256,7 @@ async function viewRoute(index : number) {
           <small v-bind:style="{'color': climbingColour[i]}"><b>&uarr;&darr;</b>{{ climbingStr[i] }}</small>
         </v-col>
         <v-col cols="2.5">
-          <v-list-item-title v-text="item.leaderName"></v-list-item-title>
+          <v-list-item-title v-text="ride.leaderName"></v-list-item-title>
         </v-col>
         <!-- <v-col cols="1">
           <v-btn variant='tonal' size="small" @click="joinRide(i)">
@@ -265,7 +265,7 @@ async function viewRoute(index : number) {
         </v-col> -->
         <v-col  cols="2">
           <RideDetails v-if="allDataLoaded(i)"
-            :ride="item" 
+            :ride="ride" 
             :participants="participants[i]" 
             :reserves="reserves[i]" 
             :user="props.user"
@@ -273,6 +273,7 @@ async function viewRoute(index : number) {
             :already="already"
             @log-in="$emit('logIn')"
             @details-updated="$emit('rideDetailsUpdated')"
+            @edit-ride="emit('editRide',ride)"
           > </RideDetails>
           <!-- <v-btn variant='tonal' size="small"  @click="riderList(i)">
             Rider List
@@ -280,7 +281,7 @@ async function viewRoute(index : number) {
 
         </v-col>
       </v-row>
-      <v-list-item-subtitle v-text="item.description"></v-list-item-subtitle>
+      <v-list-item-subtitle v-text="ride.description"></v-list-item-subtitle>
       
       <!-- <v-list-item-subtitle v-text="item.meetingAt"></v-list-item-subtitle> -->
     </v-list-item>

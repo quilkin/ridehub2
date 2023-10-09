@@ -13,7 +13,7 @@ const maxRouteLength = ref(50);
 const emit = defineEmits(['showRoute','routeChosen']);
 const routeList= ref() as Ref<Route[]>;
 const chosenRoute = ref() as Ref<Route>;
-const menuClosed = ref(true);
+const menuOpen = ref(true);
 
 //const hover = ref() as Ref<boolean[]>;
 //const hover= ref(false);
@@ -23,12 +23,12 @@ const props = defineProps<{
 }>()
 
 
-watch(menuClosed, () => {
-  console.log('menu open/close');
-  if (menuClosed.value == true && chosenRoute.value != null) {
-    emit("routeChosen",chosenRoute.value);
-  }
-})
+// watch(menuClosed, () => {
+//   console.log('menu open/close');
+//   if (menuClosed.value == true && chosenRoute.value != null) {
+//     emit("routeChosen",chosenRoute.value);
+//   }
+// })
 
 onMounted(() => {
     //maxRouteLength.value = 50;
@@ -124,12 +124,16 @@ function orderColour(alpha : boolean)
 function routeChosen()
 {
     console.log("route chosen")
+    if (chosenRoute.value != null) 
+       emit("routeChosen",chosenRoute.value);
+    menuOpen.value = false;
+
 }
 
 </script>
 
 <template>
-    <v-menu activator="#route-menu-activator" :close-on-content-click='false' v-model="menuClosed">
+    <v-menu  activator="#btn-existing" :close-on-content-click='false' >
         <v-list density="compact" min-width="480" >
             <v-list-subheader >Choose route distance and sorting order:</v-list-subheader>
                 <v-list-item>
@@ -155,7 +159,7 @@ function routeChosen()
                     <v-row  no-gutters>
                         <v-col cols="7" >
                             <!-- <v-hover  v-model="hover"> -->
-                            <v-btn variant='outlined' density="compact"  @click="viewRoute(i)" >
+                            <v-btn variant='outlined' density="compact"  @click="viewRoute(i)" @hold="routeChosen" @dblclick="routeChosen">
                                 <span class="text-truncate" style="max-width:200px" >{{ DestinationString(item.dest) }}</span>
                             </v-btn>
                         <!-- </v-hover> -->

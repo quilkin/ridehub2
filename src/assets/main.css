@@ -1,12 +1,12 @@
-@import './base.css';
+/* @import './base.css'; */
 
-#app {
-  max-width: 1280px;
+/* #app {
+  max-width: 2560px; 
   margin: 0 auto;
   padding: 2rem;
 
   font-weight: normal;
-}
+} */
 
 a,
 .green {
@@ -14,7 +14,10 @@ a,
   color: hsla(160, 100%, 37%, 1);
   transition: 0.4s;
 }
+.swal2-popup {
+  font-size:0.8rem !important;
 
+}
 @media (hover: hover) {
   a:hover {
     background-color: hsla(160, 100%, 37%, 0.2);
@@ -22,7 +25,7 @@ a,
 }
 
 @media (min-width: 1024px) {
-  body {
+  /* body {
     display: flex;
     place-items: center;
   }
@@ -31,9 +34,9 @@ a,
     display: grid;
     grid-template-columns: 1fr 1fr;
     padding: 0 2rem;
-  }
-  #map 
+  } */
+  /* #map 
   { height: 60%; 
     width: 100vw;
-  }
+  } */
 }

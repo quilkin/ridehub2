@@ -8,7 +8,6 @@ prettify buttons etc in ride list
 link to help file
 treeshake mdi icons
 treeshake other packages
-function for getting ride dest from route (e.g. to use in 'join ride' )
-sort out promises in 'chooseFrom2'
-save route gpx when it's fetched
 use v-bind (as per ridelist) for colours on routes list
+sort out css for mobile etc
+guest login

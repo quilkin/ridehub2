@@ -114,10 +114,12 @@ function cancel() {
           </v-row>
           
           <v-row >
-            <v-col align="right">
-              <v-chip variant="outlined">Preferred distance units</v-chip>
-            </v-col>
+            <!-- <v-col align="right">
+              Preferred distance units
+
+            </v-col> -->
             <v-col>
+              Preferred distance units
               <v-radio-group inline v-model="units">
                 <v-radio label=" km " value="k"></v-radio>
                 <v-radio label="miles" value="m"></v-radio>
@@ -125,10 +127,12 @@ function cancel() {
             </v-col>
           </v-row>
           <v-row >
-            <v-col align="right">
-              <v-chip variant="outlined">Show amount of climbing in listings</v-chip>
-            </v-col>
+            <!-- <v-col align="right">
+              Show amount of climbing in listings
+              <v-chip variant="outlined">Show amount of climbing in listings</v-chip> 
+            </v-col> -->
             <v-col>
+              Show amount of climbing in listings
               <v-radio-group inline v-model="climbing">
                 <v-radio label="Yes" value="y"></v-radio>
                 <v-radio label="No" value="n"></v-radio>
@@ -136,10 +140,11 @@ function cancel() {
             </v-col>
           </v-row>
           <v-row >
-            <v-col align="right">
-              <v-chip variant="outlined">Notify me when a new ride is posted</v-chip>
-            </v-col>
+            <!-- <v-col align="right">
+              Notify me when a new ride is posted
+            </v-col> -->
             <v-col>
+              Notify me when a new ride is posted
               <v-radio-group inline v-model="notify">
                 <v-radio label="Yes" value="y"></v-radio>
                 <v-radio label="No" value="n"></v-radio>
