@@ -1,5 +1,5 @@
 sort out missing ts definitions
-finiish npm package for leaflet-gpx
+finish npm package for leaflet-gpx
 change some alerts to messages
 change some vars to const or let
 prettify profile chart
@@ -10,4 +10,6 @@ treeshake mdi icons
 treeshake other packages
 use v-bind (as per ridelist) for colours on routes list
 sort out css for mobile etc
-guest login
+profile for first route loaded
+edit ride disabled if not logged in
+tcx file?

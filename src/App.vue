@@ -16,6 +16,7 @@ const currentTab = ref('account');
 const currentUser = ref(new User());
 const ridesDate = ref(new Date('2022-03-01'));
 const currentRoute = ref(new Route());
+const newRoute = ref(new Route());
 const currentRide = ref(new Ride());
 const showProfile = ref(true);
 //const mapData = ref(new MapData());
@@ -56,11 +57,10 @@ function doneRideEdit() {
   console.log("done ride edit");
 }
 
-function showRoute(route : Route, profile : boolean) {
+function updateCurrentRoute(route : Route, profile : boolean ) {
     currentRoute.value = route;
     showProfile.value = profile;
-    //currentTab.value = 'calendar';
-    //console.log('*****showRoute: '+ (route.url.length > 100? 'OK' : 'no route'));
+
 }
 const dataChanged = ref(0);
 
@@ -76,6 +76,11 @@ function tabChanged() {
 }
 function defineMap(newmap : Map) {
   map = newmap;
+}
+function updateRouteInfo(r : Route) {
+  newRoute.value = currentRoute.value;
+  newRoute.value.dest = r.dest;
+  newRoute.value.distance = r.distance;
 }
 </script>
 
@@ -109,7 +114,7 @@ function defineMap(newmap : Map) {
                  :key = "dataChanged"
                  :date = "ridesDate" 
                  :user = "currentUser"
-                 @showRoute = "showRoute"
+                 @showRoute = "updateCurrentRoute"
                  @log-in="logIn"
                  @edit-ride="editRide"
                  @ride-details-updated="++dataChanged"
@@ -145,8 +150,9 @@ function defineMap(newmap : Map) {
                 <RideEdit
                 :ride="currentRide"
                 :user="currentUser"
+                :newRoute="newRoute"
                 @done-ride-edit="doneRideEdit"
-                @showRoute = "showRoute"
+                @showRoute = "updateCurrentRoute"
                 >
               </RideEdit>
               </v-col>
@@ -191,6 +197,7 @@ function defineMap(newmap : Map) {
         :tab = "currentTab"
         :user = "currentUser"
         @define-map="defineMap"
+        @update-route-info="updateRouteInfo"
       ></RideMap>
 
 </v-col>

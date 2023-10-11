@@ -23,7 +23,7 @@ const props = defineProps<{
   map : Map | null
 }>()
 
-const emit = defineEmits(['defineMap']);
+const emit = defineEmits(['defineMap','updateRouteInfo']);
 
 const currentGPX = computed(()=>props.route.url);
 var map: Map | null = null;
@@ -90,16 +90,16 @@ onUpdated(() => {
   const route = props.route;
   console.log('updated map: ' + (route.dest.length>2 ? route.dest : 'General' ))
   mapMessage.value = route.dest;
-  showRoute(route, true);
+  showRoute(route);
   // force profile to update
   ++mapKey;
 
 })
 
-function showRoute(route : Route, listedRoute  : boolean)
+function showRoute(route : Route )
 {
 // listedRoute is true only if the route has already been added to the list of routes
-
+    const listedRoute  : boolean = (route.id>0)
     const tab = props.tab;
     setupMap();
 
@@ -161,16 +161,19 @@ new L.GPX(route.url, {
         name = gpx.get_name();
     }
 
-    if (listedRoute === true) {
-        // get some details from the GPX to hand back to the app
-  
-        if (route.distance === 0 || isNaN(route.distance) || route.dest === '' || (route.climbing === 0 && elev_gain > 0)) {
-            route.distance = distance;
-            route.dest = name;
-            route.climbing = elev_gain;
+
+    // get some details from the GPX to hand back to the app
+
+    if (route.distance === 0 || isNaN(route.distance) || route.dest === '' || (route.climbing === 0 && elev_gain > 0)) {
+        route.distance = distance;
+        route.dest = name;
+        route.climbing = elev_gain;
+        emit('updateRouteInfo',route);
+        if (listedRoute)
+            // also need to update the database
             await myFetch("UpdateRoute", route, true);
-        }
     }
+    
 
     gpxLinkText.value = "Get GPX ";
 
@@ -179,39 +182,7 @@ new L.GPX(route.url, {
 
         gpxLink.value = 'data:application/gpx+xml;base64,' + btoa(route.url);
         downloadName.value = name + '.gpx';
-
-// todo: later *********************
-
-        // if (tab === 'routes-tab') {
-        //     var b = document.createElement('a');
-        //     linkText = document.createTextNode("Lead Ride");
-        //     b.setAttribute('class', "btn btn-lifted  btn-info btn-sm btn-responsive");
-        //     b.appendChild(linkText);
-        //     b.title = "Lead a ride based on this route";
-        //     b.onclick = function () {
-        //         login.Then(function () {
-        //             rideData.switchingFromLeadRide = true;
-        //             // move to different tab
-        //             rideData.setCurrentTab('setup-tab');
-        //             $('#setup-tab').tab('show');
-        //             $('#uploadRoute').hide();
-        //             $('#manualRoute').hide();
-        //             $('#existingRoute').hide();
-
-        //             setTimeout(function () {
-        //                 // no idea why this is needed, but map does not show correctly if not used
-        //                 TCCMap.showRoute();
-        //                 Ride.leadRide();
-        //             }, 1000);
-
-        //         });
  
-        //     };
-
-        //     _t('h4').appendChild(b);
-        //  }
-
-  
     }
 
     }).addTo(map);
@@ -221,11 +192,11 @@ new L.GPX(route.url, {
 
   var bikeIcon = L.icon({
     iconUrl: bikeMarker,
-    iconSize:     [40, 35], // size of the icon
-    shadowSize:   [50, 40], // size of the shadow
-    iconAnchor:   [20, 17], // point of the icon which will correspond to marker's location
-    shadowAnchor: [4, 2],  // the same for the shadow
-    popupAnchor:  [-3, -7] // point from which the popup should open relative to the iconAnchor
+    iconSize:     [40, 35], 
+    shadowSize:   [50, 40], 
+    iconAnchor:   [20, 17], 
+    shadowAnchor: [4, 2],  
+    popupAnchor:  [-3, -7] 
 });
   
   function updateMarker(latlng: L.LatLngExpression ) {
@@ -240,7 +211,6 @@ new L.GPX(route.url, {
 
   }
   function help() {
-   // ++helpClicks.clicks;
             var win = window.open("Rides-signup.htm");
             if (win != null)
                 win.focus();

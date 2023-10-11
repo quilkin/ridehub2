@@ -55,3 +55,11 @@ export const speedRules = [
                                 return value < 8 ? 'Too slow' :'Too fast'
                                 },
                             ];
+export const gpxRules = [ 
+                            (files : File[] ) => !!files || 'Required.', 
+                            (value: File[]) => {
+                                if (value.length===0) return true;
+                                if (value[0].name.length >= 3 && value[0].name.length <= 26) return true
+                                return 'Filename too long, please shorten to less than 25 and try again'
+                                },
+                            ];

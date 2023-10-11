@@ -2,7 +2,7 @@
   import { ref , onMounted, onBeforeMount} from 'vue'
   import { Ride } from '../utils/ride'
   import { User } from '../utils/user'
-  import  { Message } from '../utils/alert'
+  import { Message } from '../utils/alert'
   import { Already} from '../utils/already'
   import rideData  from '../utils/ridedata'
 
@@ -12,29 +12,29 @@
     reserves: string[],
     user: User,
     dest : string,
-    already : Already
+    already : Already[]
     }>();
+
   const emit = defineEmits(['logIn','detailsDone','detailsUpdated','editRide']);
   const detailsActive = ref(false);
   const ride = props.ride;
   const rider = props.user.name;
-  let participants = props.participants;
-  let numberOfRiders = 0;
-  let spacesLeft = 0;
-  const joinText = 'Join';
-  let buttonText = joinText;
+  const participants = props.participants;
 
-    const reserveText = 'Reserve';
-    const meText = 'me';
-    const mePlusText = 'me+';
-    const leaveReserveText = 'UnReserve';
-    const editRideText = 'Edit/Cancel';
+  // possible texts for the 'join' button
+  const joinText = 'Join';
+  const reserveText = 'Reserve';
+  const meText = 'me';
+  const mePlusText = 'me+';
+  const leaveReserveText = 'UnReserve';
+  const editRideText = 'Edit/Cancel';
+  let buttonText = joinText;
+  let spacesLeft = 0;
 
   onMounted(() => {
-    //console.log('rideDetails: onBeforeMount');
-    numberOfRiders = participants.length;
+
+    let numberOfRiders = participants.length;
     spacesLeft = ride.groupSize - numberOfRiders - 1; // allow for ride leader!
-    //var spacesLeftStr = "Riders (" + spacesLeft + " spaces left): ";
     if (props.reserves.length > 0) {
         participants.push(" (full): Reserves: ");
         for (const reserve of props.reserves)
@@ -43,9 +43,11 @@
     else if (numberOfRiders ==0 ) {
         participants.push('No riders (yet)');
     }
+    else {
+        participants.push(spacesLeft.toString() + ' spaces left')
+    }
 
     // now decide wether to show 'Join' or 'leave' etc
-
     if (participants.includes(rider)) {
         // rider is already signed up for this ride
         buttonText = meText;
@@ -65,11 +67,6 @@
         // can edit your own ride, but not join it
         buttonText = editRideText;
     }
-    //joinButton.value[index] =  joinButtonText;
-
-    // else {
-    //     riderList = spacesLeftStr + participantStr;
-    // }
   });
 
   function checkLogin() {
@@ -78,36 +75,37 @@
         // not logged in, not allowed to see details or join a ride
         Message('You need to sign in to continue')
         emit('logIn');
-        return false;
     }
     detailsActive.value = true;
-    return true;
   }
-  function OK2Join(ride : Ride, rider : string) {
-    const already = props.already;
+  async function OK2Join(ride : Ride, rider : string) {
+    
     const cannotJoin = ", and cannot join more than one ride each day";
     if (ride.leaderName === rider) {
-        Message("You cannot join your own ride!!");
+        await Message("You cannot join your own ride!!");
         return false;
     }
-    else if (already.reservedToDest.length > 0 && already.reservedOnDate == ride.date) {
-        Message("You are aleady reserved for " + already.reservedToDest + cannotJoin);
-        return false;
-    }
-    else if (already.ridingToDest.length > 0 && already.ridingOnDate == ride.date) {
-        Message("You are aleady listed for " + already.ridingToDest + cannotJoin);
-        return false;
-    }
-    else if (already.leadingToDest.length > 0 && already.leadingOnDate == ride.date) {
-        Message("You are aleady leading " + already.leadingToDest + cannotJoin);
-        return false;
+    for (const already of props.already) {
+      if (already.reservedToDest.length > 0 && already.reservedOnDate == ride.date) {
+          await Message("You are aleady reserved for " + already.reservedToDest + cannotJoin);
+          return false;
+      }
+      else if (already.ridingToDest.length > 0 && already.ridingOnDate == ride.date) {
+          await Message("You are aleady listed for " + already.ridingToDest + cannotJoin);
+          return false;
+      }
+      else if (already.leadingToDest.length > 0 && already.leadingOnDate == ride.date) {
+          await Message("You are aleady leading " + already.leadingToDest + cannotJoin);
+          return false;
+      }
     }
     return true;
   };
+
   async function joinRide() {
   
     if (buttonText === joinText) {
-        if (OK2Join(ride, rider)) {
+        if (await OK2Join(ride, rider)) {
             await rideData.saveParticipant(ride.rideID, rider, props.dest);
         }
     }
@@ -115,7 +113,7 @@
         emit('editRide',ride);
     }
     else if (buttonText === reserveText) {
-        if (OK2Join(ride, rider) === true) {
+        if (await OK2Join(ride, rider) === true) {
             await rideData.saveReserveParticipant(ride.rideID, rider);
         }
     }
@@ -135,22 +133,22 @@
 
 }
 
-  function detailsDone() {
-    detailsActive.value = false;
-    emit("detailsDone");
-  }
+  // function detailsDone() {
+  //   detailsActive.value = false;
+  //   emit("detailsDone");
+  // }
 
 
 </script>
 
 <template>
   <div class="text-center">
-    <v-btn size="small" variant='tonal' prepend-icon="mdi-bike" width="150" >
+    <v-btn size="small" variant='tonal' prepend-icon="mdi-bike" width="150" @click="checkLogin()">
         More...
     </v-btn>
     
       <v-dialog 
-        v-model="detailsActive"
+        v-if="detailsActive"
         activator="parent"
         width=400
         content-class="details-dialog"

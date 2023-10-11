@@ -1,13 +1,12 @@
 <script setup  lang="ts">
-import { ref, reactive, onBeforeMount, onBeforeUpdate, onMounted, watch, type Ref } from 'vue'
+import { ref, onBeforeMount,  type Ref } from 'vue'
 import { myFetch } from '../utils/fetch'
 import  TimesDates  from '../utils/timesdates'
 import { Ride } from '../utils/ride'
 import { Already} from '../utils/already'
-import  { Alert, Message, chooseFromTwo} from '../utils/alert'
+import  { Alert } from '../utils/alert'
 import { User } from '../utils/user'
 import Routes  from '../utils/routes'
-import rideData  from '../utils/ridedata'
 import RideDetails from './rideDetails.vue'
 
 
@@ -18,92 +17,70 @@ const props = defineProps<{
 
 const emit = defineEmits(['showRoute','logIn','editRide','rideDetailsUpdated']);
 const showTooltips = ref(true);
-
 const rides = ref() as Ref<Ride[]>
 
-////array of lists of participants, each member will be a string of participants for that ride
-//array of participants for each ride ride
+// data to be shown for each ride
 const participants = ref() as Ref<string[][]>;
-
-//array of reserve participants, as above
 const reserves = ref() as Ref<string[][]>;
-
-// text for ride list items
-//const joinButton = ref() as Ref<string[]>;
 const distanceStr = ref() as Ref<string[]>;
 const climbingStr = ref() as Ref<string[]>;
 const climbingColour = ref() as Ref<string[]>;
 const destination = ref() as Ref<string[]>;
-//const numRiders = ref() as Ref<number[]>;
 
-const detailsActive = ref(false);
-const allDataFetched = ref(false);
-
-
-var already : Already;
+// used to check if a rider is 'already' doing doing a ride on a given day
+const already = ref() as Ref<Already[]>;
 
 onBeforeMount(async() => {
 
   initialiseArrays();
-  const result = await getData();
+  await getData();
   createRideList();
   viewRoute(0);
-  console.log('ridelist: onBeforeMount end: ' + result);
-  
+ 
 });
+
+function initialiseArrays() {
+  rides.value =         [] as Ride[];
+  participants.value =  [] as string[][];
+  reserves.value =      [] as string[][];
+  destination.value =   [] as string[];
+  distanceStr.value =   [] as string[];
+  climbingStr.value =   [] as string[];
+  climbingColour.value =[] as string[];
+  already.value =       [] as Already[];
+}
 
 function allDataLoaded(i : number) {
   if (participants.value[i] && reserves.value[i] && destination.value[i])
     return true;
   return false;
 }
-function initialiseArrays() {
 
-  rides.value = [] as Ride[];
-  participants.value = [] as string[][];
-  reserves.value = [] as string[][];
-  destination.value = [] as string[];
-  distanceStr.value = [] as string[];
-  climbingStr.value = [] as string[];
-  climbingColour.value = [] as string[];
-  //joinButton.value = [] as string[];
-  already = new Already();
-}
 async function getData() {
 
   var intdays = TimesDates.toIntDays(props.date);
   var rideIDs: number[] = [];
 
-    try {
+  try {
     const result = await Routes.getRouteSummaries();
-    //console.log('getRoutes: result: '+ result) ;
     if (result === null)    throw new Error(`Cannot get routes`);
 
-    //console.log('gettingRides');
     rides.value   = await myFetch("GetRidesForDate",intdays);
     if (rides.value  === null)  throw new Error(`Cannot get rides`);
 
-    //rides.value = ridesResponse;
-    //console.log('got rides');
-
-    // if (rides.value.length === 0) {
-    //     Alert( TimesDates.dateString(props.date),'No rides found for 60 days','','info','OK');
-    // }
     rides.value.forEach((ride) => {
         rideIDs.push(ride.rideID);
     });
-    //console.log('getting participants');
-
+  
     const ppts = await myFetch("GetParticipants", rideIDs);
     if (ppts === null)    throw new Error(`Cannot get participants`);
-    //console.log('got participant list');
-
+   
     for (let index in rideIDs)
     {
       // get a list of all participants and reserves for the ride, split into two lists
-      var list = ppts[index].split(',');
-      var reserveList = [] as string[];
-      var riderList =  [] as string[];
+      const list = ppts[index].split(',');
+      const reserveList = [] as string[];
+      const riderList =  [] as string[];
       var numberOfRiders = 1; // leader
       list.forEach((person : string) => {
           if (person[0] == '+') {
@@ -114,37 +91,19 @@ async function getData() {
               ++numberOfRiders;
           }
       });
-
       participants.value.push(riderList);
       reserves.value.push(reserveList);
-
     };
-    
-    allDataFetched.value = true;
-    // createRideList();
-    // viewRoute(0);
-    return 'get rides success';
-    
-
   }
-  catch (err : any) {
-    Alert('Unsuccessful',err,'','error','OK');
-    return 'get rides try/catch error';
+  catch (e) {
+    const err = e as Error;
+    Alert('Unsuccessful',err.message,'','error','OK');
   }
 }   
 
-
- function createRideList() {
+function createRideList() {
     console.log('createRideList');
-  // initialise checks for invalid entries
-    already.reservedToDest = '';
-    already.reservedToDest = '';
-    already.leadingToDest= '';
-    already.ridingOnDate = 0;
-    already.reservedOnDate = 0;
-    already.leadingOnDate = 0;
 
-   // Message('createRideList test message');
 
     rides.value.forEach((ride,index) => {
       const route  = Routes.findRoute(ride.routeID);
@@ -157,36 +116,37 @@ async function getData() {
       }
     });
 
-    // now see if this rider is already booked on a  ride for this date
-    var riderName = 'nobody';
-    if (props.user !== undefined && props.user.role > 0)
-        riderName = props.user?.name;
-        rides.value.forEach((ride,index) => {
-        try {
+    // now see if this rider is already booked on a ride for this date
 
+    
+    if (props.user !== undefined && props.user.role > 0) {
+        let riderName = props.user.name;
+        rides.value.forEach((ride,index) => {
+          let ridingAlready = new Already();
+          try {
             const dest = destination.value[index]
-              if (participants.value[index].includes(riderName)) {
-                already.ridingToDest = dest;
-                already.ridingOnDate = ride.date;
+            if (participants.value[index].includes(riderName)) {
+              ridingAlready.ridingToDest = dest;
+              ridingAlready.ridingOnDate = ride.date;
             }
             if (reserves.value[index].includes(riderName)) {
-                already.reservedToDest = dest;
-                already.reservedOnDate = ride.date;
+              ridingAlready.reservedToDest = dest;
+              ridingAlready.reservedOnDate = ride.date;
             }
             const leader = ride.leaderName;
             if (leader === riderName) {
-                already.leadingToDest = dest;
-                already.leadingOnDate = ride.date;
+              ridingAlready.leadingToDest = dest;
+              ridingAlready.leadingOnDate = ride.date;
             }
-        }
-        catch (e ) {
-          const err = e as Error;
-          console.log(err.message);
-        }
-    });
-
-
-
+            already.value.push(ridingAlready);
+          }
+          catch (e ) {
+            const err = e as Error;
+            Alert('Unsuccessful',err.message,'','error','OK');
+          }
+        
+        });
+    }
  }
 
 
@@ -205,33 +165,23 @@ function rideDateString(date : number) {
 }
 
 async function viewRoute(index : number) {
-  console.log('*****viewRoute');
-  var ride : Ride = rides.value[index];
-  //currentride = ride;
-  var route = Routes.findRoute(ride.routeID);
+  const ride : Ride = rides.value[index];
+  const route = Routes.findRoute(ride.routeID);
   if (route === null) {
     Alert('internal problem','Route not found for this ride','','error','OK');
     return;
   }
-  if (route.url != null && route.url.length > 100) {
-    console.log(route.dest + ': route gpx aleady in store');
-  }
-  else {
-    console.log('getting GPX data');
+  if (route.url == null || route.url.length < 100) {
+    // don't yet have the GPX data
     const gpxdata  = await myFetch("GetGPXforRoute", route.id, true);
     if (gpxdata != null) {
-
         route.url = gpxdata;
-
-
     }
   }
   emit('showRoute',route,true);
   // no need to show tooltip again?
   showTooltips.value = false;
-
 }
-
 
 </script>
 
@@ -258,11 +208,7 @@ async function viewRoute(index : number) {
         <v-col cols="2.5">
           <v-list-item-title v-text="ride.leaderName"></v-list-item-title>
         </v-col>
-        <!-- <v-col cols="1">
-          <v-btn variant='tonal' size="small" @click="joinRide(i)">
-            {{ joinButton[i] }} 
-          </v-btn>
-        </v-col> -->
+
         <v-col  cols="2">
           <RideDetails v-if="allDataLoaded(i)"
             :ride="ride" 
@@ -275,15 +221,11 @@ async function viewRoute(index : number) {
             @details-updated="$emit('rideDetailsUpdated')"
             @edit-ride="emit('editRide',ride)"
           > </RideDetails>
-          <!-- <v-btn variant='tonal' size="small"  @click="riderList(i)">
-            Rider List
-          </v-btn> -->
 
         </v-col>
       </v-row>
       <v-list-item-subtitle v-text="ride.description"></v-list-item-subtitle>
       
-      <!-- <v-list-item-subtitle v-text="item.meetingAt"></v-list-item-subtitle> -->
     </v-list-item>
   </v-list>
 </template>
