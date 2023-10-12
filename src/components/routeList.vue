@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import { ref , onMounted, watch, emit, type Ref } from 'vue'
+import { ref , onMounted, type Ref } from 'vue'
 import { myFetch } from '../utils/fetch'
 import  { Alert} from '../utils/alert'
 import { User } from '../utils/user'

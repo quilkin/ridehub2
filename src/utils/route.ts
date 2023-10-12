@@ -6,4 +6,6 @@ export class Route {
     distance= 0;
     owner = '';
     hasGPX = this.url.length > 0;
+    // not actually used but rquired for compatability with old DB
+    description = '';
 }

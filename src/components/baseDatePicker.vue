@@ -21,7 +21,7 @@
 
 <template>
   <div class="text-center">
-    <v-btn  :size="props.large?'large':'medium'" :color="props.large? 'grey':'blue'" variant=outlined prepend-icon="mdi-calendar-month" width="200">
+    <v-btn  :size="props.large?'large':'medium'" :color="props.large? 'grey':'blue'"  variant=outlined prepend-icon="mdi-calendar-month" width="200">
         {{props.text}}
       <v-dialog
         v-model="datePickerActive"

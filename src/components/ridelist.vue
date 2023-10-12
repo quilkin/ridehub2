@@ -191,21 +191,22 @@ async function viewRoute(index : number) {
       <v-list-item-title v-if="newDateReqd(ride.date)" style="background-color:rgb(46, 195, 245);" >{{rideDateString(ride.date)}}</v-list-item-title>
       <v-row  no-gutters>
         <v-col cols="1">
-          <small>{{ TimesDates.fromIntTime( ride.time) }}</small> 
+          <!-- <small>{{ TimesDates.fromIntTime( ride.time) }}</small>  -->
+          <v-chip size="small" color="blue" variant="outlined">{{ TimesDates.fromIntTime( ride.time) }}</v-chip>
         </v-col>
-        <v-col cols="3.5">
-          <v-btn variant='tonal' density="compact"  @click="viewRoute(i)">
-            <span class="text-truncate" style="max-width:100px" >{{ destination[i]  }}</span>
+        <v-col cols="4">
+          <v-btn variant='elevated' color="blue" density="compact"  @click="viewRoute(i)">
+            <span class="text-truncate" style="width:150px" >{{ destination[i]  }}</span>
             <v-tooltip   activator="parent"  location="end" >Click to show route on map</v-tooltip>
           </v-btn>
         </v-col>
         <v-col cols="1">
           <small>{{ distanceStr[i] }}</small> 
         </v-col>
-        <v-col cols="1">
+        <v-col cols="1.3">
           <small v-bind:style="{'color': climbingColour[i]}"><b>&uarr;&darr;</b>{{ climbingStr[i] }}</small>
         </v-col>
-        <v-col cols="2.5">
+        <v-col cols="2">
           <v-list-item-title v-text="ride.leaderName"></v-list-item-title>
         </v-col>
 

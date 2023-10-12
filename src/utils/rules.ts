@@ -63,3 +63,10 @@ export const gpxRules = [
                                 return 'Filename too long, please shorten to less than 25 and try again'
                                 },
                             ];
+export const descriptionRules = [ 
+                            (value: string) => !!value || 'Required.', 
+                            (value: string) => {
+                                if (value.length >= 10 && value.length <= 100) return true
+                                return 'Desciption should be between 10 and 100 characters'
+                                },
+                            ];

@@ -133,6 +133,10 @@
 
 }
 
+function getGPX()
+ {
+
+ }
   // function detailsDone() {
   //   detailsActive.value = false;
   //   emit("detailsDone");
@@ -143,7 +147,7 @@
 
 <template>
   <div class="text-center">
-    <v-btn size="small" variant='tonal' prepend-icon="mdi-bike" width="150" @click="checkLogin()">
+    <v-btn size="small" variant='outlined'  color="blue" prepend-icon="mdi-bike" width="150" @click="checkLogin()">
         More...
     </v-btn>
     
@@ -156,10 +160,14 @@
       <v-card :title="props.dest">
         <v-card-text>    {{ ride.description }}   </v-card-text>
         <v-spacer></v-spacer>
-        <v-card-text>   Leader: {{ ride.leaderName }}   </v-card-text>
-        <v-spacer></v-spacer>
-        <v-card-text>   Meeting at: {{ ride.meetingAt }}   </v-card-text>
-
+        <v-row no-gutters>
+            <v-col cols="3"><v-chip class="mt-3">Leader</v-chip></v-col>
+            <v-col cols="9"><v-card-text > {{ ride.leaderName }}   </v-card-text></v-col>
+        </v-row>
+        <v-row no-gutters>
+            <v-col cols="3"><v-chip class="mt-3">Meeting at</v-chip></v-col>
+            <v-col cols="9"><v-card-text> {{ ride.meetingAt }}   </v-card-text></v-col>
+        </v-row>
         <v-menu activator="#rider-list">
             <v-list>
                 <v-list-item
@@ -172,9 +180,12 @@
             </v-list>
         </v-menu>
         <v-card-actions>
-            <v-btn variant="outlined" id="rider-list" color="primary" >Rider list</v-btn>
-            <v-btn variant="outlined" id="join" color="primary" @click="joinRide()">{{buttonText}}</v-btn>
-            <v-btn variant="outlined" text="OK" color="blue" @click="detailsActive = false"></v-btn>
+            <v-btn variant="elevated" color="blue" id="rider-list"  >Rider list</v-btn>
+            <v-btn variant="elevated" color="blue" id="join" @click="joinRide()">{{buttonText}}</v-btn>
+            <v-btn variant="elevated" color="blue" @click="getGPX()">Get GPX</v-btn>
+            <v-col class="text-right">
+                <v-btn variant="outlined" text="OK" color="blue" @click="detailsActive = false"></v-btn>
+            </v-col>
         </v-card-actions>
     </v-card>
       </v-dialog>

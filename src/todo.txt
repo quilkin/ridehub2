@@ -13,3 +13,4 @@ sort out css for mobile etc
 profile for first route loaded
 edit ride disabled if not logged in
 tcx file?
+check promises / errors in account / login

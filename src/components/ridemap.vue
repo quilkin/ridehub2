@@ -88,6 +88,9 @@ onBeforeUnmount(() => {
 
 onUpdated(() => {
   const route = props.route;
+  if (route.dest == undefined) {
+    route.dest = '';
+  }
   console.log('updated map: ' + (route.dest.length>2 ? route.dest : 'General' ))
   mapMessage.value = route.dest;
   showRoute(route);

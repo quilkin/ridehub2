@@ -11,11 +11,16 @@ const Routes = {
     getIndex: function(index : number) {
         return routes.value[index];
     },
+    addNewRoute: function(route : Route) {
+        routes.value.push(route);
+    },
     filteredList: function(minRouteLength : number, maxRouteLength: number, alphaOrder: boolean) {
         const partRoutes = [] as Route[];
-        for (const route of routes.value) {
-            if (route.distance > minRouteLength && route.distance < maxRouteLength) {
-                partRoutes.push(route);
+        if (routes.value != undefined) {
+            for (const route of routes.value) {
+                if (route.distance > minRouteLength && route.distance < maxRouteLength) {
+                    partRoutes.push(route);
+                }
             }
         }
         if (alphaOrder)
@@ -44,7 +49,7 @@ const Routes = {
             return 'OK';
         }
         else {
-            Alert('Unsuccessful','Could not contact server','','error','OK');
+            await Alert('Unsuccessful','Could not contact server','','error','OK');
             return null;
         }
 

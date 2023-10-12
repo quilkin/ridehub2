@@ -7,6 +7,7 @@ import { User } from './utils/user'
 import RideList from './components/ridelist.vue'
 import { Route }  from './utils/route'
 import { Ride }  from './utils/ride'
+import { Alert, Message } from './utils/alert'
 import type { Map } from 'leaflet';
 
 import  baseDatePicker  from './components/baseDatePicker.vue'
@@ -37,19 +38,26 @@ function editRide(ride : Ride)
   currentRide.value = ride;
   switchTab('newRide');
 }
+function checkLogIn()
+{
+  if (currentUser.value.role==0)
+    {
+        // not logged in, not allowed to see details or join a ride
+        Message('You need to sign in to continue')
+        logIn();
+        return false;
+    }
+    return true;
+}
 function doneLogin(user : User) {
-  //myAlert();
   if (user===null)
   {
     console.log("guest user");
-    //accountTab.value.setTabView(false);
   }
   else {
     console.log("login by " + user.name);
     currentUser.value = user;
   }
-  //await Routes.getRouteSummaries();
-
   switchTab('calendar');
  
 }
@@ -60,7 +68,6 @@ function doneRideEdit() {
 function updateCurrentRoute(route : Route, profile : boolean ) {
     currentRoute.value = route;
     showProfile.value = profile;
-
 }
 const dataChanged = ref(0);
 
@@ -120,19 +127,9 @@ function updateRouteInfo(r : Route) {
                  @ride-details-updated="++dataChanged"
                  >
                 </RideList>
-                 
+                
                 <baseDatePicker  :large='false' text="Select other dates" :date="ridesDate"    @new-date="newDate"   />
               </v-col>
-              <!-- <v-col>
-                <RideMap
-                  :map="map"
-                 :route = "currentRoute"
-                 :tab = "currentTab"
-                 :user = "currentUser"
-                 @define-map="defineMap"
-                ></RideMap>
-
-              </v-col> -->
             </v-row>
           </v-container>
 
@@ -147,25 +144,16 @@ function updateRouteInfo(r : Route) {
           <v-container   height="100%">
             <v-row no-gutters>
               <v-col> 
-                <RideEdit
+                <RideEdit v-if="checkLogIn()"
                 :ride="currentRide"
                 :user="currentUser"
                 :newRoute="newRoute"
+                @log-in="logIn"
                 @done-ride-edit="doneRideEdit"
                 @showRoute = "updateCurrentRoute"
                 >
               </RideEdit>
               </v-col>
-              <!-- <v-col>
-                <RideMap
-                 :map="map"
-                 :route = "currentRoute"
-                 :tab = "currentTab"
-                 :user = "currentUser"
-                 @define-map="defineMap"
-                ></RideMap>
-
-              </v-col> -->
             </v-row>
           </v-container>
         </v-window-item>
