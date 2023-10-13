@@ -5,7 +5,7 @@ import { ref, type Ref, onBeforeMount} from 'vue'
 import { destinationRules, distanceRules, meetingRules, ridersRules, speedRules, gpxRules, descriptionRules} from '../utils/rules'
 
 import { myFetch } from '../utils/fetch'
-import { Alert, Message } from '../utils/alert'
+import { Alert, Message, YesNo } from '../utils/alert'
 import { User } from '../utils/user'
 import { Ride } from '../utils/ride'
 import { Route } from '../utils/route'
@@ -44,7 +44,7 @@ const maxRiders = ref(10);
 const aveSpeed = ref(20);
 const showFileUpload = ref(false);
 
-let newRide = true;
+let newRide = false;
 
 let hour='';
 let minute='';
@@ -69,7 +69,23 @@ onBeforeMount(() => {
     } 
     
     thisRide.value = props.ride;
-    newRide = (thisRide.value.rideID == 0);
+    if (thisRide.value.rideID > 0) {
+      // existing ride being edited
+      const route  = Routes.findRoute(thisRide.value.routeID);
+      if (route != null) {
+        if (route.hasGPX==false)
+          routeType.value = RouteTypes.noGpx;
+        else
+          routeType.value = RouteTypes.oldGpx;
+
+        destination.value = route.dest;
+        distance.value = route.distance;
+      }
+    }
+    else {
+      routeType.value = RouteTypes.none;
+      newRide = true;
+    }
     units.value = props.user.units;
     userName.value = props.user.name;
     description.value = props.ride.description;
@@ -95,11 +111,14 @@ onBeforeMount(() => {
   })
 
 async function submit() {
-  if (rideForm.value != null) {
+  if (rideForm.value == null) 
+    return;
   const {valid} = await rideForm.value.validate()
+  if (!valid ) return;
 
-  if (valid) {
-    
+  await YesNo('Save this ride, are you sure?', async ()=> {
+
+    let routeID  = thisRide.value.rideID;
     if (thisRide.value.routeID == 0 && newRoute != null  && newRoute.hasGPX) {
       console.log('saving route: '+  newRoute.dest);
       //  need to save this new route first
@@ -107,8 +126,9 @@ async function submit() {
       const res = await myFetch('SaveRoute',newRoute,true);
       const id = parseInt(res);
       if (Number.isInteger(id)) {
-        //if (res.length < 5) {
+   
         newRoute.id = id;
+        routeID = id;
         Routes.addNewRoute (newRoute);
       }
       else {
@@ -117,31 +137,45 @@ async function submit() {
         else
               await Message(res);
       }
-
     }
-    if (selectedRoute.value.id != thisRide.value.routeID) {
+    if (newRide == false && selectedRoute.value.id != thisRide.value.routeID) {
       console.log('warn riders: ' + selectedRoute.value.id  + ' ' +   thisRide.value.routeID);
+      routeID = selectedRoute.value.id;
       // todo: need to warn riders that route has changed
     }
-    console.log('saving ride: ' + thisRide.value.routeID + ' ' +   newRoute.dest);
-    await myFetch('ChangeAccount',creds,true)
-    .then((response) => {
-      if (response != null) {
-        if (response == 'OK') {
-          Alert('Registration', "Your details have been saved",'','info','OK');
-          emit('doneRideEdit');
-        }
-        else {
-          Alert('Registration',response,'','error','OK');
-        }
+    
+    thisRide.value.leaderName = props.user.name;
+    thisRide.value.date = TimesDates.toIntDays(date.value);
+    thisRide.value.time = parseInt(hour) * 60 + parseInt(minute);
+    thisRide.value.description = description.value;
+    thisRide.value.groupSize = maxRiders.value;
+    thisRide.value.meetingAt = meetingAt.value;
+    thisRide.value.routeID = routeID;
+    thisRide.value.speed = aveSpeed.value;
+
+    if (newRide) {
+      const res = await myFetch('SaveRide',thisRide.value,true);
+      const id = parseInt(res);
+      if (Number.isInteger(id)) {
+        await Message('Ride has been saved');
       }
       else {
-        Alert( 'Update unsuccessful','Could not contact server','','error','OK');
+        await Alert('Save Ride Error',res,'','error','OK');
       }
-    })
-  }
+    }
+    else {
+      const res = await myFetch('EditRide',thisRide,true);
+      if (res=="OK") {
+        await Message('Edited ride has been saved');
+      }
+      else {
+        await Alert('Save Ride Error',res,'','error','OK');
+      }
+    }
+  })
+
 }
-}
+
 function changeRouteType(t : RouteTypes)
 {
   routeType.value = t;
@@ -159,19 +193,13 @@ function changeRouteType(t : RouteTypes)
   // else (RouteTypes.oldGpx) routes menu will be displayed by button press
   
 }
-function DistanceStr() {
-    return 'Approx Distance (' + (props.user.units==='k'?'km':'miles') + ')';
-}
-function SpeedStr() {
-    return 'Ave. speed (' + (props.user.units==='k'?'km/hr':'mph') + ')';
-}
+
 function showRoute(route : Route) {
   emit('showRoute',route,false);
   destination.value = route.dest;
   distance.value = route.distance;
   selectedRoute.value = route;
-  // destination.value = props.newRoute.dest;
-  // distance.value = props.newRoute.distance;
+
 }
 function buttonType(t : RouteTypes) {
   if (routeType.value === t)
@@ -182,15 +210,9 @@ function cancel() {
     rideDialog.value = false;
     emit('doneRideEdit');
 }
-// function routeChosen(route : Route) {
-//   console.log("Chosen route: " + route.dest);
-//   destination.value = route.dest;
-//   distance.value = route.distance;
-//   routeType.value = RouteTypes.none;
-// }
+
 function newDate(newDate : Date) {
   date.value = newDate;
-//  ++dateChanged.value;
 }
 
  function readSuccess(event: ProgressEvent<FileReader>) {
@@ -243,15 +265,17 @@ function loadGpx() {
   <div class="d-flex align-center flex-column">
    <v-card  width="600" >
       <v-card-title class="headline black" primary-title>
-        Plan to lead a ride
+        {{newRide? 'Plan to lead a ride':'Edit your ride'}}
       </v-card-title>
       <v-card-text class="pa-3">
-        <v-form @submit.prevent="submit" ref="rideForm">
+        <v-form @submit.prevent="submit"  ref="rideForm">
           <v-row >
-              A ride needs a route of some sort. So, please choose one of the following:
+              A ride could do with a route of some sort. So, please choose one of the following:
 
-            <v-btn block :variant="buttonType(RouteTypes.oldGpx)" class="mt-2" color="blue" id="btn-existing" @click="changeRouteType(RouteTypes.oldGpx)">Use an existing route from the RideHub list (there's over 100 of them!)</v-btn>
-            <v-btn block :variant="buttonType(RouteTypes.newGpx)" class="mt-2" color="blue" @click="changeRouteType(RouteTypes.newGpx)">Upload a new GPX route that you have created or found elsewhere</v-btn>
+            <v-btn block :variant="buttonType(RouteTypes.oldGpx)" class="mt-2" color="blue" id="btn-existing" @click="changeRouteType(RouteTypes.oldGpx)">
+              Use an existing route from the RideHub list (there's over 100 of them!)</v-btn>
+            <v-btn block :variant="buttonType(RouteTypes.newGpx)" class="mt-2" color="blue" @click="changeRouteType(RouteTypes.newGpx)">
+              Upload a new GPX route that you have created or found elsewhere</v-btn>
             <v-row v-if="showFileUpload">
               <v-col cols="8" class="mt-6" >
                 <v-file-input v-model="gpxfiles"  density="compact" variant="outlined"
@@ -266,7 +290,8 @@ function loadGpx() {
                 <v-btn color="blue" class="mt-2"  variant="outlined" @click="loadGpx">Select this file</v-btn>
               </v-col>
             </v-row>
-            <v-btn block :variant="buttonType(RouteTypes.noGpx)" class="mt-2" color="blue" @click="changeRouteType(RouteTypes.noGpx)">Enter a simple ride to somewhere, with an undefined route</v-btn>
+            <v-btn block :variant="buttonType(RouteTypes.noGpx)" class="mt-2" color="blue" @click="changeRouteType(RouteTypes.noGpx)">
+              Have a simple ride to somewhere, with no defined route</v-btn>
 
             <RouteList  :user="props.user" @show-route="showRoute" ></RouteList>
           </v-row>
@@ -280,13 +305,13 @@ function loadGpx() {
                       hint="Where are you riding to? Coffee stop?"/>
               </v-col>
               <v-col cols="6"  class="mt-6" >
-                  <v-text-field density="compact"  v-model="distance" variant="outlined"  :rules="distanceRules"  :label="DistanceStr()"  :disabled="routeType!=RouteTypes.noGpx"
+                  <v-text-field density="compact"  v-model="distance" variant="outlined"  :suffix="props.user.units==='k'?'km':'miles'" :rules="distanceRules"  label="Approx Distance"  :disabled="routeType!=RouteTypes.noGpx"
                       hint="A rough indication, need not be exact"/>
               </v-col>
             </v-row>
             <v-row >
-              <v-col cols="8"  class="mt-n4" >
-                  <v-text-field density="compact"  v-model="description" variant="outlined"  :rules="descriptionRules"  label="Description" 
+              <v-col cols="12"  class="mt-n4" >
+                  <v-textarea density="compact" rows="1" v-model="description" variant="outlined"  :rules="descriptionRules"  label="Description" 
                       hint="Help others to know if they would like to ride this route. e.g. mention 'Gravel' if it's off-road"/>
               </v-col>
             </v-row>
@@ -321,7 +346,7 @@ function loadGpx() {
                    hint="Limit rider numbers if you don't want a big group" />
               </v-col>
               <v-col cols="3">
-                  <v-text-field variant="outlined" density="compact" v-model="aveSpeed"  :rules="speedRules"  :label="SpeedStr()" 
+                  <v-text-field variant="outlined" density="compact" v-model="aveSpeed"  :suffix="props.user.units==='k'?'km/hr':'mph'" :rules="speedRules"  label="Ave speed" 
                   hint="Suggested average speed. Actual speed will depend on riders present"  />
               </v-col>
 

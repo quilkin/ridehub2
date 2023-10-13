@@ -20,6 +20,7 @@ const currentRoute = ref(new Route());
 const newRoute = ref(new Route());
 const currentRide = ref(new Ride());
 const showProfile = ref(true);
+const editing = ref(false);
 //const mapData = ref(new MapData());
 //const datepicker = ref(null);
 const routes= ref() as Ref<Route[]>
@@ -28,6 +29,8 @@ var map: Map | null = null;
 
 function switchTab(tab: string) {
   currentTab.value = tab;
+  
+
 }
 function logIn()
 {
@@ -37,9 +40,11 @@ function editRide(ride : Ride)
 {
   currentRide.value = ride;
   switchTab('newRide');
+  editing.value = true;
 }
 function checkLogIn()
 {
+
   if (currentUser.value.role==0)
     {
         // not logged in, not allowed to see details or join a ride
@@ -62,7 +67,8 @@ function doneLogin(user : User) {
  
 }
 function doneRideEdit() {
-  console.log("done ride edit");
+  editing.value = false;
+  switchTab('calendar');
 }
 
 function updateCurrentRoute(route : Route, profile : boolean ) {
@@ -78,8 +84,11 @@ function newDate(date : Date) {
 function tabChanged() {
   console.log('tab: '+ currentTab);
   if (currentTab.value === 'newRide') {
+    currentRide.value = new Ride();
     currentRoute.value = new Route();
+    editing.value = true;
   }
+    
 }
 function defineMap(newmap : Map) {
   map = newmap;
@@ -144,7 +153,7 @@ function updateRouteInfo(r : Route) {
           <v-container   height="100%">
             <v-row no-gutters>
               <v-col> 
-                <RideEdit v-if="checkLogIn()"
+                <RideEdit v-if="checkLogIn() && editing"
                 :ride="currentRide"
                 :user="currentUser"
                 :newRoute="newRoute"

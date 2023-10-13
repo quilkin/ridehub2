@@ -11,6 +11,13 @@ treeshake other packages
 use v-bind (as per ridelist) for colours on routes list
 sort out css for mobile etc
 profile for first route loaded
-edit ride disabled if not logged in
 tcx file?
 check promises / errors in account / login
+convert average speed units (edit ride )
+delete ride
+move all api names into enum
+move tab names into enum
+check ride date not in the past
+check route name hasn't been used already
+'missing info' message if ride validate fails
+add 'average speed' field to database
