@@ -39,7 +39,7 @@ function loggedIn(user : User) {
             @logged-in="loggedIn"
             @sign-up="status='signingUp'"
             @forgot-pass="status='reqPassword'"
-            @guest-visit="emit('doneLogin',null)"
+            @guest-visit="emit('doneLogin',new User())"
             ></login>
     <reqpass v-else-if="status==='reqPassword'"
             @done-pass="status='loggingIn'"

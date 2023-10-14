@@ -1,13 +1,14 @@
 <script setup  lang="ts">
-import { ref, onBeforeMount,  type Ref } from 'vue'
-import { myFetch } from '../utils/fetch'
-import  TimesDates  from '../utils/timesdates'
+import { ref, onBeforeMount, type Ref } from 'vue'
+import { apiMethods, myFetch } from '../utils/fetch'
 import { Ride } from '../utils/ride'
 import { Already} from '../utils/already'
-import  { Alert } from '../utils/alert'
+import { AlertError } from '../utils/alert'
 import { User } from '../utils/user'
 import Routes  from '../utils/routes'
 import RideDetails from './rideDetails.vue'
+import TimesDates  from '../utils/timesdates'
+import { Route } from '@/utils/route'
 
 
 const props = defineProps<{
@@ -15,7 +16,7 @@ const props = defineProps<{
   user : User
 }>()
 
-const emit = defineEmits(['showRoute','logIn','editRide','rideDetailsUpdated']);
+const emit = defineEmits(['showRoute','logIn','editRide','participantsUpdated']);
 const showTooltips = ref(true);
 const rides = ref() as Ref<Ride[]>
 
@@ -29,6 +30,7 @@ const destination = ref() as Ref<string[]>;
 
 // used to check if a rider is 'already' doing doing a ride on a given day
 const already = ref() as Ref<Already[]>;
+let currentRoute : Route = new Route();
 
 onBeforeMount(async() => {
 
@@ -38,6 +40,13 @@ onBeforeMount(async() => {
   viewRoute(0);
  
 });
+// onUpdated(async() => {
+
+//   await getData();
+//   createRideList();
+//   viewRoute(0);
+
+// });
 
 function initialiseArrays() {
   rides.value =         [] as Ride[];
@@ -65,14 +74,14 @@ async function getData() {
     const result = await Routes.getRouteSummaries();
     if (result === null)    throw new Error(`Cannot get routes`);
 
-    rides.value   = await myFetch("GetRidesForDate",intdays);
+    rides.value   = await myFetch(apiMethods.getRides,intdays);
     if (rides.value  === null)  throw new Error(`Cannot get rides`);
 
     rides.value.forEach((ride) => {
         rideIDs.push(ride.rideID);
     });
   
-    const ppts = await myFetch("GetParticipants", rideIDs);
+    const ppts = await myFetch(apiMethods.getPpts, rideIDs);
     if (ppts === null)    throw new Error(`Cannot get participants`);
    
     for (let index in rideIDs)
@@ -97,17 +106,15 @@ async function getData() {
   }
   catch (e) {
     const err = e as Error;
-    Alert('Unsuccessful',err.message,'','error','OK');
+    AlertError('Unsuccessful',err.message);
   }
 }   
 
 function createRideList() {
-    console.log('createRideList');
-
 
     rides.value.forEach((ride,index) => {
       const route  = Routes.findRoute(ride.routeID);
-      if (route != null)
+      if (route.id > 0)
       {
         destination.value[index] = route?.dest;
         distanceStr.value[index] = Routes.distanceStr(route,props.user.units);
@@ -142,7 +149,7 @@ function createRideList() {
           }
           catch (e ) {
             const err = e as Error;
-            Alert('Unsuccessful',err.message,'','error','OK');
+            AlertError('Unsuccessful',err.message);
           }
         
         });
@@ -160,25 +167,29 @@ function newDateReqd(date : number) {
   }
   return false;
 }
-function rideDateString(date : number) {
-  return TimesDates.StrFromIntDays(date);
-}
+// function rideDateString(date : number) {
+//   return TimesDates.StrFromIntDays(date);
+// }
 
 async function viewRoute(index : number) {
   const ride : Ride = rides.value[index];
-  const route = Routes.findRoute(ride.routeID);
-  if (route === null) {
-    Alert('internal problem','Route not found for this ride','','error','OK');
+  if (ride === null || ride==undefined) {
+    AlertError('internal problem','Ride not found');
     return;
   }
-  if (route.url == null || route.url.length < 100) {
+  currentRoute = Routes.findRoute(ride.routeID);
+  if (currentRoute.id == 0) {
+    AlertError('internal problem','Route not found for this ride');
+    return;
+  }
+  if (currentRoute.url == null || currentRoute.url.length < 100) {
     // don't yet have the GPX data
-    const gpxdata  = await myFetch("GetGPXforRoute", route.id, true);
-    if (gpxdata != null) {
-        route.url = gpxdata;
+    let gpxData  = await myFetch(apiMethods.getGpx, currentRoute.id, true);
+    if (gpxData != null) {
+      currentRoute.url = gpxData;
     }
   }
-  emit('showRoute',route,true);
+  emit('showRoute',currentRoute,true);
   // no need to show tooltip again?
   showTooltips.value = false;
 }
@@ -188,16 +199,16 @@ async function viewRoute(index : number) {
 <template>
 <v-list lines="three"  density="compact">
     <v-list-item v-for="(ride, i) in rides" :key="i" >
-      <v-list-item-title v-if="newDateReqd(ride.date)" style="background-color:rgb(46, 195, 245);" >{{rideDateString(ride.date)}}</v-list-item-title>
+      <v-list-item-title v-if="newDateReqd(ride.date)" style="background-color:rgb(46, 195, 245);" >{{TimesDates.StrFromIntDays(ride.date)}}</v-list-item-title>
       <v-row  no-gutters>
         <v-col cols="1">
           <!-- <small>{{ TimesDates.fromIntTime( ride.time) }}</small>  -->
           <v-chip size="small" color="blue" variant="outlined">{{ TimesDates.fromIntTime( ride.time) }}</v-chip>
         </v-col>
         <v-col cols="4">
-          <v-btn variant='elevated' color="blue" density="compact"  @click="viewRoute(i)">
+          <v-btn variant='elevated' color="blue" density="compact"  @click="viewRoute(i)" title="Click to show route on map">
             <span class="text-truncate" style="width:150px" >{{ destination[i]  }}</span>
-            <v-tooltip   activator="parent"  location="end" >Click to show route on map</v-tooltip>
+            <!-- <v-tooltip   activator="parent"  location="end" >Click to show route on map</v-tooltip> -->
           </v-btn>
         </v-col>
         <v-col cols="1">
@@ -218,9 +229,11 @@ async function viewRoute(index : number) {
             :user="props.user"
             :dest="destination[i]"
             :already="already"
+            :route="currentRoute"
             @log-in="$emit('logIn')"
-            @details-updated="$emit('rideDetailsUpdated')"
+            @participants-updated="$emit('participantsUpdated')"
             @edit-ride="emit('editRide',ride)"
+            @view-route="viewRoute(i)"
           > </RideDetails>
 
         </v-col>

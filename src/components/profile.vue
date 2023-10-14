@@ -13,10 +13,11 @@ import 'leaflet-polylineDecorator';
 import { Alert} from '../utils/alert'
 import type { LeafletEvent } from 'leaflet';
 import type { User } from '@/utils/user';
+import { Tabs } from '../utils/tabs'
 
 const props = defineProps<{
   gpx : L.GPX
-  tab : string
+  tab : Tabs
   user : User
 
 }>()
@@ -47,7 +48,7 @@ onBeforeMount(() => {
 onMounted(() => {
     console.log('updating profile: onMounted')
   
-    if (props.tab !== 'new' && props.gpx != null) {
+    if (props.tab !== Tabs.newRide && props.gpx != null) {
         showProfile(props.gpx);
     }
 })

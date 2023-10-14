@@ -4,15 +4,15 @@
 import { ref, type Ref, onBeforeMount} from 'vue'
 import { destinationRules, distanceRules, meetingRules, ridersRules, speedRules, gpxRules, descriptionRules} from '../utils/rules'
 
-import { myFetch } from '../utils/fetch'
-import { Alert, Message, YesNo } from '../utils/alert'
+import { apiMethods, myFetch } from '../utils/fetch'
+import { Alert, Message, YesNo, AlertError } from '../utils/alert'
 import { User } from '../utils/user'
 import { Ride } from '../utils/ride'
 import { Route } from '../utils/route'
 import Routes  from '../utils/routes'
 import RouteList from './routeList.vue'
 import TimesDates  from '../utils/timesdates'
-import baseDatePicker  from './baseDatePicker.vue'
+import datePicker  from './datePicker.vue'
 import { watch } from 'vue'
 
 enum RouteTypes {
@@ -22,7 +22,7 @@ enum RouteTypes {
   noGpx
 }
 //const loggedIn = ref(true);
-const thisRide = ref(new Ride);
+
 const userName = ref('');
 const destination = ref('');
 const gpxfiles= ref() as Ref<File[]>;
@@ -31,7 +31,8 @@ const rideDialog = ref(false);
 const rideForm = ref();
 const routeType = ref(RouteTypes.none);
 //const newRoute = ref() as Ref<Route>;
-var newRoute : Route ;
+let newRoute : Route ;
+let thisRide : Ride;
 const selectedRoute = ref(new Route);
 //const oldGPX = ref(false);
 const units = ref('k');
@@ -64,15 +65,16 @@ const props = defineProps<{
 onBeforeMount(() => {
     if (props.user === undefined || props.ride === undefined)
     {
-        Alert('Internal error','invalid user or ride data','','error','OK');
+        AlertError('Internal error','invalid user or ride data');
         return;
     } 
     
-    thisRide.value = props.ride;
-    if (thisRide.value.rideID > 0) {
+    thisRide = props.ride;
+    date.value = TimesDates.fromIntDays(thisRide.date);
+    if (thisRide.rideID > 0) {
       // existing ride being edited
-      const route  = Routes.findRoute(thisRide.value.routeID);
-      if (route != null) {
+      const route  = Routes.findRoute(thisRide.routeID);
+      if (route.id > 0) {
         if (route.hasGPX==false)
           routeType.value = RouteTypes.noGpx;
         else
@@ -80,50 +82,76 @@ onBeforeMount(() => {
 
         destination.value = route.dest;
         distance.value = route.distance;
+        showRoute(route);
       }
+      
     }
     else {
       routeType.value = RouteTypes.none;
       newRide = true;
+        // default to have ride on a Sunday
+      const day = date.value.getDay();
+      const daysToAdd = 7-day;
+      date.value.setDate(date.value.getDate() + daysToAdd);
     }
     units.value = props.user.units;
     userName.value = props.user.name;
-    description.value = props.ride.description;
-    startTime.value = props.ride.time;
-    date.value = TimesDates.fromIntDays(props.ride.date);
-    maxRiders.value = props.ride.groupSize;
-    aveSpeed.value = props.ride.speed;
-    meetingAt.value = props.ride.meetingAt;
+    description.value = thisRide.description;
+    startTime.value = thisRide.time;
+    maxRiders.value = thisRide.groupSize;
+    aveSpeed.value = thisRide.speed;
+    if (props.user.units=='m') {
+      // stored as km, not miles, so adjust
+      if (aveSpeed.value != undefined) aveSpeed.value = Math.round(aveSpeed.value/1.6);
+      distance.value = Math.round(distance.value/1.6);
+    }
+    meetingAt.value = thisRide.meetingAt;
 
-    //const route  = Routes.findRoute(thisRide.value.routeID);
-
-    // default to have ride on a Sunday
-    const day = date.value.getDay();
-    const daysToAdd = 7-day;
-    date.value.setDate(date.value.getDate() + daysToAdd);
-
-    // starttime is stored as total number of minutes
+      // starttime is stored as total number of minutes
     hour = (startTime.value / 60).toString();
     if (hour.length == 1) hour = '0' + hour;
     minute = (startTime.value % 15).toString();
     if (minute.length == 1) minute = '0' + minute;
    
   })
+function cancel() {
+    rideDialog.value = false;
+    emit('doneRideEdit');
+}
+async function deleteRide()
+{
+  await YesNo('Delete this ride, are you sure?', async ()=> {
+    await Alert('Deleting ride','Please inform any riders that have signed up','using the WhatsApp RideInfo group','info','OK');
+    const res = await myFetch(apiMethods.deleteRide,thisRide.rideID);
+    if (res == 'OK') {
+      await Message('You have deleted this ride');
+
+    }
+    else {
+      await AlertError(res,'Ride may not be deleted');
+    }
+    emit('doneRideEdit');
+
+  })
+}
 
 async function submit() {
   if (rideForm.value == null) 
     return;
   const {valid} = await rideForm.value.validate()
-  if (!valid ) return;
+  if (!valid ) {
+    await Alert('Mising info','Please complete items highhlighted','','info','OK');
+    return;
+  }
 
   await YesNo('Save this ride, are you sure?', async ()=> {
 
-    let routeID  = thisRide.value.rideID;
-    if (thisRide.value.routeID == 0 && newRoute != null  && newRoute.hasGPX) {
-      console.log('saving route: '+  newRoute.dest);
+    let routeID  = thisRide.rideID;
+    if (thisRide.routeID == 0 && newRoute != null  && newRoute.hasGPX) {
+      //console.log('saving route: '+  newRoute.dest);
       //  need to save this new route first
       newRoute.owner = props.user.name;
-      const res = await myFetch('SaveRoute',newRoute,true);
+      const res = await myFetch(apiMethods.saveRoute,newRoute,true);
       const id = parseInt(res);
       if (Number.isInteger(id)) {
    
@@ -133,45 +161,58 @@ async function submit() {
       }
       else {
         if (res.includes("XML parse error"))
-              await Message("Error: please ensure that this is a GPX file");
+              await AlertError("File Error","Please ensure that this is a GPX file");
         else
               await Message(res);
       }
     }
-    if (newRide == false && selectedRoute.value.id != thisRide.value.routeID) {
-      console.log('warn riders: ' + selectedRoute.value.id  + ' ' +   thisRide.value.routeID);
+    if (newRide == false && selectedRoute.value.id != thisRide.routeID) {
       routeID = selectedRoute.value.id;
       // todo: need to warn riders that route has changed
+      
+      await Alert('Route has changed','Please inform any riders that have signed up','using the WhatsApp RideInfo group','info','OK');
+    }
+    if (newRide == false && thisRide.date != TimesDates.toIntDays(date.value)) {
+      // todo: need to warn riders that route has changed
+      
+      await Alert('Ride date has changed','Please inform any riders that have signed up','using the WhatsApp RideInfo group','info','OK');
     }
     
-    thisRide.value.leaderName = props.user.name;
-    thisRide.value.date = TimesDates.toIntDays(date.value);
-    thisRide.value.time = parseInt(hour) * 60 + parseInt(minute);
-    thisRide.value.description = description.value;
-    thisRide.value.groupSize = maxRiders.value;
-    thisRide.value.meetingAt = meetingAt.value;
-    thisRide.value.routeID = routeID;
-    thisRide.value.speed = aveSpeed.value;
+    thisRide.leaderName = props.user.name;
+    thisRide.date = TimesDates.toIntDays(date.value);
+    thisRide.time = parseInt(hour) * 60 + parseInt(minute);
+    thisRide.description = description.value;
+    thisRide.groupSize = maxRiders.value;
+    thisRide.meetingAt = meetingAt.value;
+    thisRide.routeID = routeID;
+    thisRide.speed = aveSpeed.value;
+    if (props.user.units=='m') {
+      // store as km, not miles, so adjust
+      aveSpeed.value *= 1.6;
+      distance.value *= 1.6;
+    }
 
     if (newRide) {
-      const res = await myFetch('SaveRide',thisRide.value,true);
+      const res = await myFetch(apiMethods.saveRide,thisRide,true);
       const id = parseInt(res);
       if (Number.isInteger(id)) {
         await Message('Ride has been saved');
       }
       else {
-        await Alert('Save Ride Error',res,'','error','OK');
+        await AlertError('Save Ride Error',res);
       }
     }
     else {
-      const res = await myFetch('EditRide',thisRide,true);
+      const res = await myFetch(apiMethods.editRide,thisRide,true);
       if (res=="OK") {
         await Message('Edited ride has been saved');
       }
       else {
-        await Alert('Save Ride Error',res,'','error','OK');
+        await AlertError('Save Ride Error',res);
       }
     }
+    rideDialog.value = false;
+    emit('doneRideEdit');
   })
 
 }
@@ -179,7 +220,7 @@ async function submit() {
 function changeRouteType(t : RouteTypes)
 {
   routeType.value = t;
-  console.log('route type: ' + routeType.value);
+  //console.log('route type: ' + routeType.value);
   if (t===RouteTypes.noGpx) {
     // clear old route from map by showing plain Cornwall
     //const blank : Route = new Route();
@@ -206,22 +247,23 @@ function buttonType(t : RouteTypes) {
     return "tonal";
   return "outlined";
 }
-function cancel() {
-    rideDialog.value = false;
-    emit('doneRideEdit');
-}
+
 
 function newDate(newDate : Date) {
+  if (newDate.getTime() < new Date().getTime()) {
+    AlertError('Do you have a time machine?!','Please reset the date');
+          return;
+  }
   date.value = newDate;
 }
 
  function readSuccess(event: ProgressEvent<FileReader>) {
   if (event.target === null) {
-    Alert('File error','Cannot read file','','error','OK');
+    AlertError('File error','Cannot read file');
           return;
   }
   if ((typeof event.target.result) != "string") {
-    Alert('File error','File contents have incorrect type','','error','OK');
+    AlertError('File error','File contents have incorrect type');
           return;
   }
   myXML = event.target.result;
@@ -229,7 +271,7 @@ function newDate(newDate : Date) {
   var oParser = new DOMParser();
   var oDOM = oParser.parseFromString(myXML, "text/xml");
   if (oDOM.documentElement.nodeName === "parsererror") {
-          Alert('File error','File does not appear to be valid GPX or TCX','','error','OK');
+          AlertError('File error','File does not appear to be valid GPX or TCX');
           return;
   }
   newRoute = new Route();
@@ -240,7 +282,7 @@ function newDate(newDate : Date) {
   emit('showRoute',newRoute,false);
   watch(() => props.newRoute, (first,second) => {
     // wait for emit to finish (map will update and find data from gpx) then update the distance etc
-    console.log( "Watch props function called with args:", first.dest,  second.dest  );
+    //console.log( "Watch props function called with args:", first.dest,  second.dest  );
     if (first.id == 0) {
       // ony change if this is a new route just uploaded
        destination.value = first.dest;
@@ -270,7 +312,7 @@ function loadGpx() {
       <v-card-text class="pa-3">
         <v-form @submit.prevent="submit"  ref="rideForm">
           <v-row >
-              A ride could do with a route of some sort. So, please choose one of the following:
+            <div v-if="newRide"> A ride could do with a route of some sort. So, please choose one of the following:</div>
 
             <v-btn block :variant="buttonType(RouteTypes.oldGpx)" class="mt-2" color="blue" id="btn-existing" @click="changeRouteType(RouteTypes.oldGpx)">
               Use an existing route from the RideHub list (there's over 100 of them!)</v-btn>
@@ -318,7 +360,7 @@ function loadGpx() {
             <v-row  >
               <v-col cols="1" class="pr-0 mt-n4">Ride Date</v-col>
               <v-col cols="5" class="mt-n4">
-                    <baseDatePicker :large="true" :text="TimesDates.dateString(date)" :date="date"    @new-date="newDate"   />
+                    <datePicker :large="true" :text="TimesDates.dateString(date)" :date="date"    @new-date="newDate"   />
               </v-col>
 
               <v-col cols="3" class="mt-n4">
@@ -355,8 +397,11 @@ function loadGpx() {
           </div>
   
           <v-row >
+            <v-col  v-if="!newRide">
+              <v-btn block color="blue"  class="mt-2"  @click="deleteRide()">Delete Ride</v-btn>
+            </v-col>
             <v-col>
-              <v-btn block color="blue"  variant="outlined" @click="cancel()" class="mt-2">Cancel</v-btn>
+              <v-btn block color="blue"  variant="outlined" @click="cancel()" class="mt-2">Cancel Edit</v-btn>
             </v-col>
             <v-col  v-if="routeType!=RouteTypes.none">
               <v-btn block color="blue" type="submit"  class="mt-2">{{newRide? 'Save ride':'Save edits'}}</v-btn>

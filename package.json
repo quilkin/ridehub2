@@ -14,6 +14,7 @@
     "@overlays/vue": "^0.4.6",
     "@types/geojson": "^7946.0.10",
     "@types/leaflet": "^1.9.3",
+    "buffer": "^6.0.3",
     "chart.js": "^4.4.0",
     "install": "^0.13.0",
     "leaflet": "^1.9.4",

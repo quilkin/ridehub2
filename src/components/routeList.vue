@@ -1,8 +1,8 @@
 <script setup lang="ts">
 
 import { ref , onMounted, type Ref } from 'vue'
-import { myFetch } from '../utils/fetch'
-import  { Alert} from '../utils/alert'
+import { apiMethods, myFetch } from '../utils/fetch'
+import { AlertError} from '../utils/alert'
 import { User } from '../utils/user'
 import { Route } from '../utils/route'
 import Routes  from '../utils/routes'
@@ -15,25 +15,12 @@ const routeList= ref() as Ref<Route[]>;
 const chosenRoute = ref() as Ref<Route>;
 const menuOpen = ref(true);
 
-//const hover = ref() as Ref<boolean[]>;
-//const hover= ref(false);
-
 const props = defineProps<{
   user : User
 }>()
 
-
-// watch(menuClosed, () => {
-//   console.log('menu open/close');
-//   if (menuClosed.value == true && chosenRoute.value != null) {
-//     emit("routeChosen",chosenRoute.value);
-//   }
-// })
-
 onMounted(() => {
-    //maxRouteLength.value = 50;
     routeList.value = Routes.filteredList(minRouteLength.value,maxRouteLength.value,alphaOrder.value);
-   
 })
 
 function DestinationString(dest : string) {
@@ -81,14 +68,14 @@ async function viewRoute( index : number) {
  
   const route = routeList.value[index];
   if (route === null) {
-    Alert('internal problem','Route not found','','error','OK');
+    AlertError('internal problem','Route not found');
     return;
   }
   if (route.url != null && route.url.length > 100) {
     console.log('route gpx aleady in store');
   }
   else {
-    const gpxdata  = await myFetch("GetGPXforRoute", route.id, true);
+    const gpxdata  = await myFetch(apiMethods.getGpx, route.id, true);
     if (gpxdata != null) {
 
         route.url = gpxdata;
@@ -123,7 +110,7 @@ function orderColour(alpha : boolean)
 }
 function routeChosen()
 {
-    console.log("route chosen")
+    //console.log("route chosen")
     if (chosenRoute.value != null) 
        emit("routeChosen",chosenRoute.value);
     menuOpen.value = false;

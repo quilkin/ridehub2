@@ -19,6 +19,20 @@ export async function Alert(
   }).then();
 }
 
+export async function AlertError(
+  title: string,
+  text: string,
+) {
+
+  await Swal.fire({
+    title: title,
+    text: text,
+    icon: 'error',
+    width: '300px',
+    confirmButtonText: 'OK',
+    showConfirmButton: true
+  }).then();
+}
 export function CloseAlert() {
   Swal.close();
 }

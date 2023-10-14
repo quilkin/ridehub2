@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, onBeforeMount} from 'vue'
 // @ts-ignore
-import {nameRules,pwRules} from '../../utils/rules'
+import { nameRules,pwRules} from '../../utils/rules'
 import { User } from '../../utils/user'
-import { myFetch } from '../../utils/fetch'
-import  { Alert, Message} from '../../utils/alert'
+import { apiMethods, myFetch } from '../../utils/fetch'
+import { Alert, AlertError } from '../../utils/alert'
 
 const loginForm = ref();
 const userOrEmail = ref('');
@@ -15,8 +15,7 @@ const remember = ref(false);
 const emit = defineEmits(['loggedIn','signUp','forgotPass','guestVisit'])
 
 onBeforeMount( () => {
- // Message("login alert");
-  if (window.localStorage.username !== undefined && window.localStorage.password !== undefined) {
+   if (window.localStorage.username !== undefined && window.localStorage.password !== undefined) {
     if (window.localStorage.username !== 'undefined' && window.localStorage.password !== 'undefined') {
             userOrEmail.value = window.localStorage.username;
             password.value = window.localStorage.password;
@@ -34,10 +33,9 @@ async function submit() {
         window.localStorage.username = username;
         window.localStorage.password = pass;
       }
-    //console.log(username + ' ' + pass);
     let creds = { name: username, pw: pass, email: "", code: 0 };
     
-    myFetch('Login',creds)
+    myFetch(apiMethods.login,creds)
       .then((response) => {
         
           const user : User = response;
@@ -53,12 +51,12 @@ async function submit() {
                 return;
 
             } else {
-              Alert('Login unsuccessful','Username or password incorrect','','error', 'OK')
+              AlertError('Login unsuccessful','Username or password incorrect')
               emit('loggedIn',null);
               return;
             }
           }
-          Alert('Login unsuccessful','Could not contact server','','error','OK');
+          AlertError('Login unsuccessful','Could not contact server');
           emit('loggedIn',null);
       })
   }

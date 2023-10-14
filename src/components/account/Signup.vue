@@ -3,7 +3,7 @@ import { ref, onBeforeMount } from 'vue'
 
 import {nameRules,pwRules,emailRules} from '../../utils/rules'
 import { myFetch } from '../../utils/./fetch'
-import  { Alert} from '../../utils/alert'
+import { Alert } from '../../utils/alert'
 
 const signupDialog = ref(false)
 
@@ -17,9 +17,9 @@ const signupForm = ref();
 
 const emit = defineEmits(['doneSignUp'])
 
-onBeforeMount(() => {
-  console.log('signup starting');
-  })
+// onBeforeMount(() => {
+//   console.log('signup starting');
+//   })
 const pwConfirmRules  = [
 
   (value: string) => {
@@ -37,7 +37,7 @@ async function submit() {
 
     creds.value = { name: username, pw: pass, email: email, code: 0 };
     
-    myFetch('Signup',creds.value,true)
+    myFetch(apiMethods.signup,creds.value,true)
       .then((response) => {
         Alert('Registration',response,'','info','OK');
         signupDialog.value = false;

@@ -5,6 +5,11 @@
   import { Message } from '../utils/alert'
   import { Already} from '../utils/already'
   import rideData  from '../utils/ridedata'
+  import { Route } from '@/utils/route'
+  import Routes  from '@/utils/routes'
+  import TimesDates from '@/utils/timesdates'
+  import {Buffer} from 'buffer'
+import { myFetch } from '@/utils/fetch'
 
   const props = defineProps<{ 
     ride : Ride ,
@@ -13,9 +18,10 @@
     user: User,
     dest : string,
     already : Already[]
+    route : Route
     }>();
 
-  const emit = defineEmits(['logIn','detailsDone','detailsUpdated','editRide']);
+  const emit = defineEmits(['logIn','viewRoute','detailsDone','participantsUpdated','editRide']);
   const detailsActive = ref(false);
   const ride = props.ride;
   const rider = props.user.name;
@@ -77,6 +83,7 @@
         emit('logIn');
     }
     detailsActive.value = true;
+    emit('viewRoute');
   }
   async function OK2Join(ride : Ride, rider : string) {
     
@@ -104,18 +111,23 @@
 
   async function joinRide() {
   
+    if (buttonText === editRideText) {
+        emit('editRide',ride);
+        detailsActive.value = false;
+        return;
+    }
     if (buttonText === joinText) {
         if (await OK2Join(ride, rider)) {
             await rideData.saveParticipant(ride.rideID, rider, props.dest);
         }
+        else return;
     }
-    else if (buttonText === editRideText) {
-        emit('editRide',ride);
-    }
+
     else if (buttonText === reserveText) {
         if (await OK2Join(ride, rider) === true) {
             await rideData.saveReserveParticipant(ride.rideID, rider);
         }
+        else return;
     }
     else if (buttonText === meText) {
         await rideData.meParticipant(ride.rideID, rider);
@@ -126,21 +138,26 @@
     }
     else if (buttonText === leaveReserveText) {
         var reserve = '+' + rider;
-        rideData.leaveParticipant(ride.rideID, reserve);
+        await rideData.leaveParticipant(ride.rideID, reserve);
     }
-    // force re-render of whole rides list
-    emit("detailsUpdated");
+    // force re-render of whole rides list to update participants
+    emit("participantsUpdated");
 
 }
 
-function getGPX()
- {
+async function downloadGpx (route: Route) {
+    let gpx: string = route.url;
 
- }
-  // function detailsDone() {
-  //   detailsActive.value = false;
-  //   emit("detailsDone");
-  // }
+    if (gpx.length>0) {
+        const link = document.createElement('a');
+        link.href = 'data:application/gpx+xml;base64,' + Buffer.from(gpx).toString('base64');
+        link.download = route.dest + '.gpx';
+        link.click();
+        URL.revokeObjectURL(link.href);
+    }
+    else
+        await Message('Sorry, no GPX avialable for this route');
+  }
 
 
 </script>
@@ -165,8 +182,14 @@ function getGPX()
             <v-col cols="9"><v-card-text > {{ ride.leaderName }}   </v-card-text></v-col>
         </v-row>
         <v-row no-gutters>
-            <v-col cols="3"><v-chip class="mt-3">Meeting at</v-chip></v-col>
-            <v-col cols="9"><v-card-text> {{ ride.meetingAt }}   </v-card-text></v-col>
+            <v-col cols="3" class="mt-n4"><v-chip class="mt-3">Distance</v-chip></v-col>
+            <v-col cols="3" class="mt-n4"><v-card-text > {{ Routes.distanceStr(props.route,props.user.units) }}   </v-card-text></v-col>
+            <v-col cols="3" class="mt-n4"><v-chip v-if="props.route.climbing > 0" class="mt-3">Climbing</v-chip></v-col>
+            <v-col cols="3" class="mt-n4"><v-card-text> {{ Routes.climbingStr(props.route,props.user.units)  }}   </v-card-text></v-col>
+        </v-row>
+        <v-row no-gutters>
+            <v-col cols="3" class="mt-n4"><v-chip class="mt-3">Meeting at</v-chip></v-col>
+            <v-col cols="9" class="mt-n4"><v-card-text> {{ ride.meetingAt + ' @ ' + TimesDates.fromIntTime(ride.time)}}   </v-card-text></v-col>
         </v-row>
         <v-menu activator="#rider-list">
             <v-list>
@@ -182,7 +205,12 @@ function getGPX()
         <v-card-actions>
             <v-btn variant="elevated" color="blue" id="rider-list"  >Rider list</v-btn>
             <v-btn variant="elevated" color="blue" id="join" @click="joinRide()">{{buttonText}}</v-btn>
-            <v-btn variant="elevated" color="blue" @click="getGPX()">Get GPX</v-btn>
+     
+            <v-btn 
+                @click.prevent="downloadGpx(props.route)"
+                variant="elevated" color="blue" 
+                title ="Get this into your PC's download folder so you can load into Garmin etc"
+                > Get GPX </v-btn>
             <v-col class="text-right">
                 <v-btn variant="outlined" text="OK" color="blue" @click="detailsActive = false"></v-btn>
             </v-col>

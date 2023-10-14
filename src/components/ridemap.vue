@@ -8,26 +8,27 @@ import 'leaflet-gpx-coords';
 
 import 'leaflet-polylineDecorator';
 import { Route } from '../utils/route'
-import { Alert} from '../utils/alert'
-import { myFetch } from '../utils/fetch'
+import { AlertError } from '../utils/alert'
+import { apiMethods,myFetch } from '../utils/fetch'
 import type { LeafletEvent } from 'leaflet';
 import Profile from './profile.vue'
 import type { User } from '@/utils/user';
+import { Tabs } from '../utils/tabs'
 import bikeMarker from '../assets/bike2.png';
 
 const props = defineProps<{
   route : Route
   showProfile : boolean
-  tab : string
+  tab : Tabs
   user : User
   map : Map | null
 }>()
 
 const emit = defineEmits(['defineMap','updateRouteInfo']);
 
-const currentGPX = computed(()=>props.route.url);
+//const currentGPX = computed(()=>props.route.url);
 var map: Map | null = null;
-const mapMessage = ref('no map available');
+const mapMessage = ref('');
 const gpxLinkText = ref('no link available');
 const gpxLink = ref('');
 const downloadName = ref('');
@@ -40,9 +41,9 @@ function setupMap() {
         map.off();
         map.remove();
     }
-    console.log('map: ' + (props.route.dest.length>2 ? props.route.dest : 'General' ))
+    //console.log('map: ' + (props.route.dest.length>2 ? props.route.dest : 'General' ))
         map = L.map('mapContainer', {
-          center: [50.18,-5.05],    // or centre of cornwall?
+          center: [50.17,-5.05],    // or centre of cornwall?
           zoom:     9.5
         });
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -52,25 +53,18 @@ function setupMap() {
 
         // add a title to the map, on the map itself.
         // code from here https://stackoverflow.com/questions/33767463/overlaying-a-text-box-on-a-leaflet-js-map
-        // worls but not typed correctly.....
-        L.Control.textbox = L.Control.extend({
-            onAdd: function(map) {
-                
-            var text = L.DomUtil.create('div');
-            text.id = "info_text";
-            text.innerHTML = "<strong>" + mapMessage.value + "</strong>"
-            return text;
-            },
 
-            // onRemove: function(map) {
-            //     // Nothing to do here
-            // }
+        let textbox   = L.Control.extend({
+            onAdd: function() {
+                var text = L.DomUtil.create('div');
+                //text.id = "info_text";
+                text.innerHTML = "<h2>" + mapMessage.value + "</h2>"
+                return text;
+                },
         });
-        L.control.textbox = function(opts: any) { return new L.Control.textbox(opts);}
-        L.control.textbox({ position: 'topleft' }).addTo(map);
+        new textbox({ position: 'topleft' }).addTo(map);
 
         emit('defineMap',map)
-        //window.dispatchEvent(new Event('resize'));
      
 }
 
@@ -91,7 +85,7 @@ onUpdated(() => {
   if (route.dest == undefined) {
     route.dest = '';
   }
-  console.log('updated map: ' + (route.dest.length>2 ? route.dest : 'General' ))
+  //console.log('updated map: ' + (route.dest.length>2 ? route.dest : 'General' ))
   mapMessage.value = route.dest;
   showRoute(route);
   // force profile to update
@@ -107,37 +101,31 @@ function showRoute(route : Route )
     setupMap();
 
 
-window.dispatchEvent(new Event('resize'));
+    window.dispatchEvent(new Event('resize'));
 
-if (route.url === '')
-    return;
-
-
-new L.GPX(route.url, {
-    async: true,
-    marker_options: {
-        startIconUrl: '',
-        endIconUrl: '',
-        shadowUrl: ''
-    }
-
-
-}).on('loaded', async function (e) {
-
-    if (map === null)
-    {
-        mapMessage.value = "leaflet: map load error";
+    if (route.url === '')
         return;
-    }
 
-    gpx = e.target;
 
-    // no type info for my added method as yet
-    const coords = gpx.get_coords();
+    new L.GPX(route.url, {
+        async: true,
+        marker_options: {
+            startIconUrl: '',
+            endIconUrl: '',
+            shadowUrl: ''
+        }
+    }).on('loaded', async function (e) {
 
-    // if (props.showProfile) {
+        if (map === null)
+        {
+            mapMessage.value = "leaflet: map load error";
+            return;
+        }
+
+        gpx = e.target;
+
         // add direction arrows to GPX polyline
-        L.polylineDecorator(coords, {
+        L.polylineDecorator(gpx.get_coords(), {
             patterns: [{
                 offset: 50,
                 repeat: 50,
@@ -148,49 +136,45 @@ new L.GPX(route.url, {
                 })
             }]
         }).addTo(map);
-    // }
-    var bounds : L.LatLngBounds = gpx.getBounds();
-    map.fitBounds(bounds);
 
-    var distance = Math.floor(gpx.get_distance() / 1000);
-    var elev_gain = Math.floor(gpx.get_elevation_gain());
-    var elev_loss = Math.floor(gpx.get_elevation_loss());
+        var bounds : L.LatLngBounds = gpx.getBounds();
+        map.fitBounds(bounds);
 
-    var name = '';
+        var distance = Math.floor(gpx.get_distance() / 1000);
+        var elev_gain = Math.floor(gpx.get_elevation_gain());
+        var elev_loss = Math.floor(gpx.get_elevation_loss());
 
-    if (route !== null)
-        name = route.dest;
-    if (name === '' || listedRoute === false) {
-        name = gpx.get_name();
-    }
+        var name = '';
+
+        if (route !== null)
+            name = route.dest;
+        if (name === '' || listedRoute === false) {
+            name = gpx.get_name();
+        }
 
 
-    // get some details from the GPX to hand back to the app
+        // get some details from the GPX to hand back to the app
 
-    if (route.distance === 0 || isNaN(route.distance) || route.dest === '' || (route.climbing === 0 && elev_gain > 0)) {
-        route.distance = distance;
-        route.dest = name;
-        route.climbing = elev_gain;
-        emit('updateRouteInfo',route);
-        if (listedRoute)
-            // also need to update the database
-            await myFetch("UpdateRoute", route, true);
-    }
+        if (route.distance === 0 || isNaN(route.distance) || route.dest === '' || (route.climbing === 0 && elev_gain > 0)) {
+            route.distance = distance;
+            route.dest = name;
+            route.climbing = elev_gain;
+            emit('updateRouteInfo',route);
+            if (listedRoute)
+                // also need to update the database
+                await myFetch(apiMethods.updateRoute, route, true);
+        }
     
+        // gpx download now from ride list details
 
-    gpxLinkText.value = "Get GPX ";
-
-    if (tab !== 'new' && route.id > 0) {
-        // add a download link
-
-        gpxLink.value = 'data:application/gpx+xml;base64,' + btoa(route.url);
-        downloadName.value = name + '.gpx';
- 
-    }
+        // gpxLinkText.value = "Get GPX ";
+        // if (tab !== Tabs.newRide && route.id > 0) {
+        //     // add a download link
+        //     gpxLink.value = 'data:application/gpx+xml;base64,' + btoa(route.url);
+        //     downloadName.value = name + '.gpx';
+        // }
 
     }).addTo(map);
-
-
   }    
 
   var bikeIcon = L.icon({
@@ -218,23 +202,12 @@ new L.GPX(route.url, {
             if (win != null)
                 win.focus();
             else
-               Alert('Help','sorry, help file cannot be found','','error','OK');
+               AlertError('Help','sorry, help file cannot be found');
     };
 
 </script>
 
 <template>
-    <!--     do we need these?    -->
-    <!-- <v-chip> {{ mapMessage }}</v-chip>
-    <v-btn  density="compact"  
-        :href="gpxLink"
-        :download="downloadName"
-        >
-        {{ gpxLinkText }}
-    </v-btn>
-    <v-btn density="compact"   @click="help()" >
-        Help
-    </v-btn> -->
     <div id="mapContainer"></div> 
     <Profile v-if="gpx != undefined && props.showProfile" :key="mapKey"
         :gpx = "gpx"

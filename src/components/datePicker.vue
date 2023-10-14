@@ -12,9 +12,11 @@
 
   });
   function newDate() {
-    console.log('DatePicker New Date: ' + workingDate.value);
     datePickerActive.value = false;
     emit("newDate",workingDate.value);
+  }
+  function cancel() {
+    datePickerActive.value = false;
   }
 
 </script>
@@ -29,7 +31,7 @@
         width="auto"
         content-class="datepicker-dialog"
       >
-        <v-date-picker title="Start Date" width = "200" v-model="workingDate" @click:save="newDate"/>
+        <v-date-picker title="Start Date" width = "200" height = "550" v-model="workingDate" @click:save="newDate" @click:cancel="cancel()"/>
       </v-dialog>
     </v-btn>
   </div>

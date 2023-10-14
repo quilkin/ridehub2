@@ -1,20 +1,22 @@
+// reqpassword.vue
+
 <script setup lang="ts">
 import { ref } from 'vue'
 import {emailRules} from '../../utils/rules'
-import { myFetch } from '../../utils/fetch'
+import { apiMethods, myFetch } from '../../utils/fetch'
 import  { Alert} from '../../utils/alert'
 
 const passDialog = ref(false)
 const passForm = ref();
 const email = ref('');
-const emit = defineEmits(['donePass'])
 
+const emit = defineEmits(['donePass'])
 
 async function submit() {
   const {valid} = await passForm.value?.validate()
   if (valid) {
     //creds.value = email.value;
-    myFetch('ForgetPassword',email.value,true)
+    myFetch(apiMethods.forgotPW,email.value,true)
     .then((response) => {
         Alert('Registration',response,'','info','OK');
         emit('donePass');
@@ -47,6 +49,3 @@ function cancel() {
   </v-card>
 </v-dialog>
 </template>
-
-
-../../utils/alert

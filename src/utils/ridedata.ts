@@ -1,6 +1,6 @@
 // non-vue parts extracted to keep 'ridelist.vue' a sensible size
 
-import { myFetch } from './fetch'
+import { apiMethods, myFetch } from './fetch'
 import { Alert, YesNo, Message, chooseFromTwo} from './alert'
 
 class Participant {
@@ -18,7 +18,7 @@ const rideData = {
         await YesNo(dest + ": Join this ride?",async ()=> {
 
             const pp = new Participant(rider, rideID);
-            const response = await myFetch("SaveParticipant", pp, true);
+            const response = await myFetch(apiMethods.savePpt, pp, true);
             if (response[0] === '*') {
                     await Message("You have been added to this ride");
             }
@@ -32,7 +32,7 @@ const rideData = {
         await YesNo("Ride is full, Would you like to be on a  reserve list?", async ()=> {
             var reserve = '+' + rider;
             var pp = new Participant(reserve, rideID);
-            const response = await myFetch("SaveParticipant", pp, true);
+            const response = await myFetch(apiMethods.savePpt, pp, true);
             if (response[0] === '*') {
                 await Message("You have been added to reserve list for this ride");
             }
@@ -48,7 +48,7 @@ const rideData = {
             "Add a guest rider",
             async ()=> {
                 var pp = new Participant(rider, rideID);
-                const response = await myFetch("LeaveParticipant", pp, true);
+                const response = await myFetch(apiMethods.leavePpt, pp, true);
                 if (response === 'OK') {
                     await Message("You have left this ride");
                 }
@@ -59,7 +59,7 @@ const rideData = {
             async ()=> {
                 var guest = rider + '+';
                 var pp = new Participant(guest, rideID);
-                const response = await myFetch("SaveParticipant", pp, true);
+                const response = await myFetch(apiMethods.savePpt, pp, true);
                 if (response[0] === '*') {
                     await Message("A guest has been added to this ride. Guest will need to complete a guest form at the start");
                 }
@@ -78,7 +78,7 @@ const rideData = {
             async ()=> {
                 
                 var pp = new Participant(guest, rideID);
-                const response = await myFetch("LeaveParticipant", pp, true);
+                const response = await myFetch(apiMethods.leavePpt, pp, true);
                 if (response === 'OK') {
                     await Message("Your guest has left this ride");
                     }
@@ -88,10 +88,10 @@ const rideData = {
                 },
                 async ()=> {
                     var pp = new Participant(guest, rideID);
-                    var response = await myFetch("LeaveParticipant", pp, true);
+                    var response = await myFetch(apiMethods.leavePpt, pp, true);
                     if (response === 'OK') {
                         pp = new Participant(rider, rideID);
-                        response = await myFetch("LeaveParticipant", pp, true);
+                        response = await myFetch(apiMethods.leavePpt, pp, true);
                         if (response === 'OK') {
                                 await Message("You have both left this ride");
                             }
@@ -111,7 +111,7 @@ const rideData = {
         await YesNo("Join a guest for this ride?Are you sure?",  async ()=> {
             var guest = rider + '+';
             var pp = new Participant(guest, rideID);
-            const response = await myFetch("SaveParticipant", pp, true);
+            const response = await myFetch(apiMethods.savePpt, pp, true);
             if (response[0] === '*') {
                 await Message("A guest has been added to this ride. Guest will need to complete a guest form at the start");
             }
@@ -124,7 +124,7 @@ const rideData = {
     leaveParticipant: async function (rideID : number, rider : string) {
         await YesNo("Leave this ride?", async ()=> {
             var pp = new Participant(rider, rideID);
-            const response = await myFetch("LeaveParticipant", pp, true);
+            const response = await myFetch(apiMethods.leavePpt, pp, true);
             if (response === 'OK') {
                 await Message("You have left this ride");
             }
@@ -138,7 +138,7 @@ const rideData = {
         var guest = rider + '+';
         await YesNo("Remove guest from this ride?", async ()=> {
             var pp = new Participant(guest, rideID);
-            const response = await myFetch("LeaveParticipant", pp, true);
+            const response = await myFetch(apiMethods.leavePpt, pp, true);
             if (response === 'OK') {
                 await Message("Your guest has left this ride");
                 }
@@ -151,10 +151,10 @@ const rideData = {
         var guest = rider + '+';
         await YesNo("Remove you and your guest from this ride?", async ()=> {
             var pp = new Participant(guest, rideID);
-            var response = await myFetch("LeaveParticipant", pp, true);
+            var response = await myFetch(apiMethods.leavePpt, pp, true);
             if (response === 'OK') {
                 pp = new Participant(rider, rideID);
-                response = await myFetch("LeaveParticipant", pp, true);
+                response = await myFetch(apiMethods.leavePpt, pp, true);
                 if (response === 'OK') {
                         await Message("You have both left this ride");
                     }

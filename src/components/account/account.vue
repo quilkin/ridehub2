@@ -3,8 +3,8 @@
 
 import { ref, onBeforeMount, onUpdated } from 'vue'
 import {nameRules, emailRules} from '../../utils/rules'
-import { myFetch } from '../../utils/fetch'
-import  { Alert} from '../../utils/alert'
+import { apiMethods, myFetch } from '../../utils/fetch'
+import { Alert, AlertError } from '../../utils/alert'
 import { User } from '../../utils/user'
 
 const userName = ref('');
@@ -51,7 +51,7 @@ async function submit() {
       climbs: climbing.value === 'y'? 1:0,
       notifications: notify.value === 'y'? 1:0
     };
-    myFetch('ChangeAccount',creds,true)
+    myFetch(apiMethods.changeAccount,creds,true)
     .then((response) => {
       if (response != null) {
         if (response == 'OK') {
@@ -59,11 +59,11 @@ async function submit() {
           emit('doneAccount');
         }
         else {
-          Alert('Registration',response,'','error','OK');
+          AlertError('Registration',response);
         }
       }
       else {
-        Alert( 'Update unsuccessful','Could not contact server','','error','OK');
+        AlertError( 'Update unsuccessful','Could not contact server');
       }
     })
   }

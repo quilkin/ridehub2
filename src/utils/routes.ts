@@ -1,5 +1,5 @@
 import { ref , type Ref } from 'vue'
-import { myFetch } from './fetch'
+import { apiMethods, myFetch } from './fetch'
 import { Alert} from './alert'
 import { Route } from './route'
 
@@ -37,15 +37,15 @@ const Routes = {
     // },
     getRouteSummaries: async function()
     {
-        console.log('getting route summaries');
-        const response : Route[]  = await myFetch("GetRoutes",0);
+        //console.log('getting route summaries');
+        const response : Route[]  = await myFetch(apiMethods.getRoutes,0);
         if (response != null) {
             routes.value = response;
             if (routes.value.length === 0) {
                 Alert( 'Ridehub','No routes found!','','error','OK');
                 return null;
             }
-            console.log('got routes');
+           // console.log('got routes');
             return 'OK';
         }
         else {
@@ -63,7 +63,7 @@ const Routes = {
             currentRoute = route;
             return route;
         }
-        return null;
+        return new Route();
     },
     distanceStr: function(route : Route, userUnits : string) {
         var distance = 0;
@@ -72,23 +72,23 @@ const Routes = {
         }
         if (distance === 0)
             return '?';
-        var userUnits = ' km ';
+        var units = ' km ';
         if (userUnits === 'm') {
-            userUnits = ' m ';
+            units = ' ml ';
             distance = Math.round(distance * 0.62137);
         }
-        return distance + userUnits;
+        return distance + units;
     },
     climbingStr: function(route : Route, userUnits : string) {
         //var style = '<span style="color:orange; ';
-        var units = 'm';
+        var units = ' m';
         var climbing = 0;
         if (route.climbing !== undefined) {
             climbing = route.climbing;
             if (climbing ===0)
                 return '';
             if (userUnits === 'm') {
-                units = 'ft';
+                units = ' ft';
                 climbing = Math.round(climbing * 3.3);
             }
             var climbingStr =  climbing + units ;
