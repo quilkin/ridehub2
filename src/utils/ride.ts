@@ -8,5 +8,6 @@ export class Ride {
     meetingAt = 'Lemon Quay';
     description = 'description';
     groupSize = 10;
-    speed = 20;   
+    minSpeed = 16;   
+    maxSpeed = 18; 
 }

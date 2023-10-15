@@ -21,7 +21,8 @@ export enum apiMethods {
   updateRoute = 'UpdateRoute',
   savePpt = 'SaveParticipant',
   leavePpt= 'LeaveParticipant',
-  deleteRide = 'DeleteRide'
+  deleteRide = 'DeleteRide',
+  tcx2gpx = 'TCX2GPX'
 }
 
 export async function myFetch(url : String, data : Object, waitDlg : Boolean = false)  {

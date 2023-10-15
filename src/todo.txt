@@ -2,12 +2,9 @@ sort out missing ts definitions
 finish npm package for leaflet-gpx
 change some vars to const or let
 link to help file
-treeshake mdi icons
-treeshake other packages
 use v-bind (as per ridelist) for colours on routes list
 sort out css for mobile etc
 profile for first route loaded
-tcx file?
 check promises / errors in account / login
 check route name hasn't been used already
 add 'average speed' field to server and database(s)

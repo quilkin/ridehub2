@@ -11,11 +11,17 @@ import { Ride }  from './utils/ride'
 import { Message } from './utils/alert'
 import { Tabs } from './utils/tabs'
 import type { Map } from 'leaflet';
+import { mdiMap } from '@mdi/js'
+import { mdiCalendarMonth } from '@mdi/js'
+import { mdiBookOpenPageVariant } from '@mdi/js'
+import { mdiAccountEdit } from '@mdi/js'
+import { mdiBike } from '@mdi/js'
+import { mdiCoffee } from '@mdi/js'
 
 const currentTab = ref(Tabs.account);
 const currentUser = ref(new User());
-//const ridesDate = ref(new Date());
-const ridesDate = ref(new Date('2022-03-01'));
+const ridesDate = ref(new Date());
+//const ridesDate = ref(new Date('2022-03-01'));
 const currentRoute = ref(new Route());
 const newRoute = ref(new Route());
 const currentRide = ref(new Ride());
@@ -65,7 +71,9 @@ function doneLogin(user : User) {
   }
   currentUser.value = user;
   switchTab(Tabs.calendar);
- 
+}
+function doneAccount() {
+  switchTab(Tabs.calendar);
 }
 function doneRideEdit() {
   editing.value = false;
@@ -113,12 +121,12 @@ function updateRouteInfo(r : Route) {
       stacked
       @update:model-value="tabChanged"
     >
-      <v-tab :value=Tabs.calendar><v-icon>mdi-calendar-month</v-icon>Calendar</v-tab>
-      <v-tab :value=Tabs.routes><v-icon>mdi-map</v-icon>All routes</v-tab>
-      <v-tab :value=Tabs.newRide><v-icon>mdi-bike</v-icon>New Ride</v-tab>
-      <v-tab :value=Tabs.coffee><v-icon>mdi-coffee</v-icon>Coffee</v-tab>
-      <v-tab :value=Tabs.library><v-icon>mdi-book-open-page-variant</v-icon>Library</v-tab>
-      <v-tab :value=Tabs.account><v-icon>mdi-account-edit</v-icon>Account</v-tab>
+      <v-tab :value=Tabs.calendar>  <v-icon :icon="mdiCalendarMonth"/>      Calendar</v-tab>
+      <!-- <v-tab :value=Tabs.routes>    <v-icon :icon="mdiMap"/>                All routes</v-tab> -->
+      <v-tab :value=Tabs.newRide>   <v-icon :icon="mdiBike"/>               New Ride</v-tab>
+      <v-tab :value=Tabs.coffee>    <v-icon :icon="mdiCoffee"/>             Coffee</v-tab>
+      <v-tab :value=Tabs.library>   <v-icon :icon="mdiBookOpenPageVariant"/>Library</v-tab>
+      <v-tab :value=Tabs.account>   <v-icon :icon="mdiAccountEdit"/>        Account</v-tab>
     </v-tabs>
 
       <v-window v-model="currentTab">
@@ -145,9 +153,9 @@ function updateRouteInfo(r : Route) {
 
         </v-window-item>
 
-        <v-window-item :value=Tabs.routes>
+        <!-- <v-window-item :value=Tabs.routes>
           Routes
-        </v-window-item>
+        </v-window-item> -->
 
 
         <v-window-item :value=Tabs.newRide>
@@ -169,12 +177,12 @@ function updateRouteInfo(r : Route) {
         </v-window-item>
         
         <v-window-item :value=Tabs.coffee>
-          Coffee
+          Coffee  stops - not yet implemented in this version
         </v-window-item>
 
 
         <v-window-item :value=Tabs.library>
-          library
+          library - not yet implemented in this version
         </v-window-item>
 
         <v-window-item :value=Tabs.account>
@@ -182,6 +190,7 @@ function updateRouteInfo(r : Route) {
        
             :user="currentUser"
             @done-login="doneLogin"
+            @done-account="doneAccount"
           ></account-actions>
                    
         </v-window-item>

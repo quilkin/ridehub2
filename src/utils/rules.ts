@@ -49,10 +49,20 @@ export const ridersRules = [
                                 },
                             ];
 export const speedRules = [ 
-                            (value: number) => !!value || 'Required.', 
-                            (value: number) => {
-                                if (value >= 8 && value < 30 ) return true
-                                return value < 8 ? 'Too slow' :'Too fast'
+                            (value: string) => !!value || 'Required.', 
+                            (value: string) => {
+                                const speeds = value.split('-');
+                                let min,max;
+                                if (speeds.length == 1)
+                                    min = max = parseInt(speeds[0]);
+                                else if (speeds.length == 2){
+                                    min =  parseInt(speeds[0]);
+                                    max =  parseInt(speeds[1]);
+                                } 
+                                if (isNaN(min) || isNaN(max))
+                                    return 'Invalid entry, please use (e.g.) 16-18';
+                                if (min >= 8 && min < 30 && max >= 9 && min < 31) return true
+                                return min < 8 ? 'Too slow' :'Too fast'
                                 },
                             ];
 export const gpxRules = [ 

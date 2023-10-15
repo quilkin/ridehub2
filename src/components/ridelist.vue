@@ -167,9 +167,6 @@ function newDateReqd(date : number) {
   }
   return false;
 }
-// function rideDateString(date : number) {
-//   return TimesDates.StrFromIntDays(date);
-// }
 
 async function viewRoute(index : number) {
   const ride : Ride = rides.value[index];

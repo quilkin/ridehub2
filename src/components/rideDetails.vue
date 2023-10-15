@@ -10,6 +10,7 @@
   import TimesDates from '@/utils/timesdates'
   import {Buffer} from 'buffer'
 import { myFetch } from '@/utils/fetch'
+  import { mdiBike } from '@mdi/js'
 
   const props = defineProps<{ 
     ride : Ride ,
@@ -164,7 +165,7 @@ async function downloadGpx (route: Route) {
 
 <template>
   <div class="text-center">
-    <v-btn size="small" variant='outlined'  color="blue" prepend-icon="mdi-bike" width="150" @click="checkLogin()">
+    <v-btn size="small" variant='outlined'  color="blue" :prepend-icon="mdiBike" width="150" @click="checkLogin()">
         More...
     </v-btn>
     
@@ -179,7 +180,9 @@ async function downloadGpx (route: Route) {
         <v-spacer></v-spacer>
         <v-row no-gutters>
             <v-col cols="3"><v-chip class="mt-3">Leader</v-chip></v-col>
-            <v-col cols="9"><v-card-text > {{ ride.leaderName }}   </v-card-text></v-col>
+            <v-col cols="3"><v-card-text > {{ ride.leaderName }}   </v-card-text></v-col>
+            <v-col cols="3"><v-chip class="mt-3">Speed</v-chip></v-col>
+            <v-col cols="3"><v-card-text > {{ ride.minSpeed }}   </v-card-text></v-col>
         </v-row>
         <v-row no-gutters>
             <v-col cols="3" class="mt-n4"><v-chip class="mt-3">Distance</v-chip></v-col>

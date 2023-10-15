@@ -14,6 +14,7 @@ import RouteList from './routeList.vue'
 import TimesDates  from '../utils/timesdates'
 import datePicker  from './datePicker.vue'
 import { watch } from 'vue'
+import { mdiContentSaveAlertOutline } from '@mdi/js'
 
 enum RouteTypes {
   none,
@@ -42,14 +43,16 @@ const description = ref ('');
 const date = ref(new Date());
 const startTime = ref(540);  // default start at 9 am
 const maxRiders = ref(10);
-const aveSpeed = ref(20);
+const minSpeed = ref(18);
+const maxSpeed = ref(20);
+const speedStr = ref('');
 const showFileUpload = ref(false);
 
 let newRide = false;
 
 let hour='';
 let minute='';
-let myXML = '';
+let routeXML='' ;
 //const routeListShown = ref(false);
 
 const emit = defineEmits(['doneRideEdit','showRoute','logIn'])
@@ -99,12 +102,22 @@ onBeforeMount(() => {
     description.value = thisRide.description;
     startTime.value = thisRide.time;
     maxRiders.value = thisRide.groupSize;
-    aveSpeed.value = thisRide.speed;
+    minSpeed.value = thisRide.minSpeed;
+    maxSpeed.value = thisRide.maxSpeed;
     if (props.user.units=='m') {
       // stored as km, not miles, so adjust
-      if (aveSpeed.value != undefined) aveSpeed.value = Math.round(aveSpeed.value/1.6);
+      if (minSpeed.value != undefined) minSpeed.value = Math.round(minSpeed.value/1.6);
+      if (maxSpeed.value != undefined) maxSpeed.value = Math.round(maxSpeed.value/1.6);
       distance.value = Math.round(distance.value/1.6);
     }
+    // make a 'from-to' text for max and min average speeds, e.g. 18-20 kph
+    if (minSpeed.value == maxSpeed.value)
+      speedStr.value = minSpeed.value.toString();
+    else if (minSpeed.value == 0)
+      speedStr.value = '';
+    else
+      speedStr.value =  minSpeed.value.toString() + '-' + maxSpeed.value.toString();
+
     meetingAt.value = thisRide.meetingAt;
 
       // starttime is stored as total number of minutes
@@ -146,10 +159,21 @@ async function submit() {
 
   await YesNo('Save this ride, are you sure?', async ()=> {
 
-    let routeID  = thisRide.rideID;
-    if (thisRide.routeID == 0 && newRoute != null  && newRoute.hasGPX) {
-      //console.log('saving route: '+  newRoute.dest);
-      //  need to save this new route first
+    let routeID  = thisRide.routeID;
+    if (props.user.units=='m') {
+      // store as km, not miles, so adjust
+      minSpeed.value = Math.round(minSpeed.value*1.6);
+      maxSpeed.value = Math.round(maxSpeed.value*1.6);
+      distance.value = Math.round(distance.value*1.6);
+    }
+    if (thisRide.routeID == 0 /* && newRoute != null  && newRoute.hasGPX */) {
+      //  need to save the route first
+      if (newRoute == null) {
+        // new ride without a route
+        newRoute = new Route();
+        newRoute.dest = destination.value;
+        newRoute.distance = distance.value;
+      }
       newRoute.owner = props.user.name;
       const res = await myFetch(apiMethods.saveRoute,newRoute,true);
       const id = parseInt(res);
@@ -185,12 +209,26 @@ async function submit() {
     thisRide.groupSize = maxRiders.value;
     thisRide.meetingAt = meetingAt.value;
     thisRide.routeID = routeID;
-    thisRide.speed = aveSpeed.value;
-    if (props.user.units=='m') {
-      // store as km, not miles, so adjust
-      aveSpeed.value *= 1.6;
-      distance.value *= 1.6;
+
+    // enumerate the max/min speed string
+    const speeds = speedStr.value.split('-');
+    if (speeds.length == 1)
+      minSpeed.value = maxSpeed.value = parseInt(speeds[0]);
+    else if (speeds.length == 2){
+      minSpeed.value =  parseInt(speeds[0]);
+      maxSpeed.value =  parseInt(speeds[1]);
     }
+    else {
+      await AlertError('Speed','Invalid average speed')
+      return;
+    }
+
+
+
+    thisRide.minSpeed = minSpeed.value;
+    thisRide.maxSpeed = maxSpeed.value;
+    
+
 
     if (newRide) {
       const res = await myFetch(apiMethods.saveRide,thisRide,true);
@@ -200,6 +238,7 @@ async function submit() {
       }
       else {
         await AlertError('Save Ride Error',res);
+        return;
       }
     }
     else {
@@ -209,6 +248,7 @@ async function submit() {
       }
       else {
         await AlertError('Save Ride Error',res);
+        return;
       }
     }
     rideDialog.value = false;
@@ -220,12 +260,10 @@ async function submit() {
 function changeRouteType(t : RouteTypes)
 {
   routeType.value = t;
-  //console.log('route type: ' + routeType.value);
   if (t===RouteTypes.noGpx) {
     // clear old route from map by showing plain Cornwall
-    //const blank : Route = new Route();
     emit('showRoute',new Route(),false);
-    //showRoute(blank);
+
   }
   else if (t===RouteTypes.newGpx) {
     showFileUpload.value = true;
@@ -257,7 +295,29 @@ function newDate(newDate : Date) {
   date.value = newDate;
 }
 
- function readSuccess(event: ProgressEvent<FileReader>) {
+// async function saveRoute(newRoute) {
+
+//       //console.log('saving route: '+  newRoute.dest);
+//       newRoute.owner = props.user.name;
+//       const res = await myFetch(apiMethods.saveRoute,newRoute,true);
+//       const id = parseInt(res);
+//       if (Number.isInteger(id)) {
+   
+//         newRoute.id = id;
+//        // routeID = id;
+//         Routes.addNewRoute (newRoute);
+
+//       }
+//       else {
+//         if (res.includes("XML parse error"))
+//               await AlertError("File Error","Please ensure that this is a GPX file");
+//         else
+//               await Message(res);
+//       }
+
+// }
+
+async function readSuccess(event: ProgressEvent<FileReader>) {
   if (event.target === null) {
     AlertError('File error','Cannot read file');
           return;
@@ -266,18 +326,28 @@ function newDate(newDate : Date) {
     AlertError('File error','File contents have incorrect type');
           return;
   }
-  myXML = event.target.result;
+  routeXML = event.target.result;
 
   var oParser = new DOMParser();
-  var oDOM = oParser.parseFromString(myXML, "text/xml");
+  var oDOM = oParser.parseFromString(routeXML, "text/xml");
   if (oDOM.documentElement.nodeName === "parsererror") {
           AlertError('File error','File does not appear to be valid GPX or TCX');
           return;
   }
+  if (routeXML.includes("TrainingCenterDatabase")) {
+    // tcx needs converting to gpx
+    const res = await myFetch(apiMethods.tcx2gpx,routeXML,true);
+    if (res.length > 0) {
+      routeXML = res;
+    }
+    else {
+      AlertError('File error','Error converting from TCX to GPX');
+    }
+  }
   newRoute = new Route();
   //const route = new Route();
   newRoute.hasGPX = true;
-  newRoute.url = myXML;
+  newRoute.url = routeXML;
 
   emit('showRoute',newRoute,false);
   watch(() => props.newRoute, (first,second) => {
@@ -329,7 +399,7 @@ function loadGpx() {
                   
               </v-col>
               <v-col cols = "4" class="mt-6" >
-                <v-btn color="blue" class="mt-2"  variant="outlined" @click="loadGpx">Select this file</v-btn>
+                <v-btn color="blue" class="mt-2"  variant="outlined" @click="loadGpx">Load into RideHub</v-btn>
               </v-col>
             </v-row>
             <v-btn block :variant="buttonType(RouteTypes.noGpx)" class="mt-2" color="blue" @click="changeRouteType(RouteTypes.noGpx)">
@@ -388,7 +458,7 @@ function loadGpx() {
                    hint="Limit rider numbers if you don't want a big group" />
               </v-col>
               <v-col cols="3">
-                  <v-text-field variant="outlined" density="compact" v-model="aveSpeed"  :suffix="props.user.units==='k'?'km/hr':'mph'" :rules="speedRules"  label="Ave speed" 
+                  <v-text-field variant="outlined" density="compact" v-model="speedStr"  :suffix="props.user.units==='k'?'km/hr':'mph'" :rules="speedRules"  label="Ave speed" 
                   hint="Suggested average speed. Actual speed will depend on riders present"  />
               </v-col>
 

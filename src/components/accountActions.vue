@@ -27,10 +27,13 @@ onBeforeMount(() => {
         updated = true;
   })
   
-const emit = defineEmits(['doneLogin','guest'])
+const emit = defineEmits(['doneLogin','doneAccount'])
 
 function loggedIn(user : User) {
   emit('doneLogin',user);
+}
+function doneAccount() {
+  emit('doneAccount');
 }
 </script>
 
@@ -49,7 +52,7 @@ function loggedIn(user : User) {
     ></signup>
     <account v-else
             :user="user"
-            @done-account="loggedIn"
+            @done-account="doneAccount"
     ></account>
 </template>
 
