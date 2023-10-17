@@ -1,7 +1,7 @@
 // non-vue parts extracted to keep 'ridelist.vue' a sensible size
 
 import { apiMethods, myFetch } from './fetch'
-import { Alert, YesNo, Message, chooseFromTwo} from './alert'
+import { AlertError, YesNo, Message, chooseFromTwo} from './alert'
 
 class Participant {
     rider : string;
@@ -13,6 +13,33 @@ class Participant {
 }
 const rideData = {
 
+    speedsToString: function(min:number,max:number) {
+        // make a 'from-to' text for max and min average speeds, e.g. 18-20 kph
+        let speedStr = '';
+        if (min == max)
+            speedStr= min.toString();
+        else if (min == 0)
+            speedStr= '0';
+        else
+            speedStr=  min.toString() + '-' + max.toString();
+        return speedStr;
+
+    },
+    stringToSpeeds: function(str : string) : number[]{
+        let min=0, max=0;
+           // enumerate the min-max speed string
+        const speeds = str.split('-');
+        if (speeds.length == 1)
+            min = max = parseInt(speeds[0]);
+        else if (speeds.length == 2){
+            min =  parseInt(speeds[0]);
+            max =  parseInt(speeds[1]);
+        }
+        if (isNaN(min)) return [];
+        if (isNaN(max)) return [];
+ 
+        return [min,max];
+    },
     saveParticipant: async function (rideID : number, rider : string, dest : string) {
         //var list = "";
         await YesNo(dest + ": Join this ride?",async ()=> {

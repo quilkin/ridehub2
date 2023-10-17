@@ -1,15 +1,12 @@
 sort out missing ts definitions
 finish npm package for leaflet-gpx
 change some vars to const or let
-link to help file
 use v-bind (as per ridelist) for colours on routes list
 sort out css for mobile etc
-profile for first route loaded
 check promises / errors in account / login
 check route name hasn't been used already
-add 'average speed' field to server and database(s)
 allow admin to edit all rides
 route changing when date edited?
 profile is showing previous route
-profile too spiky
-edit ride, choose new route, dbl-click not working?
+add return types to all functions?
+tidy / expand help page

@@ -15,6 +15,7 @@ import TimesDates  from '../utils/timesdates'
 import datePicker  from './datePicker.vue'
 import { watch } from 'vue'
 import { mdiContentSaveAlertOutline } from '@mdi/js'
+import rideData from '@/utils/ridedata'
 
 enum RouteTypes {
   none,
@@ -110,14 +111,7 @@ onBeforeMount(() => {
       if (maxSpeed.value != undefined) maxSpeed.value = Math.round(maxSpeed.value/1.6);
       distance.value = Math.round(distance.value/1.6);
     }
-    // make a 'from-to' text for max and min average speeds, e.g. 18-20 kph
-    if (minSpeed.value == maxSpeed.value)
-      speedStr.value = minSpeed.value.toString();
-    else if (minSpeed.value == 0)
-      speedStr.value = '';
-    else
-      speedStr.value =  minSpeed.value.toString() + '-' + maxSpeed.value.toString();
-
+    speedStr.value = rideData.speedsToString(minSpeed.value,maxSpeed.value);
     meetingAt.value = thisRide.meetingAt;
 
       // starttime is stored as total number of minutes
@@ -153,7 +147,7 @@ async function submit() {
     return;
   const {valid} = await rideForm.value.validate()
   if (!valid ) {
-    await Alert('Mising info','Please complete items highhlighted','','info','OK');
+    await Alert('Missing info','Please complete highlighted items','','info','OK');
     return;
   }
 
@@ -210,23 +204,30 @@ async function submit() {
     thisRide.meetingAt = meetingAt.value;
     thisRide.routeID = routeID;
 
-    // enumerate the max/min speed string
-    const speeds = speedStr.value.split('-');
-    if (speeds.length == 1)
-      minSpeed.value = maxSpeed.value = parseInt(speeds[0]);
-    else if (speeds.length == 2){
-      minSpeed.value =  parseInt(speeds[0]);
-      maxSpeed.value =  parseInt(speeds[1]);
+    const speeds : number[] = rideData.stringToSpeeds(speedStr.value);
+    if (speeds.length==2) {
+      thisRide.minSpeed =  speeds[0];
+      thisRide.maxSpeed =  speeds[1];
     }
     else {
-      await AlertError('Speed','Invalid average speed')
+      await AlertError('Speed','Invalid average speed');
       return;
     }
+    // enumerate the max/min speed string
+    // const speeds = speedStr.value.split('-');
+    // if (speeds.length == 1)
+    //   minSpeed.value = maxSpeed.value = parseInt(speeds[0]);
+    // else if (speeds.length == 2){
+    //   minSpeed.value =  parseInt(speeds[0]);
+    //   maxSpeed.value =  parseInt(speeds[1]);
+    // }
+    // else {
+    //   await AlertError('Speed','Invalid average speed')
+    //   return;
+    // }
 
-
-
-    thisRide.minSpeed = minSpeed.value;
-    thisRide.maxSpeed = maxSpeed.value;
+    // thisRide.minSpeed = minSpeed.value;
+    // thisRide.maxSpeed = maxSpeed.value;
     
 
 
@@ -459,7 +460,7 @@ function loadGpx() {
               </v-col>
               <v-col cols="3">
                   <v-text-field variant="outlined" density="compact" v-model="speedStr"  :suffix="props.user.units==='k'?'km/hr':'mph'" :rules="speedRules"  label="Ave speed" 
-                  hint="Suggested average speed. Actual speed will depend on riders present"  />
+                  hint="Suggested speed. May depend on riders present"  />
               </v-col>
 
             </v-row>

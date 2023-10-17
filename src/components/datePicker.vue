@@ -28,7 +28,7 @@
         width="auto"
         content-class="datepicker-dialog"
       >
-        <v-date-picker title="Start Date" width = "200" height = "550" v-model="workingDate" @click:save="newDate" @click:cancel="cancel()"/>
+        <v-date-picker title="Start Date" width = "200" height = "560" v-model="workingDate" @click:save="newDate" @click:cancel="cancel()"/>
       </v-dialog>
     </v-btn>
   </div>

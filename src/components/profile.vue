@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {  ref, onMounted,onBeforeMount, onUpdated} from 'vue'
+import {  ref, onMounted,onBeforeMount,onBeforeUnmount,onUpdated, onBeforeUpdate} from 'vue'
 import type { Ref } from 'vue'
 import { Line } from 'vue-chartjs'
 import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale, Filler, type ChartData, type ChartOptions } from 'chart.js'
@@ -40,22 +40,34 @@ const chartOptions  = ref( {
     }) as Ref<ChartOptions>;
 
 onBeforeMount(() => {
-    
-    ChartJS.register(Title, Tooltip, Legend, PointElement,LineElement, CategoryScale, LinearScale, Filler);
-    console.log('profile: onBeforeMount');
+     ChartJS.register(Title, Tooltip, Legend, PointElement,LineElement, CategoryScale, LinearScale, Filler);
+})
+onBeforeUnmount(() => {
+    console.log('Profile unmounted')
 
 })
 onMounted(() => {
-    console.log('updating profile: onMounted')
-  
-    if (props.tab !== Tabs.newRide && props.gpx != null) {
-        showProfile(props.gpx);
-    }
+    console.log('Profile mounted')
+    // if (props.tab !== Tabs.newRide && props.gpx != null) {
+    //     showProfile(props.gpx);
+    // }
+})
+onBeforeUpdate(() => {
+    console.log('Profile before update')
+  if (props.tab !== Tabs.newRide && props.gpx != null) {
+      showProfile(props.gpx);
+  }
+})
+onUpdated(() => {
+    console.log('Profile updated')
+//   if (props.tab !== Tabs.newRide && props.gpx != null) {
+//       showProfile(props.gpx);
+//   }
 })
 
 
 function showProfile(gpx : L.GPX) {
-    console.log('showProfile')
+  
     
     var elev_data;
     var latlng_data;
@@ -84,7 +96,6 @@ function showProfile(gpx : L.GPX) {
     elevGainText= elev_gain.toString() + heightUnits;
     elevLossText = elev_loss.toString() + heightUnits;
 
-        // no type info for my added method as yet
     latlng_data = gpx.get_coords();
 
     if (gpx.get_elevation_gain() < 1 ||  gpx.get_elevation_loss() < 1 )
@@ -105,14 +116,13 @@ function showProfile(gpx : L.GPX) {
     // convert array to json for profile 
     var i, n = elev_data.length;
     // 200 points should be enough to show trend
-   //const spacing = Math.round(n / datapoints);
-   const spacing = 1;
+   const spacing = Math.round(n / datapoints);
+   //const spacing = 1;
     let json_elev : { Distance : number, Height : number} [] = []
     let json_latlng: any[]  = []
     for (i = 0; i < n; i+=spacing) {
-        json_elev.push({Distance: Math.round(elev_data[i][0]), Height: Math.round(elev_data[i][1])});
+        json_elev.push({Distance: elev_data[i][0], Height: Math.round(elev_data[i][1])});
         json_latlng.push(latlng_data[i]);
-
     }
 
     chartData.value =      {
@@ -133,11 +143,11 @@ function showProfile(gpx : L.GPX) {
         responsive: true,
  
         plugins: {
-            decimation: {
-                enabled: true,
-                algorithm: 'lttb',
-                samples: datapoints
-            },
+            // decimation: {
+            //     enabled: true,
+            //     algorithm: 'min-max'
+            //     //samples: datapoints
+            // },
             legend: {
     	        display: false
             },

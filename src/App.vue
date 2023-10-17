@@ -5,6 +5,7 @@ import RideEdit from './components/editRide.vue'
 import RideMap from './components/ridemap.vue'
 import RideList from './components/ridelist.vue'
 import datePicker  from './components/datePicker.vue'
+import Help from './components/help.vue'
 import { User } from './utils/user'
 import { Route }  from './utils/route'
 import { Ride }  from './utils/ride'
@@ -17,11 +18,12 @@ import { mdiBookOpenPageVariant } from '@mdi/js'
 import { mdiAccountEdit } from '@mdi/js'
 import { mdiBike } from '@mdi/js'
 import { mdiCoffee } from '@mdi/js'
+import { mdiHelp } from '@mdi/js'
 
 const currentTab = ref(Tabs.account);
 const currentUser = ref(new User());
-const ridesDate = ref(new Date());
-//const ridesDate = ref(new Date('2022-03-01'));
+//const ridesDate = ref(new Date());
+const ridesDate = ref(new Date('2022-03-01'));
 const currentRoute = ref(new Route());
 const newRoute = ref(new Route());
 const currentRide = ref(new Ride());
@@ -127,6 +129,7 @@ function updateRouteInfo(r : Route) {
       <v-tab :value=Tabs.coffee>    <v-icon :icon="mdiCoffee"/>             Coffee</v-tab>
       <v-tab :value=Tabs.library>   <v-icon :icon="mdiBookOpenPageVariant"/>Library</v-tab>
       <v-tab :value=Tabs.account>   <v-icon :icon="mdiAccountEdit"/>        Account</v-tab>
+      <v-tab :value=Tabs.help>      <v-icon :icon="mdiHelp"/>               Help</v-tab>
     </v-tabs>
 
       <v-window v-model="currentTab">
@@ -193,6 +196,9 @@ function updateRouteInfo(r : Route) {
             @done-account="doneAccount"
           ></account-actions>
                    
+        </v-window-item>
+        <v-window-item :value=Tabs.help>
+          <Help></Help>
         </v-window-item>
       </v-window>
     </v-col>

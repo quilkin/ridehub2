@@ -1,6 +1,6 @@
 
 <script setup lang="ts">
-import {  ref, computed,onMounted,onBeforeUnmount, onUpdated} from 'vue'
+import {  ref, watch,onMounted,onBeforeUnmount, onUpdated} from 'vue'
 import type { Map } from 'leaflet';
 import "leaflet/dist/leaflet.css";
 import * as L from 'leaflet';
@@ -32,7 +32,8 @@ const mapMessage = ref('');
 const gpxLinkText = ref('no link available');
 const gpxLink = ref('');
 const downloadName = ref('');
-let gpx : L.GPX ;
+//let gpx : L.GPX ;
+const gpx : L.GPX = ref();
 let marker : L.Marker;
 let mapKey = 0;
 
@@ -43,7 +44,7 @@ function setupMap() {
     }
     //console.log('map: ' + (props.route.dest.length>2 ? props.route.dest : 'General' ))
         map = L.map('mapContainer', {
-          center: [50.17,-5.05],    // or centre of cornwall?
+          center: [50.19,-5.05],    // or centre of cornwall?
           zoom:     9.5
         });
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -80,18 +81,19 @@ onBeforeUnmount(() => {
         }
 })
 
-onUpdated(() => {
+watch(() => props.route,  () => {
+//onUpdated(() => {
   const route = props.route;
   if (route.dest == undefined) {
     route.dest = '';
   }
-  //console.log('updated map: ' + (route.dest.length>2 ? route.dest : 'General' ))
+  console.log('watch');
   mapMessage.value = route.dest;
   showRoute(route);
   // force profile to update
-  ++mapKey;
-
-})
+  //++mapKey;
+  }
+)
 
 function showRoute(route : Route )
 {
@@ -122,10 +124,10 @@ function showRoute(route : Route )
             return;
         }
 
-        gpx = e.target;
+        gpx.value = e.target;
 
         // add direction arrows to GPX polyline
-        L.polylineDecorator(gpx.get_coords(), {
+        L.polylineDecorator(gpx.value .get_coords(), {
             patterns: [{
                 offset: 50,
                 repeat: 50,
@@ -137,19 +139,19 @@ function showRoute(route : Route )
             }]
         }).addTo(map);
 
-        var bounds : L.LatLngBounds = gpx.getBounds();
+        var bounds : L.LatLngBounds = gpx.value .getBounds();
         map.fitBounds(bounds);
 
-        var distance = Math.floor(gpx.get_distance() / 1000);
-        var elev_gain = Math.floor(gpx.get_elevation_gain());
-        var elev_loss = Math.floor(gpx.get_elevation_loss());
+        var distance = Math.floor(gpx.value .get_distance() / 1000);
+        var elev_gain = Math.floor(gpx.value .get_elevation_gain());
+        var elev_loss = Math.floor(gpx.value .get_elevation_loss());
 
         var name = '';
 
         if (route !== null)
             name = route.dest;
         if (name === '' || listedRoute === false) {
-            name = gpx.get_name();
+            name = gpx.value .get_name();
         }
 
 
@@ -165,15 +167,6 @@ function showRoute(route : Route )
                 await myFetch(apiMethods.updateRoute, route, true);
         }
     
-        // gpx download now from ride list details
-
-        // gpxLinkText.value = "Get GPX ";
-        // if (tab !== Tabs.newRide && route.id > 0) {
-        //     // add a download link
-        //     gpxLink.value = 'data:application/gpx+xml;base64,' + btoa(route.url);
-        //     downloadName.value = name + '.gpx';
-        // }
-
     }).addTo(map);
   }    
 
@@ -209,7 +202,7 @@ function showRoute(route : Route )
 
 <template>
     <div id="mapContainer"></div> 
-    <Profile v-if="gpx != undefined && props.showProfile" :key="mapKey"
+    <Profile v-if="gpx != undefined && props.showProfile" 
         :gpx = "gpx"
         :tab= "props.tab"
         :user = "props.user"

@@ -157,9 +157,13 @@ async function downloadGpx (route: Route) {
         URL.revokeObjectURL(link.href);
     }
     else
-        await Message('Sorry, no GPX avialable for this route');
+        await Message('Sorry, no GPX available for this route');
   }
-
+function speedStr() {
+    let speeds = rideData.speedsToString(ride.minSpeed,ride.maxSpeed);
+    if (speeds =='0') return ''
+    return speeds + (props.user.units=='k'?' kph':' mph');
+}
 
 </script>
 
@@ -181,8 +185,8 @@ async function downloadGpx (route: Route) {
         <v-row no-gutters>
             <v-col cols="3"><v-chip class="mt-3">Leader</v-chip></v-col>
             <v-col cols="3"><v-card-text > {{ ride.leaderName }}   </v-card-text></v-col>
-            <v-col cols="3"><v-chip class="mt-3">Speed</v-chip></v-col>
-            <v-col cols="3"><v-card-text > {{ ride.minSpeed }}   </v-card-text></v-col>
+            <v-col cols="3"><v-chip v-if="(speedStr().length > 0)" class="mt-3">Speed</v-chip></v-col>
+            <v-col cols="3"><v-card-text > {{ speedStr() }}   </v-card-text></v-col>
         </v-row>
         <v-row no-gutters>
             <v-col cols="3" class="mt-n4"><v-chip class="mt-3">Distance</v-chip></v-col>

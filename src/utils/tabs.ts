@@ -4,5 +4,6 @@ export enum Tabs {
     calendar = 'calendar',
     routes = 'routes',
     coffee = 'coffee',
-    library = 'library'
+    library = 'library',
+    help = 'help'
   }
