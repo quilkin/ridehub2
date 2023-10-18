@@ -1,51 +1,49 @@
-import { ref , type Ref } from 'vue'
 import { apiMethods, myFetch } from './fetch'
 import { Alert} from './alert'
 import { Route } from './route'
 
-
-const routes = ref() as Ref<Route[]>;
-var currentRoute : Route;
+let routes = [] as Route[];
 
 const Routes = {
     getIndex: function(index : number) {
-        return routes.value[index];
+        return routes[index];
     },
     addNewRoute: function(route : Route) {
-        routes.value.push(route);
+        routes.push(route);
     },
-    filteredList: function(minRouteLength : number, maxRouteLength: number, alphaOrder: boolean) {
+    filteredList: function(minRouteLength : number, maxRouteLength: number, alphaOrder: boolean, reverse: boolean = false) {
         const partRoutes = [] as Route[];
-        if (routes.value != undefined) {
-            for (const route of routes.value) {
+        if (routes != undefined) {
+            for (const route of routes) {
                 if (route.distance > minRouteLength && route.distance < maxRouteLength) {
                     partRoutes.push(route);
                 }
             }
         }
-        if (alphaOrder)
-            partRoutes.sort((a,b) => (a.dest < b.dest ? -1:1));
-        else
-            partRoutes.sort((a,b) => a.distance - b.distance);
+        if (reverse) {
+            if (alphaOrder)
+                partRoutes.sort((a,b) => (b.dest < a.dest ? -1:1));
+            else
+                partRoutes.sort((a,b) => b.distance - a.distance);
+        }
+        else {
+            if (alphaOrder)
+                partRoutes.sort((a,b) => (a.dest < b.dest ? -1:1));
+            else
+                partRoutes.sort((a,b) => a.distance - b.distance);
+        }
         return partRoutes;
     },
-    currentRoute: function() {
-        return currentRoute;
-    },
-    // setRoute: function(route : Route)   {
-    //     currentRoute = route;
-    // },
+
     getRouteSummaries: async function()
     {
-        //console.log('getting route summaries');
         const response : Route[]  = await myFetch(apiMethods.getRoutes,0);
         if (response != null) {
-            routes.value = response;
-            if (routes.value.length === 0) {
+            routes = response;
+            if (routes.length === 0) {
                 Alert( 'Ridehub','No routes found!','','error','OK');
                 return null;
             }
-           // console.log('got routes');
             return 'OK';
         }
         else {
@@ -56,63 +54,62 @@ const Routes = {
     },
     findRoute: function(id: number) {
         
-        const r = routes.value.find((index) => { return index["id"] === id })
+        const r = routes.find((index) => { return index["id"] === id })
         if (r != undefined)
         {
-            const route : Route = r;
-            currentRoute = route;
-            return route;
+            //const route : Route = r;
+            return r;
         }
         return new Route();
     },
-    distanceStr: function(route : Route, userUnits : string) {
-        var distance = 0;
-        if (route.distance !== undefined) {
-            distance = route.distance;
-        }
-        if (distance === 0)
-            return '?';
-        var units = ' km ';
-        if (userUnits === 'm') {
-            units = ' ml ';
-            distance = Math.round(distance * 0.62137);
-        }
-        return distance + units;
-    },
-    climbingStr: function(route : Route, userUnits : string) {
-        //var style = '<span style="color:orange; ';
-        var units = ' m';
-        var climbing = 0;
-        if (route.climbing !== undefined) {
-            climbing = route.climbing;
-            if (climbing ===0)
-                return '';
-            if (userUnits === 'm') {
-                units = ' ft';
-                climbing = Math.round(climbing * 3.3);
-            }
-            var climbingStr =  climbing + units ;
-            return climbingStr;
-        }
-        return '';
-    },
-    climbingColour: function(route : Route) {
-        var colour = 'orange';
-        var climbing = 0;
-        if (route.climbing !== undefined) {
-            climbing = route.climbing;
-            if (climbing ===0)
-                return 'white';
-            if (route.distance > 0) {
-                var climbRatio = route.climbing / route.distance;
-                if (climbRatio < 12)
-                    colour = 'green';
-                else if (climbRatio > 17)
-                    colour= 'red';
-            }
-            return colour;
-        }
-        return 'white';
-    }
+    // distanceStr: function(route : Route, userUnits : string) {
+    //     var distance = 0;
+    //     if (route.distance !== undefined) {
+    //         distance = route.distance;
+    //     }
+    //     if (distance === 0)
+    //         return '?';
+    //     var units = ' km ';
+    //     if (userUnits === 'm') {
+    //         units = ' ml ';
+    //         distance = Math.round(distance * 0.62137);
+    //     }
+    //     return distance + units;
+    // },
+    // climbingStr: function(route : Route, userUnits : string) {
+    //     //var style = '<span style="color:orange; ';
+    //     var units = ' m';
+    //     var climbing = 0;
+    //     if (route.climbing !== undefined) {
+    //         climbing = route.climbing;
+    //         if (climbing ===0)
+    //             return '';
+    //         if (userUnits === 'm') {
+    //             units = ' ft';
+    //             climbing = Math.round(climbing * 3.3);
+    //         }
+    //         var climbingStr =  climbing + units ;
+    //         return climbingStr;
+    //     }
+    //     return '';
+    // },
+    // climbingColour: function(route : Route) {
+    //     var colour = 'orange';
+    //     var climbing = 0;
+    //     if (route.climbing !== undefined) {
+    //         climbing = route.climbing;
+    //         if (climbing ===0)
+    //             return 'white';
+    //         if (route.distance > 0) {
+    //             var climbRatio = route.climbing / route.distance;
+    //             if (climbRatio < 12)
+    //                 colour = 'green';
+    //             else if (climbRatio > 17)
+    //                 colour= 'red';
+    //         }
+    //         return colour;
+    //     }
+    //     return 'white';
+    // }
 }
 export default Routes;

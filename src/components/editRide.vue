@@ -48,6 +48,7 @@ const minSpeed = ref(18);
 const maxSpeed = ref(20);
 const speedStr = ref('');
 const showFileUpload = ref(false);
+const showRouteList = ref(false);
 
 let newRide = false;
 
@@ -270,15 +271,26 @@ function changeRouteType(t : RouteTypes)
     showFileUpload.value = true;
     // prompt for file to upload....
   }
-  // else (RouteTypes.oldGpx) routes menu will be displayed by button press
+ else if (t === RouteTypes.oldGpx)  {
+     showRouteList.value = true;
+  }
   
 }
 
 function showRoute(route : Route) {
-  emit('showRoute',route,false);
+ 
+  emit('showRoute',route,true);
   destination.value = route.dest;
   distance.value = route.distance;
   selectedRoute.value = route;
+
+}
+function routeChosen(route : Route) {
+  showRouteList.value = false;
+//  emit('showRoute',route,true);
+//  destination.value = route.dest;
+//  distance.value = route.distance;
+//  selectedRoute.value = route;
 
 }
 function buttonType(t : RouteTypes) {
@@ -385,8 +397,9 @@ function loadGpx() {
           <v-row >
             <div v-if="newRide"> A ride could do with a route of some sort. So, please choose one of the following:</div>
 
-            <v-btn block :variant="buttonType(RouteTypes.oldGpx)" class="mt-2" color="blue" id="btn-existing" @click="changeRouteType(RouteTypes.oldGpx)">
+            <v-btn block :variant="buttonType(RouteTypes.oldGpx)" class="mt-2" color="blue"  @click="changeRouteType(RouteTypes.oldGpx)">
               Use an existing route from the RideHub list (there's over 100 of them!)</v-btn>
+            <RouteList  v-if="showRouteList" :user="props.user" @show-route="showRoute" @route-chosen="routeChosen"></RouteList>
             <v-btn block :variant="buttonType(RouteTypes.newGpx)" class="mt-2" color="blue" @click="changeRouteType(RouteTypes.newGpx)">
               Upload a new GPX route that you have created or found elsewhere</v-btn>
             <v-row v-if="showFileUpload">
@@ -406,10 +419,10 @@ function loadGpx() {
             <v-btn block :variant="buttonType(RouteTypes.noGpx)" class="mt-2" color="blue" @click="changeRouteType(RouteTypes.noGpx)">
               Have a simple ride to somewhere, with no defined route</v-btn>
 
-            <RouteList  :user="props.user" @show-route="showRoute" ></RouteList>
+            
           </v-row>
           <v-spacer></v-spacer>
-          <div  v-if="routeType!=RouteTypes.none" >
+          <div  v-if="routeType!=RouteTypes.none && showRouteList==false" >
           <v-container >
 
             <v-row >
@@ -474,7 +487,7 @@ function loadGpx() {
             <v-col>
               <v-btn block color="blue"  variant="outlined" @click="cancel()" class="mt-2">Cancel Edit</v-btn>
             </v-col>
-            <v-col  v-if="routeType!=RouteTypes.none">
+            <v-col  v-if="routeType!=RouteTypes.none && showRouteList==false">
               <v-btn block color="blue" type="submit"  class="mt-2">{{newRide? 'Save ride':'Save edits'}}</v-btn>
             </v-col>
           </v-row>

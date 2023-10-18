@@ -28,8 +28,8 @@ const TimesDates = {
     },
     fromIntTime: function (intTime : number) {
         // return time of day from minutes;
-        var hours = Math.floor(intTime / 60);
-        var mins = intTime % 60;
+        const hours = Math.floor(intTime / 60);
+        const mins = intTime % 60;
         return pad2(hours) + ':' +pad2(mins);
     },
     StrFromIntDays: function (intdays : number) {
@@ -40,8 +40,8 @@ const TimesDates = {
     },
     fromIntDays: function (intdays : number) {
         // return normal date from number of whole days since 01/01/1970
-        var msecs = intdays * 86400000;
-        var date = new Date(msecs);
+        const msecs = intdays * 86400000;
+        const date = new Date(msecs);
         return date;
     },
 }

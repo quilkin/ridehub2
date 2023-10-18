@@ -87,7 +87,7 @@ watch(() => props.route,  () => {
   if (route.dest == undefined) {
     route.dest = '';
   }
-  console.log('watch');
+  console.log('ridemap watch');
   mapMessage.value = route.dest;
   showRoute(route);
   // force profile to update
@@ -139,12 +139,12 @@ function showRoute(route : Route )
             }]
         }).addTo(map);
 
-        var bounds : L.LatLngBounds = gpx.value .getBounds();
-        map.fitBounds(bounds);
+        //var bounds : L.LatLngBounds = gpx.value .getBounds();
+        map.fitBounds(gpx.value.getBounds());
 
-        var distance = Math.floor(gpx.value .get_distance() / 1000);
-        var elev_gain = Math.floor(gpx.value .get_elevation_gain());
-        var elev_loss = Math.floor(gpx.value .get_elevation_loss());
+        const distance = Math.floor(gpx.value .get_distance() / 1000);
+        const elev_gain = Math.floor(gpx.value .get_elevation_gain());
+        //var elev_loss = Math.floor(gpx.value .get_elevation_loss());
 
         var name = '';
 
@@ -170,7 +170,7 @@ function showRoute(route : Route )
     }).addTo(map);
   }    
 
-  var bikeIcon = L.icon({
+  const bikeIcon = L.icon({
     iconUrl: bikeMarker,
     iconSize:     [40, 35], 
     shadowSize:   [50, 40], 

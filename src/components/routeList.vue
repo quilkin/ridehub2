@@ -14,60 +14,51 @@ const emit = defineEmits(['showRoute','routeChosen']);
 const routeList= ref() as Ref<Route[]>;
 const chosenRoute = ref() as Ref<Route>;
 const menuOpen = ref(true);
+const destinationStr = ref() as Ref<string[]>;
+const distanceStr = ref() as Ref<string[]>;
+const climbingStr = ref() as Ref<string[]>;
+const climbingColour = ref() as Ref<string[]>;
+
+const chooseDistance = ref('s');
+const chooseOrder = ref('a');
+let alphaReverse = false;
+let distanceReverse = false;
 
 const props = defineProps<{
   user : User
 }>()
 
 onMounted(() => {
+    destinationStr.value =[] as string[];
+    distanceStr.value =   [] as string[];
+    climbingStr.value =   [] as string[];
+    climbingColour.value =[] as string[];
     routeList.value = Routes.filteredList(minRouteLength.value,maxRouteLength.value,alphaOrder.value);
+    updateList();
+    
 })
+function updateList()
+{
+    routeList.value.forEach((route,index) => {
+      if (route.id > 0)
+      {
+        destinationStr.value[index] = DestinationString(route.dest);
+       // distanceStr.value[index]    = Routes.distanceStr(route,props.user.units);
+        distanceStr.value[index]    = Route.distanceStr(route,props.user.units);
+        climbingStr.value[index]    = Route.climbingStr(route,props.user.units);
+        climbingColour.value[index] = Route.climbingColour(route);
+      }
+    });
+}
 
 function DestinationString(dest : string) {
   return (dest.length > 30) ? dest.slice(0, 29) + '...' : dest;
 }
 
-function RouteDetail(route : Route) {
-  var distance = 0;
-  var climbingStr = '';
-  if (route.distance !== undefined) {
-      distance = route.distance;
-  }
-  if (distance === 0)
-      return '?';
-  var distUnits = ' km ';
-  if (props.user.units === 'm') {
-      distUnits = ' miles ';
-      distance = Math.round(distance * 0.62137);
-  }
-  if (props.user.climbs > 0) {
-        if (route.climbing !== undefined) {
-            let climbing = route.climbing;
-            if (climbing > 0)
-            {
-              var style = '<span style="color:orange; ';
-              var climbRatio = climbing / route.distance;
-              if (climbRatio < 12)
-                  style = '<span style="color:green; ';
-              else if (climbRatio > 17)
-                  style = '<span style="color:red; ';
-
-              var heightUnits = 'metres';
-              if (props.user.units === 'm') {
-                heightUnits = 'feet';
-                climbing = Math.round(climbing * 3.3);
-              }
-              climbingStr = style + 'font-weight: bold">&uarr;&darr;' + climbing + heightUnits + '</span>';
-            }
-          }
-        }
-        return distance.toString() + distUnits + ' ' + climbingStr;
-
-}
 async function viewRoute( index : number) {
  
   const route = routeList.value[index];
-  if (route === null) {
+  if (route === null || route === undefined) {
     AlertError('internal problem','Route not found');
     return;
   }
@@ -86,81 +77,92 @@ async function viewRoute( index : number) {
 
   chosenRoute.value = route;
 }
+
+function routeChosen(index : number)
+{   
+    viewRoute(index);
+    if (chosenRoute.value != null) {
+       emit("routeChosen",chosenRoute.value);
+        menuOpen.value = false;
+    }
+}
+
 function changeDistance(min: number,max: number)
 {
     minRouteLength.value = min;
     maxRouteLength.value = max;
-    routeList.value = Routes.filteredList(min,max,alphaOrder.value);
+    routeList.value = Routes.filteredList(min,max,alphaOrder.value,distanceReverse);
+    updateList();
+    distanceReverse = !distanceReverse;
 }
 function changeOrder(alpha: boolean) {
     alphaOrder.value = alpha;
-    routeList.value = Routes.filteredList(minRouteLength.value,maxRouteLength.value,alphaOrder.value);
+    routeList.value = Routes.filteredList(minRouteLength.value,maxRouteLength.value,alphaOrder.value,alphaReverse);
+    updateList();
+    alphaReverse = !alphaReverse;
 }
-function distanceColour(distance : number)
+function menuDistanceColour(distance : number)
 {
     if (maxRouteLength.value === distance)
         return "blue";
     return "gray;"
 }
-function orderColour(alpha : boolean)
+function menuOrderColour(alpha : boolean)
 {
     if (alphaOrder.value === alpha)
         return "blue";
     return "gray;"
 }
-function routeChosen()
-{
-    //console.log("route chosen")
-    if (chosenRoute.value != null) 
-       emit("routeChosen",chosenRoute.value);
-    menuOpen.value = false;
 
-}
 
 </script>
 
 <template>
-    <v-menu  activator="#btn-existing" :close-on-content-click='false' >
-        <v-list density="compact" min-width="480" >
-            <v-list-subheader >Choose route distance and sorting order:</v-list-subheader>
-                <v-list-item>
-                    <v-row  no-gutters>
-                        <v-col>
-                            <v-chip :color="distanceColour(50)"  @click="changeDistance(0,50)">Short </v-chip>
-                            <v-chip :color="distanceColour(75)"   @click="changeDistance(50,75)">Medium </v-chip>
-                            <v-chip :color="distanceColour(999)"  @click="changeDistance(75,999)">Long </v-chip>
-                        </v-col>
-                        <v-col class="text-right">
-                            <v-chip  :color="orderColour(true)"  @click="changeOrder(true)">Alphabetic</v-chip>
-                            <v-chip  :color="orderColour(false)" @click="changeOrder(false)">Distance</v-chip>
-                        </v-col>
-                    </v-row>
-                </v-list-item>
-      
-            <v-list-subheader >Click destination to show route, double-click/hold to select:</v-list-subheader>
+    <v-card>
+        <v-container>
+    <v-row >
+        <v-col cols="3">
+            <v-row>  <v-col ><v-chip>Route distance </v-chip></v-col></v-row>
+            <v-radio-group inline v-model="chooseDistance">
+                <v-radio label="Short" value="s" @click="changeDistance(0,50)"></v-radio>
+                <v-radio label="Medium" value="m" @click="changeDistance(50,75)"></v-radio>
+                <v-radio label="Long" value="l" @click="changeDistance(75,999)"></v-radio>
+              </v-radio-group>
 
-            
+            <v-row> <v-col class="mt-n4"><v-chip>order routes by</v-chip></v-col> </v-row>
+            <v-radio-group inline v-model="chooseOrder">
+                <v-radio label="Alphabetic" value="a" @click="changeOrder(true)"></v-radio>
+                <v-radio label="Distance" value="d" @click="changeOrder(false)"></v-radio>
+              </v-radio-group>
+        </v-col>
+        <v-col cols="9">
+            <v-chip>Click route to show map, double-click/hold to select for your ride</v-chip>
+
+        <v-list density="compact"  height="450">
+          
             <v-list-item density="compact" 
                 v-for="(item, i) in routeList" :key="i"  :value="i" :active="item === chosenRoute">
                 
-                    <v-row  no-gutters>
-                        <v-col cols="7" >
-                            <!-- <v-hover  v-model="hover"> -->
-                            <v-btn variant='outlined' density="compact"  @click="viewRoute(i)" @hold="routeChosen" @dblclick="routeChosen">
-                                <span class="text-truncate" style="max-width:200px" >{{ DestinationString(item.dest) }}</span>
-                            </v-btn>
-                        <!-- </v-hover> -->
-                        </v-col>
-                        <v-col cols="5"><div v-html="RouteDetail(item)"></div></v-col>
+                    <v-row  no-gutters  @click="viewRoute(i)"  @hold="routeChosen(i)" @dblclick="routeChosen(i)">
+                        <v-col cols="8" > {{ destinationStr[i] }}     </v-col>
+                        <v-col cols="2"> <small>{{ distanceStr[i] }}</small></v-col>
+                        <v-col cols="2"> <small v-bind:style="{'color': climbingColour[i]}"><b>&uarr;&darr;</b>{{ climbingStr[i] }}</small></v-col> 
                     </v-row>
               
             </v-list-item>
  
         </v-list>
-    </v-menu>
+    </v-col>
+</v-row>
+</v-container>
+    </v-card>
 </template>
 
 <style scoped>
+/* .v-list {
+  height: 450px;
+  overflow-y: auto;
+} */
 .v-list-item {
   min-height: 10px !important;
   padding-top: 0;

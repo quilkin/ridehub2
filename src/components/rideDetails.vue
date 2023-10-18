@@ -190,9 +190,9 @@ function speedStr() {
         </v-row>
         <v-row no-gutters>
             <v-col cols="3" class="mt-n4"><v-chip class="mt-3">Distance</v-chip></v-col>
-            <v-col cols="3" class="mt-n4"><v-card-text > {{ Routes.distanceStr(props.route,props.user.units) }}   </v-card-text></v-col>
+            <v-col cols="3" class="mt-n4"><v-card-text > {{ Route.distanceStr(props.route,props.user.units) }}   </v-card-text></v-col>
             <v-col cols="3" class="mt-n4"><v-chip v-if="props.route.climbing > 0" class="mt-3">Climbing</v-chip></v-col>
-            <v-col cols="3" class="mt-n4"><v-card-text> {{ Routes.climbingStr(props.route,props.user.units)  }}   </v-card-text></v-col>
+            <v-col cols="3" class="mt-n4"><v-card-text> {{ Route.climbingStr(props.route,props.user.units)  }}   </v-card-text></v-col>
         </v-row>
         <v-row no-gutters>
             <v-col cols="3" class="mt-n4"><v-chip class="mt-3">Meeting at</v-chip></v-col>

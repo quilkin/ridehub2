@@ -1,12 +1,12 @@
 sort out missing ts definitions
 finish npm package for leaflet-gpx
-change some vars to const or let
-use v-bind (as per ridelist) for colours on routes list
 sort out css for mobile etc
 check promises / errors in account / login
 check route name hasn't been used already
 allow admin to edit all rides
 route changing when date edited?
-profile is showing previous route
 add return types to all functions?
 tidy / expand help page
+clear profile when route has no climbing
+routes by order of climbing ratio
+change route order buttons to radio buttons

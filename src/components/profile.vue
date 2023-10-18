@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {  ref, onMounted,onBeforeMount,onBeforeUnmount,onUpdated, onBeforeUpdate} from 'vue'
+import {  ref, onMounted,onBeforeMount, onBeforeUpdate} from 'vue'
 import type { Ref } from 'vue'
 import { Line } from 'vue-chartjs'
 import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale, Filler, type ChartData, type ChartOptions } from 'chart.js'
@@ -10,8 +10,6 @@ import "leaflet/dist/leaflet.css";
 import * as L from 'leaflet';
 import 'leaflet-gpx-coords';
 import 'leaflet-polylineDecorator';
-import { Alert} from '../utils/alert'
-import type { LeafletEvent } from 'leaflet';
 import type { User } from '@/utils/user';
 import { Tabs } from '../utils/tabs'
 
@@ -42,27 +40,20 @@ const chartOptions  = ref( {
 onBeforeMount(() => {
      ChartJS.register(Title, Tooltip, Legend, PointElement,LineElement, CategoryScale, LinearScale, Filler);
 })
-onBeforeUnmount(() => {
-    console.log('Profile unmounted')
 
-})
 onMounted(() => {
     console.log('Profile mounted')
-    // if (props.tab !== Tabs.newRide && props.gpx != null) {
-    //     showProfile(props.gpx);
-    // }
+    //if (props.tab !== Tabs.newRide && props.gpx != null) {
+    if ( props.gpx != null) {
+         showProfile(props.gpx);
+     }
 })
 onBeforeUpdate(() => {
     console.log('Profile before update')
-  if (props.tab !== Tabs.newRide && props.gpx != null) {
-      showProfile(props.gpx);
-  }
-})
-onUpdated(() => {
-    console.log('Profile updated')
-//   if (props.tab !== Tabs.newRide && props.gpx != null) {
-//       showProfile(props.gpx);
-//   }
+    //if (props.tab !== Tabs.newRide && props.gpx != null) {
+        if ( props.gpx != null) {
+         showProfile(props.gpx);
+     }
 })
 
 
@@ -159,6 +150,7 @@ function showProfile(gpx : L.GPX) {
                 display: true,
                 title: {
                     display: true,
+                    padding: {top: -5},
                     text: metric ? 'km' : 'miles'
                 },
             },

@@ -113,16 +113,16 @@ function updateRouteInfo(r : Route) {
 
 <template>
     <v-sheet width="auto" class="mx-auto">
-      <v-row no-gutters>
-              <v-col> 
-    <v-tabs
+    <v-row no-gutters>
+    <v-col> 
+      <v-tabs
       v-model="currentTab"
       bg-color="transparent"
       color="blue"
       show-arrows
       stacked
       @update:model-value="tabChanged"
-    >
+      >
       <v-tab :value=Tabs.calendar>  <v-icon :icon="mdiCalendarMonth"/>      Calendar</v-tab>
       <!-- <v-tab :value=Tabs.routes>    <v-icon :icon="mdiMap"/>                All routes</v-tab> -->
       <v-tab :value=Tabs.newRide>   <v-icon :icon="mdiBike"/>               New Ride</v-tab>
@@ -202,7 +202,7 @@ function updateRouteInfo(r : Route) {
         </v-window-item>
       </v-window>
     </v-col>
-    <v-col>
+    <v-col  >
       <RideMap
         :map="map"
         :show-profile="showProfile"
@@ -213,7 +213,7 @@ function updateRouteInfo(r : Route) {
         @update-route-info="updateRouteInfo"
       ></RideMap>
 
-</v-col>
+    </v-col>
     </v-row>
   </v-sheet>
 </template>

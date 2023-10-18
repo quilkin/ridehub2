@@ -67,14 +67,14 @@ function allDataLoaded(i : number) {
 
 async function getData() {
 
-  var intdays = TimesDates.toIntDays(props.date);
-  var rideIDs: number[] = [];
+  //var intdays = TimesDates.toIntDays(props.date);
+  const rideIDs: number[] = [];
 
   try {
     const result = await Routes.getRouteSummaries();
     if (result === null)    throw new Error(`Cannot get routes`);
 
-    rides.value   = await myFetch(apiMethods.getRides,intdays);
+    rides.value   = await myFetch(apiMethods.getRides,TimesDates.toIntDays(props.date));
     if (rides.value  === null)  throw new Error(`Cannot get rides`);
 
     rides.value.forEach((ride) => {
@@ -117,9 +117,9 @@ function createRideList() {
       if (route.id > 0)
       {
         destination.value[index] = route?.dest;
-        distanceStr.value[index] = Routes.distanceStr(route,props.user.units);
-        climbingStr.value[index] = Routes.climbingStr(route,props.user.units);
-        climbingColour.value[index] = Routes.climbingColour(route);
+        distanceStr.value[index] = Route.distanceStr(route,props.user.units);
+        climbingStr.value[index] = Route.climbingStr(route,props.user.units);
+        climbingColour.value[index] = Route.climbingColour(route);
       }
     });
 
@@ -195,18 +195,16 @@ async function viewRoute(index : number) {
 
 <template>
 <v-list lines="three"  density="compact">
-    <v-list-item v-for="(ride, i) in rides" :key="i" >
+    <v-list-item v-for="(ride, i) in rides" :key="i"  @click="viewRoute(i)">
       <v-list-item-title v-if="newDateReqd(ride.date)" style="background-color:rgb(46, 195, 245);" >{{TimesDates.StrFromIntDays(ride.date)}}</v-list-item-title>
       <v-row  no-gutters>
         <v-col cols="1">
-          <!-- <small>{{ TimesDates.fromIntTime( ride.time) }}</small>  -->
           <v-chip size="small" color="blue" variant="outlined">{{ TimesDates.fromIntTime( ride.time) }}</v-chip>
         </v-col>
         <v-col cols="4">
-          <v-btn variant='elevated' color="blue" density="compact"  @click="viewRoute(i)" title="Click to show route on map">
-            <span class="text-truncate" style="width:150px" >{{ destination[i]  }}</span>
-            <!-- <v-tooltip   activator="parent"  location="end" >Click to show route on map</v-tooltip> -->
-          </v-btn>
+          <v-chip size="small" variant='elevated' color="blue"  title="Click to show route on map">
+            <span class="text-truncate" style="width:170px" >{{ destination[i]  }}</span>
+          </v-chip>
         </v-col>
         <v-col cols="1">
           <small>{{ distanceStr[i] }}</small> 
