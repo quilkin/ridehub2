@@ -14,7 +14,6 @@ import RouteList from './routeList.vue'
 import TimesDates  from '../utils/timesdates'
 import datePicker  from './datePicker.vue'
 import { watch } from 'vue'
-import { mdiContentSaveAlertOutline } from '@mdi/js'
 import rideData from '@/utils/ridedata'
 
 enum RouteTypes {
@@ -27,6 +26,7 @@ enum RouteTypes {
 
 const userName = ref('');
 const destination = ref('');
+const leader = ref('');
 const gpxfiles= ref() as Ref<File[]>;
 const distance = ref(0);
 const rideDialog = ref(false);
@@ -55,7 +55,9 @@ let newRide = false;
 let hour='';
 let minute='';
 let routeXML='' ;
+const members= ref() as Ref<string[]>;
 //const routeListShown = ref(false);
+
 
 const emit = defineEmits(['doneRideEdit','showRoute','logIn'])
 
@@ -65,9 +67,16 @@ const props = defineProps<{
   newRoute : Route
 }>()
 
+// watch(() => members, (first,second) => {
+//     // wait for member list to load
+//     if (second.length > 0 && first.length==0) {
 
 
-onBeforeMount(() => {
+//     }
+//   })
+
+
+onBeforeMount(async() => {
     if (props.user === undefined || props.ride === undefined)
     {
         AlertError('Internal error','invalid user or ride data');
@@ -106,6 +115,9 @@ onBeforeMount(() => {
     maxRiders.value = thisRide.groupSize;
     minSpeed.value = thisRide.minSpeed;
     maxSpeed.value = thisRide.maxSpeed;
+    if (thisRide.leaderName == '') 
+        thisRide.leaderName = props.user.name;
+    leader.value = thisRide.leaderName;
     if (props.user.units=='m') {
       // stored as km, not miles, so adjust
       if (minSpeed.value != undefined) minSpeed.value = Math.round(minSpeed.value/1.6);
@@ -120,12 +132,29 @@ onBeforeMount(() => {
     if (hour.length == 1) hour = '0' + hour;
     minute = (startTime.value % 15).toString();
     if (minute.length == 1) minute = '0' + minute;
+
+    if (props.user.role > 1)
+       getMembers();
    
   })
 function cancel() {
     rideDialog.value = false;
     emit('doneRideEdit');
 }
+async function getMembers() {
+  const logins : User[] = await myFetch(apiMethods.getLogins,null, true);
+  if (logins != undefined) {
+    members.value = [];
+    logins.forEach((login) => {
+      const member = login.name;
+      members.value.push(member);
+    });
+  }
+  return members.value;
+}
+// function getMemberList() {
+//   return getMembers();
+// }
 async function deleteRide()
 {
   await YesNo('Delete this ride, are you sure?', async ()=> {
@@ -155,10 +184,20 @@ async function submit() {
   await YesNo('Save this ride, are you sure?', async ()=> {
 
     let routeID  = thisRide.routeID;
-    if (props.user.units=='m') {
-      // store as km, not miles, so adjust
-      minSpeed.value = Math.round(minSpeed.value*1.6);
-      maxSpeed.value = Math.round(maxSpeed.value*1.6);
+    const speeds : number[] = rideData.stringToSpeeds(speedStr.value);
+    if (speeds.length==2) {
+      thisRide.minSpeed =  speeds[0];
+      thisRide.maxSpeed =  speeds[1];
+    }
+    else {
+      await AlertError('Speed','Invalid average speed');
+      return;
+    }
+    if (props.user.units=='m' && props.user.role < 2) {
+       // store as km, not miles, so adjust
+      // but if admin is asjuting someoen else's ride, leave this alone
+      thisRide.minSpeed = Math.round(thisRide.minSpeed*1.6);
+      thisRide.maxSpeed = Math.round(thisRide.maxSpeed*1.6);
       distance.value = Math.round(distance.value*1.6);
     }
     if (thisRide.routeID == 0 /* && newRoute != null  && newRoute.hasGPX */) {
@@ -204,35 +243,9 @@ async function submit() {
     thisRide.groupSize = maxRiders.value;
     thisRide.meetingAt = meetingAt.value;
     thisRide.routeID = routeID;
+    thisRide.leaderName = leader.value;
 
-    const speeds : number[] = rideData.stringToSpeeds(speedStr.value);
-    if (speeds.length==2) {
-      thisRide.minSpeed =  speeds[0];
-      thisRide.maxSpeed =  speeds[1];
-    }
-    else {
-      await AlertError('Speed','Invalid average speed');
-      return;
-    }
-    // enumerate the max/min speed string
-    // const speeds = speedStr.value.split('-');
-    // if (speeds.length == 1)
-    //   minSpeed.value = maxSpeed.value = parseInt(speeds[0]);
-    // else if (speeds.length == 2){
-    //   minSpeed.value =  parseInt(speeds[0]);
-    //   maxSpeed.value =  parseInt(speeds[1]);
-    // }
-    // else {
-    //   await AlertError('Speed','Invalid average speed')
-    //   return;
-    // }
-
-    // thisRide.minSpeed = minSpeed.value;
-    // thisRide.maxSpeed = maxSpeed.value;
-    
-
-
-    if (newRide) {
+     if (newRide) {
       const res = await myFetch(apiMethods.saveRide,thisRide,true);
       const id = parseInt(res);
       if (Number.isInteger(id)) {
@@ -269,10 +282,12 @@ function changeRouteType(t : RouteTypes)
   }
   else if (t===RouteTypes.newGpx) {
     showFileUpload.value = true;
+    showRouteList.value = false;
     // prompt for file to upload....
   }
  else if (t === RouteTypes.oldGpx)  {
      showRouteList.value = true;
+     showFileUpload.value = false;
   }
   
 }
@@ -287,10 +302,6 @@ function showRoute(route : Route) {
 }
 function routeChosen(route : Route) {
   showRouteList.value = false;
-//  emit('showRoute',route,true);
-//  destination.value = route.dest;
-//  distance.value = route.distance;
-//  selectedRoute.value = route;
 
 }
 function buttonType(t : RouteTypes) {
@@ -308,34 +319,13 @@ function newDate(newDate : Date) {
   date.value = newDate;
 }
 
-// async function saveRoute(newRoute) {
-
-//       //console.log('saving route: '+  newRoute.dest);
-//       newRoute.owner = props.user.name;
-//       const res = await myFetch(apiMethods.saveRoute,newRoute,true);
-//       const id = parseInt(res);
-//       if (Number.isInteger(id)) {
-   
-//         newRoute.id = id;
-//        // routeID = id;
-//         Routes.addNewRoute (newRoute);
-
-//       }
-//       else {
-//         if (res.includes("XML parse error"))
-//               await AlertError("File Error","Please ensure that this is a GPX file");
-//         else
-//               await Message(res);
-//       }
-
-// }
 
 async function readSuccess(event: ProgressEvent<FileReader>) {
   if (event.target === null) {
     AlertError('File error','Cannot read file');
           return;
   }
-  if ((typeof event.target.result) != "string") {
+  if (typeof event.target.result !== "string") {
     AlertError('File error','File contents have incorrect type');
           return;
   }
@@ -422,29 +412,51 @@ function loadGpx() {
             
           </v-row>
           <v-spacer></v-spacer>
-          <div  v-if="routeType!=RouteTypes.none && showRouteList==false" >
+          <div  v-if="routeType!=RouteTypes.none && showRouteList==false &&  showFileUpload==false" >
           <v-container >
-
+            <v-row v-if="props.user.role>1" >
+              <!-- only for admin users, to change ride leader -->
+              <!-- todo: maybe add a special secret button to override this? -->
+              <v-col cols="6"  class="mt-6" >
+                <v-autocomplete
+                  v-model = "leader"
+                  label="Leader"
+                   :items="members"
+                ></v-autocomplete>
+              </v-col>
+            </v-row>
             <v-row >
               <v-col cols="6"  class="mt-6" >
-                  <v-text-field density="compact"  v-model="destination" variant="outlined"  :rules="destinationRules"  label="Destination" 
-                      hint="Where are you riding to? Coffee stop?"/>
+                  <v-text-field density="compact" variant="outlined" label="Destination" 
+                    v-model="destination"
+                    :rules="destinationRules"
+                    :disabled="routeType!=RouteTypes.noGpx" 
+                    hint='Where are you riding to? Coffee stop?'/>
               </v-col>
               <v-col cols="6"  class="mt-6" >
-                  <v-text-field density="compact"  v-model="distance" variant="outlined"  :suffix="props.user.units==='k'?'km':'miles'" :rules="distanceRules"  label="Approx Distance"  :disabled="routeType!=RouteTypes.noGpx"
-                      hint="A rough indication, need not be exact"/>
+                  <v-text-field density="compact"   variant="outlined" label="Approx Distance" 
+                   v-model="distance"
+                   :suffix="props.user.units==='k'?'km':'miles'"
+                   :rules="distanceRules"
+                   :disabled="routeType!=RouteTypes.noGpx" 
+                   hint="A rough indication, need not be exact"/>
               </v-col>
             </v-row>
             <v-row >
               <v-col cols="12"  class="mt-n4" >
-                  <v-textarea density="compact" rows="1" v-model="description" variant="outlined"  :rules="descriptionRules"  label="Description" 
-                      hint="Help others to know if they would like to ride this route. e.g. mention 'Gravel' if it's off-road"/>
+                  <v-textarea density="compact" variant="outlined" rows="1" label="Description"
+                  v-model="description"
+                  :rules="descriptionRules"   
+                  hint="Help others to know if they would like to ride this route. e.g. mention 'Gravel' if it's off-road"/>
               </v-col>
             </v-row>
             <v-row  >
               <v-col cols="1" class="pr-0 mt-n4">Ride Date</v-col>
               <v-col cols="5" class="mt-n4">
-                    <datePicker :large="true" :text="TimesDates.dateString(date)" :date="date"    @new-date="newDate"   />
+                    <datePicker :large="true"
+                      :text="TimesDates.dateString(date)"
+                      :date="date"
+                      @new-date="newDate"   />
               </v-col>
 
               <v-col cols="3" class="mt-n4">

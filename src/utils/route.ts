@@ -42,21 +42,22 @@ export class Route {
         return '';
     }
     public static climbingColour (route : Route) {
-        var colour = 'orange';
-        var climbing = 0;
-        if (route.climbing !== undefined) {
-            climbing = route.climbing;
-            if (climbing ===0)
-                return 'white';
-            if (route.distance > 0) {
-                var climbRatio = route.climbing / route.distance;
-                if (climbRatio < 12)
-                    colour = 'green';
-                else if (climbRatio > 17)
-                    colour= 'red';
-            }
-            return colour;
-        }
+        const ratio = this.climbingRatio(route);
+        if (ratio > 17) return 'red';
+        if (ratio > 12) return 'orange';
+        if (ratio > 0) return 'green';
         return 'white';
+    }
+    public static climbingRatio(route: Route)
+    {
+        if (route.climbing == undefined) 
+            return 0;
+        if (route.climbing ===0)
+            return 0;
+        if (route.distance ===0)
+            return 0;
+
+        const climbRatio = route.climbing / route.distance;
+        return Math.round(climbRatio);
     }
 }

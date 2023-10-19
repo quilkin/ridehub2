@@ -1,6 +1,6 @@
 import  TimesDates  from '../utils/timesdates'
 export class Ride {
-    leaderName = 'leader';
+    leaderName = '';
     routeID = 0;
     date = TimesDates.toIntDays(new Date());
     rideID = 0;

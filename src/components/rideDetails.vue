@@ -70,7 +70,7 @@ import { myFetch } from '@/utils/fetch'
     else if (participants.length >= ride.groupSize) {     
         buttonText = reserveText;
     }
-    else if (rider === ride.leaderName) {
+    else if (rider === ride.leaderName || props.user.role>1) {
         // can edit your own ride, but not join it
         buttonText = editRideText;
     }
@@ -169,7 +169,7 @@ function speedStr() {
 
 <template>
   <div class="text-center">
-    <v-btn size="small" variant='outlined'  color="blue" :prepend-icon="mdiBike" width="150" @click="checkLogin()">
+    <v-btn size="small" variant='outlined'  color="blue" :prepend-icon="mdiBike" width="100" @click="checkLogin()">
         More...
     </v-btn>
     

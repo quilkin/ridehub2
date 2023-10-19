@@ -22,8 +22,8 @@ import { mdiHelp } from '@mdi/js'
 
 const currentTab = ref(Tabs.account);
 const currentUser = ref(new User());
-//const ridesDate = ref(new Date());
-const ridesDate = ref(new Date('2022-03-01'));
+const ridesDate = ref(new Date());
+//const ridesDate = ref(new Date('2022-03-01'));
 const currentRoute = ref(new Route());
 const newRoute = ref(new Route());
 const currentRide = ref(new Ride());
@@ -79,6 +79,7 @@ function doneAccount() {
 }
 function doneRideEdit() {
   editing.value = false;
+  ++dataChanged.value;
   switchTab(Tabs.calendar);
 }
 

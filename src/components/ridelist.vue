@@ -3,10 +3,11 @@ import { ref, onBeforeMount, type Ref } from 'vue'
 import { apiMethods, myFetch } from '../utils/fetch'
 import { Ride } from '../utils/ride'
 import { Already} from '../utils/already'
-import { AlertError } from '../utils/alert'
+import { AlertError, Message } from '../utils/alert'
 import { User } from '../utils/user'
 import Routes  from '../utils/routes'
 import RideDetails from './rideDetails.vue'
+import rideData from '@/utils/ridedata'
 import TimesDates  from '../utils/timesdates'
 import { Route } from '@/utils/route'
 
@@ -27,6 +28,7 @@ const distanceStr = ref() as Ref<string[]>;
 const climbingStr = ref() as Ref<string[]>;
 const climbingColour = ref() as Ref<string[]>;
 const destination = ref() as Ref<string[]>;
+const rideSpeed = ref() as Ref<string[]>;
 
 // used to check if a rider is 'already' doing doing a ride on a given day
 const already = ref() as Ref<Already[]>;
@@ -57,6 +59,7 @@ function initialiseArrays() {
   climbingStr.value =   [] as string[];
   climbingColour.value =[] as string[];
   already.value =       [] as Already[];
+  rideSpeed.value =     [] as string[];
 }
 
 function allDataLoaded(i : number) {
@@ -109,6 +112,11 @@ async function getData() {
     AlertError('Unsuccessful',err.message);
   }
 }   
+function speedStr(ride : Ride) {
+    let speeds = rideData.speedsToString(ride.minSpeed,ride.maxSpeed);
+    if (speeds =='0') return ''
+    return speeds + (props.user.units=='k'?' kph':' mph');
+}
 
 function createRideList() {
 
@@ -120,6 +128,7 @@ function createRideList() {
         distanceStr.value[index] = Route.distanceStr(route,props.user.units);
         climbingStr.value[index] = Route.climbingStr(route,props.user.units);
         climbingColour.value[index] = Route.climbingColour(route);
+        rideSpeed.value[index] = speedStr(ride);
       }
     });
 
@@ -179,6 +188,11 @@ async function viewRoute(index : number) {
     AlertError('internal problem','Route not found for this ride');
     return;
   }
+  if (currentRoute.hasGPX==false)
+  {
+    Message('No map available for this ride');
+    return;
+  }
   if (currentRoute.url == null || currentRoute.url.length < 100) {
     // don't yet have the GPX data
     let gpxData  = await myFetch(apiMethods.getGpx, currentRoute.id, true);
@@ -201,18 +215,21 @@ async function viewRoute(index : number) {
         <v-col cols="1">
           <v-chip size="small" color="blue" variant="outlined">{{ TimesDates.fromIntTime( ride.time) }}</v-chip>
         </v-col>
-        <v-col cols="4">
+        <v-col cols="3">
           <v-chip size="small" variant='elevated' color="blue"  title="Click to show route on map">
             <span class="text-truncate" style="width:170px" >{{ destination[i]  }}</span>
           </v-chip>
         </v-col>
-        <v-col cols="1">
-          <small>{{ distanceStr[i] }}</small> 
+        <v-col cols="1.5">
+          <small>&nbsp;{{ distanceStr[i] }}</small> 
         </v-col>
-        <v-col cols="1.3">
+        <v-col cols="1.5" title="amount of climbing">
           <small v-bind:style="{'color': climbingColour[i]}"><b>&uarr;&darr;</b>{{ climbingStr[i] }}</small>
         </v-col>
-        <v-col cols="2">
+        <v-col cols="1.5"  title="average speed suggested">
+          <small style="color:blue"> {{ rideSpeed[i] }}</small>
+        </v-col>
+        <v-col cols="1.5"  title="ride leader">
           <v-list-item-title v-text="ride.leaderName"></v-list-item-title>
         </v-col>
 

@@ -8,7 +8,7 @@ import { Route } from '../utils/route'
 import Routes  from '../utils/routes'
 
 const minRouteLength = ref(0);
-const alphaOrder = ref(true);
+const alphaOrder = ref(1);
 const maxRouteLength = ref(50);
 const emit = defineEmits(['showRoute','routeChosen']);
 const routeList= ref() as Ref<Route[]>;
@@ -18,11 +18,13 @@ const destinationStr = ref() as Ref<string[]>;
 const distanceStr = ref() as Ref<string[]>;
 const climbingStr = ref() as Ref<string[]>;
 const climbingColour = ref() as Ref<string[]>;
+const climbingRatio = ref() as Ref<number[]>;
 
 const chooseDistance = ref('s');
 const chooseOrder = ref('a');
 let alphaReverse = false;
 let distanceReverse = false;
+let climbingReverse = false;
 
 const props = defineProps<{
   user : User
@@ -33,6 +35,7 @@ onMounted(() => {
     distanceStr.value =   [] as string[];
     climbingStr.value =   [] as string[];
     climbingColour.value =[] as string[];
+    climbingRatio.value =[] as number[];
     routeList.value = Routes.filteredList(minRouteLength.value,maxRouteLength.value,alphaOrder.value);
     updateList();
     
@@ -47,12 +50,13 @@ function updateList()
         distanceStr.value[index]    = Route.distanceStr(route,props.user.units);
         climbingStr.value[index]    = Route.climbingStr(route,props.user.units);
         climbingColour.value[index] = Route.climbingColour(route);
+        climbingRatio.value[index] = Route.climbingRatio(route);
       }
     });
 }
 
 function DestinationString(dest : string) {
-  return (dest.length > 30) ? dest.slice(0, 29) + '...' : dest;
+  return (dest.length >= 30) ? dest.slice(0, 29) + '...' : dest;
 }
 
 async function viewRoute( index : number) {
@@ -95,25 +99,12 @@ function changeDistance(min: number,max: number)
     updateList();
     distanceReverse = !distanceReverse;
 }
-function changeOrder(alpha: boolean) {
+function changeOrder(alpha: number) {
     alphaOrder.value = alpha;
     routeList.value = Routes.filteredList(minRouteLength.value,maxRouteLength.value,alphaOrder.value,alphaReverse);
     updateList();
     alphaReverse = !alphaReverse;
 }
-function menuDistanceColour(distance : number)
-{
-    if (maxRouteLength.value === distance)
-        return "blue";
-    return "gray;"
-}
-function menuOrderColour(alpha : boolean)
-{
-    if (alphaOrder.value === alpha)
-        return "blue";
-    return "gray;"
-}
-
 
 </script>
 
@@ -122,21 +113,22 @@ function menuOrderColour(alpha : boolean)
         <v-container>
     <v-row >
         <v-col cols="3">
-            <v-row>  <v-col ><v-chip>Route distance </v-chip></v-col></v-row>
+            <v-row>  <v-col ><v-chip color="blue">Route distance </v-chip></v-col></v-row>
             <v-radio-group inline v-model="chooseDistance">
                 <v-radio label="Short" value="s" @click="changeDistance(0,50)"></v-radio>
                 <v-radio label="Medium" value="m" @click="changeDistance(50,75)"></v-radio>
                 <v-radio label="Long" value="l" @click="changeDistance(75,999)"></v-radio>
               </v-radio-group>
 
-            <v-row> <v-col class="mt-n4"><v-chip>order routes by</v-chip></v-col> </v-row>
+            <v-row> <v-col class="mt-n4"><v-chip color="blue">Order routes by</v-chip></v-col> </v-row>
             <v-radio-group inline v-model="chooseOrder">
-                <v-radio label="Alphabetic" value="a" @click="changeOrder(true)"></v-radio>
-                <v-radio label="Distance" value="d" @click="changeOrder(false)"></v-radio>
+                <v-radio label="Alphabetic" value="a" @click="changeOrder(1)"></v-radio>
+                <v-radio label="Distance" value="d" @click="changeOrder(2)"></v-radio>
+                <v-radio label="Climbing" value="c" @click="changeOrder(3)"></v-radio>
               </v-radio-group>
         </v-col>
         <v-col cols="9">
-            <v-chip>Click route to show map, double-click/hold to select for your ride</v-chip>
+            <v-chip color="blue">Click route to show map, dble-click/hold to select for your ride</v-chip>
 
         <v-list density="compact"  height="450">
           
@@ -144,9 +136,10 @@ function menuOrderColour(alpha : boolean)
                 v-for="(item, i) in routeList" :key="i"  :value="i" :active="item === chosenRoute">
                 
                     <v-row  no-gutters  @click="viewRoute(i)"  @hold="routeChosen(i)" @dblclick="routeChosen(i)">
-                        <v-col cols="8" > {{ destinationStr[i] }}     </v-col>
-                        <v-col cols="2"> <small>{{ distanceStr[i] }}</small></v-col>
-                        <v-col cols="2"> <small v-bind:style="{'color': climbingColour[i]}"><b>&uarr;&darr;</b>{{ climbingStr[i] }}</small></v-col> 
+                        <v-col cols="7"> {{ destinationStr[i] }}     </v-col>
+                        <v-col cols="1.5" title="distance"> <small>{{ distanceStr[i] }}</small></v-col>
+                        <v-col cols="2"   title="climbing"> <small v-bind:style="{'color': climbingColour[i]}"><b>&uarr;&darr;</b>{{ climbingStr[i] }}</small></v-col>
+                        <v-col cols="1.5" title="climb ratio: metres climb per km riding"><small v-bind:style="{'color': climbingColour[i]}"> {{ climbingRatio[i] }}</small></v-col>
                     </v-row>
               
             </v-list-item>

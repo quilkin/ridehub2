@@ -3,10 +3,8 @@ finish npm package for leaflet-gpx
 sort out css for mobile etc
 check promises / errors in account / login
 check route name hasn't been used already
-allow admin to edit all rides
 route changing when date edited?
-add return types to all functions?
 tidy / expand help page
 clear profile when route has no climbing
-routes by order of climbing ratio
-change route order buttons to radio buttons
+
+ride list, notify 'no map' if reqd

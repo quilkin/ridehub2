@@ -22,10 +22,11 @@ export enum apiMethods {
   savePpt = 'SaveParticipant',
   leavePpt= 'LeaveParticipant',
   deleteRide = 'DeleteRide',
-  tcx2gpx = 'TCX2GPX'
+  tcx2gpx = 'TCX2GPX',
+  getLogins = 'GetLogins'
 }
 
-export async function myFetch(url : String, data : Object, waitDlg : Boolean = false)  {
+export async function myFetch(url : String, data : Object | null, waitDlg : Boolean = false)  {
 
     const bodyData = JSON.stringify(data);
     const options = {
@@ -39,17 +40,19 @@ export async function myFetch(url : String, data : Object, waitDlg : Boolean = f
     
     console.log('fetch: ' + url)
     const fullUrl = quilkinUrlBase() + url;
-
     let res;
-    let err : string;
-  
+
     try {
-      res = await fetch(fullUrl, options);
+      if (data==null)
+        res = await fetch(fullUrl);
+      else
+        res = await fetch(fullUrl, options);
+
       if (!res.ok) {
         if (waitDlg) CloseAlert();
         throw new Error(`HTTP error: ${res.status}`);
       }
-      //console.log('fetched: ' + url)
+
       if (waitDlg) CloseAlert();
       return await res.json();
     }

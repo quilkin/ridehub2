@@ -58,6 +58,8 @@ export const speedRules = [
                                     return 'Please use a small range, e.g. 16-18';
                                 let min = speeds[0];
                                 let max = speeds[1];
+                                if (min > max) 
+                                    return 'Minimum must be less than maximum'
                                 if (min >= 5 && min < 30 && max >= 5 && min < 30) return true;
                                 return min < 5 ? 'Too slow' :'Too fast'
                                 },
