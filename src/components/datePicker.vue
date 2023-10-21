@@ -28,7 +28,7 @@
         width="auto"
         content-class="datepicker-dialog"
       >
-      <v-locale-provider locale="en_GB">
+      <v-locale-provider locale="gb">
         <v-date-picker title="Start Date" width = "200" height = "570" v-model="workingDate" @click:save="newDate" @click:cancel="cancel()"/>
       </v-locale-provider>
       </v-dialog>

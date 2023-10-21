@@ -115,13 +115,14 @@ function updateRouteInfo(r : Route) {
 <template>
     <v-sheet width="auto" class="mx-auto">
     <v-row no-gutters>
-    <v-col> 
+    <v-col > 
       <v-tabs
       v-model="currentTab"
       bg-color="transparent"
       color="blue"
       show-arrows
       stacked
+      grow
       @update:model-value="tabChanged"
       >
       <v-tab :value=Tabs.calendar>  <v-icon :icon="mdiCalendarMonth"/>      Calendar</v-tab>
@@ -135,9 +136,9 @@ function updateRouteInfo(r : Route) {
 
       <v-window v-model="currentTab">
         <v-window-item :value=Tabs.calendar>
-          <v-container   height="100%">
-            <v-row no-gutters>
-              <v-col> 
+          <v-container   class="tab-item-wrapper">
+            <!-- <v-row no-gutters>
+              <v-col>  -->
                 
                 <RideList
                  :key = "dataChanged"
@@ -151,8 +152,8 @@ function updateRouteInfo(r : Route) {
                 </RideList>
                 
                 <datePicker  :large='false' text="Select other dates" :date="ridesDate"    @new-date="newDate"   />
-              </v-col>
-            </v-row>
+              <!-- </v-col>
+            </v-row> -->
           </v-container>
 
         </v-window-item>
@@ -163,9 +164,9 @@ function updateRouteInfo(r : Route) {
 
 
         <v-window-item :value=Tabs.newRide>
-          <v-container   height="100%">
-            <v-row no-gutters>
-              <v-col> 
+          <v-container  class="tab-item-wrapper scrollable">
+            <!-- <v-row no-gutters>
+              <v-col>  -->
                 <RideEdit v-if="checkLogIn() && editing"
                 :ride="currentRide"
                 :user="currentUser"
@@ -175,35 +176,41 @@ function updateRouteInfo(r : Route) {
                 @show-route = "updateCurrentRoute"
                 >
               </RideEdit>
-              </v-col>
-            </v-row>
+              <!-- </v-col>
+            </v-row> -->
           </v-container>
         </v-window-item>
         
         <v-window-item :value=Tabs.coffee>
+          <v-container   class="tab-item-wrapper">
           Coffee  stops - not yet implemented in this version
+          </v-container>
         </v-window-item>
 
 
         <v-window-item :value=Tabs.library>
+          <v-container class="tab-item-wrapper">
           library - not yet implemented in this version
+          </v-container>
         </v-window-item>
 
         <v-window-item :value=Tabs.account>
-          <account-actions 
-       
-            :user="currentUser"
-            @done-login="doneLogin"
-            @done-account="doneAccount"
-          ></account-actions>
-                   
+          <v-container  class="tab-item-wrapper  scrollable">>
+            <account-actions 
+              :user="currentUser"
+              @done-login="doneLogin"
+              @done-account="doneAccount"
+            ></account-actions>
+        </v-container>
         </v-window-item>
         <v-window-item :value=Tabs.help>
-          <Help></Help>
+          <v-container  class="tab-item-wrapper">
+            <Help></Help>
+          </v-container>
         </v-window-item>
       </v-window>
     </v-col>
-    <v-col  >
+    <v-col >
       <RideMap
         :map="map"
         :show-profile="showProfile"
@@ -220,6 +227,13 @@ function updateRouteInfo(r : Route) {
 </template>
 
 <style>
+  .scrollable {
+   overflow-y: auto;
+}
+.tab-item-wrapper {
+  /* vuetify sets the v-tabs__container height to 48px */
+  height: calc(100vh - 48px)
+}
 .v-btn {
   text-transform: none;
   padding: 0;

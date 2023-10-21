@@ -6,5 +6,4 @@ check route name hasn't been used already
 route changing when date edited?
 tidy / expand help page
 clear profile when route has no climbing
-
-ride list, notify 'no map' if reqd
+calendar date format

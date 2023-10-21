@@ -210,5 +210,5 @@ function showRoute(route : Route )
     ></Profile>
 </template>
 <style>
-#mapContainer { height: 60%; }
+#mapContainer { height: 70%; }
 </style>

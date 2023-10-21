@@ -278,15 +278,17 @@ function changeRouteType(t : RouteTypes)
   if (t===RouteTypes.noGpx) {
     // clear old route from map by showing plain Cornwall
     emit('showRoute',new Route(),false);
+    showRouteList.value = false;
+    showFileUpload.value = false;
 
   }
   else if (t===RouteTypes.newGpx) {
-    showFileUpload.value = true;
+    showFileUpload.value = !showFileUpload.value;
     showRouteList.value = false;
     // prompt for file to upload....
   }
  else if (t === RouteTypes.oldGpx)  {
-     showRouteList.value = true;
+     showRouteList.value = !showRouteList.value;
      showFileUpload.value = false;
   }
   
@@ -377,8 +379,8 @@ function loadGpx() {
 
 <template>
     
-  <div class="d-flex align-center flex-column">
-   <v-card  width="600" >
+  <!-- <div class="d-flex align-center flex-column"> -->
+   <v-card  width="600">
       <v-card-title class="headline black" primary-title>
         {{newRide? 'Plan to lead a ride':'Edit your ride'}}
       </v-card-title>
@@ -411,7 +413,7 @@ function loadGpx() {
 
             
           </v-row>
-          <v-spacer></v-spacer>
+          <!-- <v-spacer></v-spacer> -->
           <div  v-if="routeType!=RouteTypes.none && showRouteList==false &&  showFileUpload==false" >
           <v-container >
             <v-row v-if="props.user.role>1" >
@@ -506,8 +508,13 @@ function loadGpx() {
         </v-form>
       </v-card-text>
     </v-card>
-  </div>
+  <!-- </div> -->
 
   </template>
+  <style>
+  .scrollable {
+   overflow-y: scroll;
+}
+</style>
 
 

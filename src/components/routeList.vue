@@ -130,7 +130,7 @@ function changeOrder(alpha: number) {
         <v-col cols="9">
             <v-chip color="blue">Click route to show map, dble-click/hold to select for your ride</v-chip>
 
-        <v-list density="compact"  height="450">
+        <v-list density="compact"  >
           
             <v-list-item density="compact" 
                 v-for="(item, i) in routeList" :key="i"  :value="i" :active="item === chosenRoute">

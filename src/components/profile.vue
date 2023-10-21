@@ -34,7 +34,7 @@ const chartData   = ref({
 
 const chartOptions  = ref( {
           responsive: true,
-          
+          maintainAspectRatio: true
     }) as Ref<ChartOptions>;
 
 onBeforeMount(() => {
@@ -132,7 +132,7 @@ function showProfile(gpx : L.GPX) {
         };
     chartOptions.value = {
         responsive: true,
- 
+        maintainAspectRatio: false,
         plugins: {
             // decimation: {
             //     enabled: true,
@@ -188,9 +188,18 @@ function showProfile(gpx : L.GPX) {
 </script>
 
 <template>
+    <v-container class="chart-container">
     <Line
         ref="chart"
         :data = "chartData"
         :options = "chartOptions"
     />
+</v-container>
 </template>
+
+<style>
+.chart-container {
+    height: 30%;
+
+}
+</style>
