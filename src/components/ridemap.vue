@@ -8,13 +8,13 @@ import 'leaflet-gpx-coords';
 
 import 'leaflet-polylineDecorator';
 import { Route } from '../utils/route'
-import { AlertError } from '../utils/alert'
 import { apiMethods,myFetch } from '../utils/fetch'
-import type { LeafletEvent } from 'leaflet';
 import Profile from './profile.vue'
 import type { User } from '@/utils/user';
 import { Tabs } from '../utils/tabs'
 import bikeMarker from '../assets/bike2.png';
+import Routes  from '@/utils/routes'
+import { mdiRoutes} from '@mdi/js'
 
 const props = defineProps<{
   route : Route
@@ -58,7 +58,6 @@ function setupMap() {
         let textbox   = L.Control.extend({
             onAdd: function() {
                 var text = L.DomUtil.create('div');
-                //text.id = "info_text";
                 text.innerHTML = "<h2>" + mapMessage.value + "</h2>"
                 return text;
                 },
@@ -190,25 +189,29 @@ function showRoute(route : Route )
     marker = new L.Marker(latlng, {icon: bikeIcon}).addTo(map);
 
   }
-  function help() {
-            var win = window.open("Rides-signup.htm");
-            if (win != null)
-                win.focus();
-            else
-               AlertError('Help','sorry, help file cannot be found');
-    };
+
 
 </script>
 
 <template>
     <div id="mapContainer"></div> 
-    <Profile v-if="gpx != undefined && props.showProfile" 
-        :gpx = "gpx"
-        :tab= "props.tab"
-        :user = "props.user"
-        @latlng = "updateMarker"
-    ></Profile>
+    <v-row>
+        <v-col cols="1" class="mt-10 mb-5">
+            <v-btn stacked variant="outlined" color="blue"
+            v-if="gpx != undefined" 
+            :prepend-icon="mdiRoutes"
+             @click="Routes.downloadGpx(props.route)" >Get GPX</v-btn>
+        </v-col>
+        <v-col cols="11" class="pa-0 ma-0">
+            <Profile v-if="gpx != undefined && props.showProfile" 
+                :gpx = "gpx"
+                :tab= "props.tab"
+                :user = "props.user"
+                @latlng = "updateMarker"
+            ></Profile>
+        </v-col>
+    </v-row>
 </template>
 <style>
-#mapContainer { height: 70%; }
+#mapContainer { height: 75vh; }
 </style>

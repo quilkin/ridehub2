@@ -8,8 +8,7 @@
   import { Route } from '@/utils/route'
   import Routes  from '@/utils/routes'
   import TimesDates from '@/utils/timesdates'
-  import {Buffer} from 'buffer'
-import { myFetch } from '@/utils/fetch'
+
   import { mdiBike } from '@mdi/js'
 
   const props = defineProps<{ 
@@ -76,11 +75,11 @@ import { myFetch } from '@/utils/fetch'
     }
   });
 
-  function checkLogin() {
+  async function checkLogin() {
     if (props.user.role === 0)
     {
         // not logged in, not allowed to see details or join a ride
-        Message('You need to sign in to continue')
+        await Message('You need to sign in to continue');
         emit('logIn');
     }
     detailsActive.value = true;
@@ -146,19 +145,19 @@ import { myFetch } from '@/utils/fetch'
 
 }
 
-async function downloadGpx (route: Route) {
-    let gpx: string = route.url;
+// async function downloadGpx (route: Route) {
+//     let gpx: string = route.url;
 
-    if (gpx.length>0) {
-        const link = document.createElement('a');
-        link.href = 'data:application/gpx+xml;base64,' + Buffer.from(gpx).toString('base64');
-        link.download = route.dest + '.gpx';
-        link.click();
-        URL.revokeObjectURL(link.href);
-    }
-    else
-        await Message('Sorry, no GPX available for this route');
-  }
+//     if (gpx.length>0) {
+//         const link = document.createElement('a');
+//         link.href = 'data:application/gpx+xml;base64,' + Buffer.from(gpx).toString('base64');
+//         link.download = route.dest + '.gpx';
+//         link.click();
+//         URL.revokeObjectURL(link.href);
+//     }
+//     else
+//         await Message('Sorry, no GPX available for this route');
+//   }
 function speedStr() {
     let speeds = rideData.speedsToString(ride.minSpeed,ride.maxSpeed);
     if (speeds =='0') return ''
@@ -214,7 +213,7 @@ function speedStr() {
             <v-btn variant="elevated" color="blue" id="join" @click="joinRide()">{{buttonText}}</v-btn>
      
             <v-btn 
-                @click.prevent="downloadGpx(props.route)"
+                @click.prevent="Routes.downloadGpx(props.route)"
                 variant="elevated" color="blue" 
                 title ="Get this into your PC's download folder so you can load into Garmin etc"
                 > Get GPX </v-btn>

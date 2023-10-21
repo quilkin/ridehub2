@@ -1,7 +1,11 @@
 <script setup lang="ts">
   import { ref } from 'vue'
-  import { VDatePicker } from 'vuetify/labs/VDatePicker'
+  //import { VDatePicker } from 'vuetify/labs/VDatePicker'
   import { mdiCalendarMonth } from '@mdi/js'
+  import { setupCalendar, Calendar, DatePicker } from 'v-calendar';
+import 'v-calendar/style.css';
+
+
 
   const props = defineProps<{ date : Date, text : string, large: boolean }>()
   const emit = defineEmits(['newDate']);
@@ -20,6 +24,7 @@
 
 <template>
   <div class="text-center">
+    <DatePicker  v-model="workingDate" @update:modelValue="newDate"/>
     <v-btn  :size="props.large?'large':'medium'" :color="props.large? 'grey':'blue'"  variant=outlined :prepend-icon="mdiCalendarMonth" width="200">
         {{props.text}}
       <v-dialog
@@ -28,9 +33,8 @@
         width="auto"
         content-class="datepicker-dialog"
       >
-      <v-locale-provider locale="gb">
-        <v-date-picker title="Start Date" width = "200" height = "570" v-model="workingDate" @click:save="newDate" @click:cancel="cancel()"/>
-      </v-locale-provider>
+        <DatePicker  v-model="workingDate" @update:modelValue="newDate"/>
+
       </v-dialog>
     </v-btn>
   </div>
@@ -42,7 +46,7 @@
     /* align-items: start;
     justify-content: start; */
     position: absolute;
-    bottom: 0;
-    left: 0;
+    bottom: 10;
+    left: 10;
   }
 </style>

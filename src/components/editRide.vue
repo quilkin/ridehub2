@@ -380,7 +380,7 @@ function loadGpx() {
 <template>
     
   <!-- <div class="d-flex align-center flex-column"> -->
-   <v-card  width="600">
+   <v-card  >
       <v-card-title class="headline black" primary-title>
         {{newRide? 'Plan to lead a ride':'Edit your ride'}}
       </v-card-title>

@@ -83,7 +83,7 @@ function forgot() {
     <v-card-title class="headline black" primary-title>
       Sign in to TCC RideHub
     </v-card-title>
-    <v-card-text class="pa-5">
+    <v-card-text class="pa-2">
       <v-form @submit.prevent="submit" ref="loginForm">
         <v-text-field v-model="userOrEmail"  :rules="nameRules"  label="User name or email" hint="Username will be 3 to 10 characters">
         </v-text-field>
@@ -93,9 +93,9 @@ function forgot() {
           :rules="pwRules"  label="Password">
         </v-text-field>
 
-        <v-checkbox
+        <v-checkbox v-if="remember===false" 
           v-model="remember"
-          label="Remember me"
+          label="Remember me on this browser"
           value="false"
         ></v-checkbox>
         <v-btn color="blue" type="submit" block class="mt-2">    Sign in     </v-btn>

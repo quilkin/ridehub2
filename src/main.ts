@@ -7,15 +7,14 @@ import { createVuetify } from 'vuetify'
 import * as directives from 'vuetify/directives'
 //import { fa } from "vuetify/iconsets/fa";
 import { aliases, mdi } from "vuetify/iconsets/mdi-svg";
+import './assets/main.css'
 //import "@mdi/font/css/materialdesignicons.css";
 //import "@fortawesome/fontawesome-free/css/all.css";
-import DateFnsAdapter from '@date-io/date-fns'
+//import DateFnsAdapter from '@date-io/date-fns'
 // import enUS from 'date-fns/locale/en-US'
 // import enGB from 'date-fns/locale/en-GB'
 // import svSE from 'date-fns/locale/sv'
-import { VDatePicker } from 'vuetify/labs/VDatePicker';
-
-import './assets/main.css'
+//import { VDatePicker } from 'vuetify/labs/VDatePicker';
 
 const vuetify = createVuetify({
     icons: {
@@ -25,9 +24,9 @@ const vuetify = createVuetify({
           mdi,
         },
       },
-      components: {
-        VDatePicker,
-      },
+      // components: {
+      //   VDatePicker,
+      // },
     directives,
     // date: {
     //   adapter: DateFnsAdapter,
@@ -41,3 +40,5 @@ const vuetify = createVuetify({
   })
 
 createApp(App).use(vuetify).mount('#app')
+
+

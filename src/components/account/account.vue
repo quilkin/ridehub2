@@ -73,6 +73,10 @@ function cancel() {
     accountDialog.value = false;
     emit('doneAccount');
 }
+function signOut() {
+    accountDialog.value = false;
+    emit('doneAccount',true);
+}
 </script>
 
 <template>
@@ -154,10 +158,11 @@ function cancel() {
   
           <v-row >
             <v-col>
-              <v-btn color="blue"  variant="outlined" @click="cancel()" class="mt-2">    Cancel       </v-btn>
+              <v-btn block color="blue"  variant="outlined" @click="cancel()" class="mt-2">    Cancel       </v-btn>
             </v-col>
+
             <v-col>
-              <v-btn color="blue" type="submit"  class="mt-2">   Update your account   </v-btn>
+              <v-btn block color="blue" type="submit"  class="mt-2">   Update your account   </v-btn>
             </v-col>
           </v-row>
         </v-form>

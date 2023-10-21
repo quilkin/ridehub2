@@ -1,6 +1,7 @@
 import { apiMethods, myFetch } from './fetch'
-import { Alert} from './alert'
+import { Alert, Message} from './alert'
 import { Route } from './route'
+import {Buffer} from 'buffer'
 
 let routes = [] as Route[];
 
@@ -69,5 +70,18 @@ const Routes = {
         }
         return new Route();
     },
+    downloadGpx: async (route: Route) => {
+        let gpx: string = route.url;
+    
+        if (gpx.length>0) {
+            const link = document.createElement('a');
+            link.href = 'data:application/gpx+xml;base64,' + Buffer.from(gpx).toString('base64');
+            link.download = route.dest + '.gpx';
+            link.click();
+            URL.revokeObjectURL(link.href);
+        }
+        else
+            await Message('Sorry, no GPX available for this route');
+      }
 }
 export default Routes;

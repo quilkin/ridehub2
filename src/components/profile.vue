@@ -158,6 +158,7 @@ function showProfile(gpx : L.GPX) {
                 display: true,
                 title: {
                     display: true,
+                    padding: {top: 15},
                     text: metric ? 'metres' : 'feet'
                 },
 
@@ -199,7 +200,7 @@ function showProfile(gpx : L.GPX) {
 
 <style>
 .chart-container {
-    height: 30%;
+    height: 25vh;
 
 }
 </style>

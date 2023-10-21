@@ -20,6 +20,7 @@ import { mdiBike } from '@mdi/js'
 import { mdiCoffee } from '@mdi/js'
 import { mdiHelp } from '@mdi/js'
 
+
 const currentTab = ref(Tabs.account);
 const currentUser = ref(new User());
 const ridesDate = ref(new Date());
@@ -75,7 +76,7 @@ function doneLogin(user : User) {
   switchTab(Tabs.calendar);
 }
 function doneAccount() {
-  switchTab(Tabs.calendar);
+     switchTab(Tabs.calendar);
 }
 function doneRideEdit() {
   editing.value = false;
@@ -122,12 +123,11 @@ function updateRouteInfo(r : Route) {
       color="blue"
       show-arrows
       stacked
-      grow
       @update:model-value="tabChanged"
       >
-      <v-tab :value=Tabs.calendar>  <v-icon :icon="mdiCalendarMonth"/>      Calendar</v-tab>
+      <v-tab :value=Tabs.calendar>  <v-icon :icon="mdiCalendarMonth"/>      Rides</v-tab>
       <!-- <v-tab :value=Tabs.routes>    <v-icon :icon="mdiMap"/>                All routes</v-tab> -->
-      <v-tab :value=Tabs.newRide>   <v-icon :icon="mdiBike"/>               New Ride</v-tab>
+      <v-tab :value=Tabs.newRide>   <v-icon :icon="mdiBike"/>               New</v-tab>
       <v-tab :value=Tabs.coffee>    <v-icon :icon="mdiCoffee"/>             Coffee</v-tab>
       <v-tab :value=Tabs.library>   <v-icon :icon="mdiBookOpenPageVariant"/>Library</v-tab>
       <v-tab :value=Tabs.account>   <v-icon :icon="mdiAccountEdit"/>        Account</v-tab>
@@ -195,7 +195,7 @@ function updateRouteInfo(r : Route) {
         </v-window-item>
 
         <v-window-item :value=Tabs.account>
-          <v-container  class="tab-item-wrapper  scrollable">>
+          <v-container  class="tab-item-wrapper  scrollable">
             <account-actions 
               :user="currentUser"
               @done-login="doneLogin"
