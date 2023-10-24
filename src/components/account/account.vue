@@ -6,18 +6,26 @@ import {nameRules, emailRules} from '../../utils/rules'
 import { apiMethods, myFetch } from '../../utils/fetch'
 import { Alert, AlertError } from '../../utils/alert'
 import { User } from '../../utils/user'
+import { mdiEye } from '@mdi/js'
+import { mdiEyeOff } from '@mdi/js'
+import { Events } from '../../utils/events'
 
 const userName = ref('');
 const email = ref('');
 const password1 = ref('');
 const password2 = ref('');
 const showPass = ref(false);
-const accountDialog = ref(false)
+const accountDialog = ref(false);
 const accountForm = ref();
 const units = ref('k')
 const climbing = ref('y')
 const notify = ref('y')
-const emit = defineEmits(['doneAccount'])
+//const emit = defineEmits(['doneAccount'])
+
+const emit = defineEmits<{
+  (e: Events.doneAccount): void
+}>()
+
 const props = defineProps<{
   user : User
 }>()
@@ -52,18 +60,18 @@ async function submit() {
       notifications: notify.value === 'y'? 1:0
     };
     myFetch(apiMethods.changeAccount,creds,true)
-    .then((response) => {
+    .then(async (response) => {
       if (response != null) {
         if (response == 'OK') {
-          Alert('Registration', "Your details have been saved",'','info','OK');
-          emit('doneAccount');
+          await Alert('Registration', "Your details have been saved",'','info','OK');
+          emit(Events.doneAccount);
         }
         else {
-          AlertError('Registration',response);
+          await AlertError('Registration',response);
         }
       }
       else {
-        AlertError( 'Update unsuccessful','Could not contact server');
+        await AlertError( 'Update unsuccessful','Could not contact server');
       }
     })
   }
@@ -71,12 +79,9 @@ async function submit() {
 }
 function cancel() {
     accountDialog.value = false;
-    emit('doneAccount');
+    emit(Events.doneAccount);
 }
-function signOut() {
-    accountDialog.value = false;
-    emit('doneAccount',true);
-}
+
 </script>
 
 <template>
@@ -102,14 +107,14 @@ function signOut() {
           </v-row>
           <v-row >
             <v-col   >
-              <v-text-field v-model="password1" :append-inner-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
+              <v-text-field v-model="password1" :append-inner-icon="showPass ? mdiEye : mdiEyeOff"
                 @click:append-inner="showPass = !showPass"   :type="showPass ? 'text' : 'password'" 
                 label="Password" placeholder="******"  
                 hint="Leave blank if you don't want to change" persistent-hint>
               </v-text-field>
             </v-col>
             <v-col    >
-              <v-text-field v-model="password2" :append-inner-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
+              <v-text-field v-model="password2" :append-inner-icon="showPass ? mdiEye : mdiEyeOff"
                 @click:append-inner="() => (showPass = !showPass)" :type="showPass ? 'text' : 'password'"
                 label="Confirm password" placeholder="******"
                  hint="Leave blank if you don't want to change" persistent-hint>

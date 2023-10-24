@@ -190,10 +190,10 @@ async function viewRoute(index : number) {
   }
   if (currentRoute.hasGPX==false)
   {
-    Message('No map available for this ride');
-    return;
+   //  Message('No map available for this ride');
+
   }
-  if (currentRoute.url == null || currentRoute.url.length < 100) {
+  else if (currentRoute.url == null || currentRoute.url.length < 100) {
     // don't yet have the GPX data
     let gpxData  = await myFetch(apiMethods.getGpx, currentRoute.id, true);
     if (gpxData != null) {

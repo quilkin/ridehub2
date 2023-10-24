@@ -2,8 +2,10 @@
 import { ref, onBeforeMount } from 'vue'
 
 import {nameRules,pwRules,emailRules} from '../../utils/rules'
-import { myFetch } from '../../utils/./fetch'
+import { myFetch, apiMethods } from '../../utils/./fetch'
 import { Alert } from '../../utils/alert'
+import { mdiEye } from '@mdi/js'
+import { mdiEyeOff } from '@mdi/js'
 
 const signupDialog = ref(false)
 
@@ -61,11 +63,11 @@ function cancel() {
       <v-form @submit.prevent ref="signupForm">
         <v-text-field v-model="userName"  :rules="nameRules"  label="User name"></v-text-field>
         <v-text-field v-model="eMail"     :rules="emailRules" label="Email"></v-text-field>
-        <v-text-field v-model="password1" :append-inner-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
+        <v-text-field v-model="password1" :append-inner-icon="showPass ? mdiEye : mdiEyeOff"
           @click:append-inner="showPass = !showPass"   :type="showPass ? 'text' : 'password'" 
           :rules="pwRules"  label="Password">
         </v-text-field>
-        <v-text-field v-model="password2" :append-inner-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
+        <v-text-field v-model="password2" :append-inner-icon="showPass ? mdiEye : mdiEyeOff"
           @click:append-inner="() => (showPass = !showPass)" :type="showPass ? 'text' : 'password'"
           :rules="pwConfirmRules" label="Confirm password">
         </v-text-field>

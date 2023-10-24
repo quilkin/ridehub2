@@ -1,11 +1,13 @@
 import  { Alert, AlertError,CloseAlert } from './alert'
+import { serviceBase } from '../../service'
 
-function quilkinUrlBase() {
+// function quilkinUrlBase() {
 
-    //return "https://www.quilkin.co.uk/routes.svc/";
-    return "http://localhost/routes/routes.svc/";
+//     //return "https://www.quilkin.co.uk/routes.svc/";
+//     //return "http://localhost/routes/routes.svc/";
+//     return "/Routes.svc/";
 
-}
+// }
 export enum apiMethods {
   signup = 'Signup',
   login = 'Login',
@@ -23,7 +25,10 @@ export enum apiMethods {
   leavePpt= 'LeaveParticipant',
   deleteRide = 'DeleteRide',
   tcx2gpx = 'TCX2GPX',
-  getLogins = 'GetLogins'
+  getLogins = 'GetLogins',
+  register = 'Register',
+  checkTimeout = 'CheckTimeout',
+  findUser = 'FindUser'
 }
 
 export async function myFetch(url : String, data : Object | null, waitDlg : Boolean = false)  {
@@ -39,7 +44,7 @@ export async function myFetch(url : String, data : Object | null, waitDlg : Bool
     if (waitDlg)   Alert('Loading','Please wait...','','info','');
     
     console.log('fetch: ' + url)
-    const fullUrl = quilkinUrlBase() + url;
+    const fullUrl = serviceBase() + url;
     let res;
 
     try {

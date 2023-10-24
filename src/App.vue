@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref , type Ref } from 'vue'
+import { ref , onBeforeMount, type Ref } from 'vue'
 import accountActions from './components/accountActions.vue'
 import RideEdit from './components/editRide.vue'
 import RideMap from './components/ridemap.vue'
@@ -35,6 +35,30 @@ const editing = ref(false);
 
 var map: Map | null = null;
 
+// onBeforeMount(() => {
+
+// // check for (and act on) any URL params for registration
+// let urlParams = new URLSearchParams(window.location.search);
+// const username = urlParams.get('user');
+// const regcode = urlParams.get('regcode');
+// const forgotPW = urlParams.get('pwuser');
+// let success = false;
+//       if (username !== null && regcode !== null) {
+
+//           // success = login.CompleteRegistration(username, regcode);
+//           // if (success === true) {
+//           //     // always need to login, 
+//           //     $('#loginModal').modal();
+//           //     // switch straight to ridestab
+//           //     $(".navbar-nav a[href=#rides-tab]").tab('show');
+//           // }
+//       }
+//       else if (forgotPW !== null && regcode !== null) {
+//           // login.ResetAccount(forgotPW);
+//       }
+
+// })
+
 function switchTab(tab: Tabs) {
   currentTab.value = tab;
 }
@@ -63,6 +87,9 @@ function checkLogIn()
 function doneLogin(user : User) {
   if (user===null || user==undefined)
     return;
+
+
+
   if (user.role==0)
   {
     console.log("guest user");
@@ -75,7 +102,8 @@ function doneLogin(user : User) {
   currentUser.value = user;
   switchTab(Tabs.calendar);
 }
-function doneAccount() {
+function doneAccount(user : User) {
+  currentUser.value = user;
      switchTab(Tabs.calendar);
 }
 function doneRideEdit() {

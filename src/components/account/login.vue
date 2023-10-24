@@ -5,6 +5,8 @@ import { nameRules,pwRules} from '../../utils/rules'
 import { User } from '../../utils/user'
 import { apiMethods, myFetch } from '../../utils/fetch'
 import { Alert, AlertError } from '../../utils/alert'
+import { mdiEye } from '@mdi/js'
+import { mdiEyeOff } from '@mdi/js'
 
 const loginForm = ref();
 const userOrEmail = ref('');
@@ -87,7 +89,7 @@ function forgot() {
       <v-form @submit.prevent="submit" ref="loginForm">
         <v-text-field v-model="userOrEmail"  :rules="nameRules"  label="User name or email" hint="Username will be 3 to 10 characters">
         </v-text-field>
-        <v-text-field v-model="password" :append-inner-icon="showPass ? 'mdi-eye' : 'mdi-eye-off'"
+        <v-text-field v-model="password" :append-inner-icon="showPass ? mdiEye : mdiEyeOff"
           @click:append-inner="showPass = !showPass"   :type="showPass ? 'text' : 'password'" 
           hint="password will be at least 6 characters"
           :rules="pwRules"  label="Password">

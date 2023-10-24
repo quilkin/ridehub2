@@ -88,6 +88,8 @@ watch(() => props.route,  () => {
   }
   console.log('ridemap watch');
   mapMessage.value = route.dest;
+  if (route.hasGPX == false)
+    mapMessage.value += ': no route available for this ride'
   showRoute(route);
   // force profile to update
   //++mapKey;

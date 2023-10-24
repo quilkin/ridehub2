@@ -15,6 +15,7 @@ import './assets/main.css'
 // import enGB from 'date-fns/locale/en-GB'
 // import svSE from 'date-fns/locale/sv'
 //import { VDatePicker } from 'vuetify/labs/VDatePicker';
+import { setupCalendar } from 'v-calendar';
 
 const vuetify = createVuetify({
     icons: {
@@ -39,6 +40,6 @@ const vuetify = createVuetify({
     
   })
 
-createApp(App).use(vuetify).mount('#app')
+createApp(App).use(vuetify).use(setupCalendar, {}).mount('#app')
 
 

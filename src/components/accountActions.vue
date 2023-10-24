@@ -1,29 +1,56 @@
 <script setup lang="ts">
-import { ref, onBeforeMount, onUpdated } from 'vue'
+import { ref, onBeforeMount, onMounted, onUpdated } from 'vue'
 import signup from './account/Signup.vue'
 import login from './account/login.vue'
 import account from './account/account.vue'
 import reqpass from './account/reqpassword.vue'
 import { User } from '../utils/user'
-import Swal from 'sweetalert2'
+import { myFetch, apiMethods } from '@/utils/fetch'
+import { Message, AlertError } from '../utils/alert'
+import { Events } from '../utils/events'
 
 const props = defineProps<{
   user : User
 }>()
 
-const status = ref('loggingIn')
-var updated = false;
+enum Status {
+        loggingIn,
+        loggedIn,
+        signingUp,
+        reqPassword,
+        acccountPage
+}
 
-onBeforeMount(() => {
-        
-        if (props.user != undefined)
-                status.value =  props.user.role>0 ? 'loggedIn' : 'loggingIn'
+const status = ref(Status.loggingIn)
+let currentUser : User;
+let updated = false;
+
+onMounted(async() => {
+
+  currentUser = props.user;
+  // check for (and act on) any URL params for registration
+  let urlParams = new URLSearchParams(window.location.search);
+  const username = urlParams.get('user');
+  const regcode = urlParams.get('regcode');
+  const userWhoForgotPW = urlParams.get('pwuser');
+
+  if (username !== null && regcode !== null) {
+        await completeRegistration(username, regcode);
+  }
+  else if (userWhoForgotPW !== null && regcode !== null) {
+        await resetAccount(userWhoForgotPW);
+  }
+  else if (currentUser != undefined)
+        status.value =  currentUser.role>0 ? Status.loggedIn : Status.loggingIn;
   })
   onUpdated(() => {
         if (updated) 
                 return;
-        if (props.user != undefined)
-                status.value =  props.user.role>0 ? 'loggedIn' : 'loggingIn'
+        if (currentUser != undefined)
+        {
+                if (status.value != Status.reqPassword)
+                        status.value =  currentUser.role>0 ? Status.loggedIn : Status.loggingIn;
+        }
         updated = true;
   })
   
@@ -33,26 +60,62 @@ function loggedIn(user : User) {
   emit('doneLogin',user);
 }
 function doneAccount() {
-  emit('doneAccount');
+        //status.value =  currentUser.role>0 ? Status.loggedIn : Status.loggingIn;
+        emit('doneAccount',currentUser);
+}
+async function completeRegistration(user: string,regcode: string) {
+        var creds = { name: user, code: regcode };
+        //var success = false;
+        const res = await myFetch(apiMethods.register, creds, true);
+        if (res.substring(0, 9) === "Thank you")           //"Thank you, you have now registered"
+        {
+                //success = true;
+                Message("Thank you, you can now log in");
+                status.value = Status.loggingIn;
+        } else {
+                AlertError("Credentials","Invalid username , code or email");
+        }
+        //return success;
+}
+async function resetAccount(lostPWuser : string) {
+        // get user's details
+        // server will check that timeout hasn't expired
+        const user : User = await myFetch(apiMethods.findUser,  lostPWuser,true);
+        if (user==null) {
+                await AlertError("Credentials","Database connection error");
+                return;
+        }
+        if (user.id > 0) {
+                // we got full details of user
+                await Message("OK, now please set new password");
+                currentUser = user;
+                // $('#account-tab').tab('show');
+                // rideData.setCurrentTab('account-tab');
+                status.value = Status.acccountPage;
+        } else {
+                // error returned in dummy account name
+                await AlertError("Reset account",user.name);
+        }
+
 }
 </script>
 
 <template>
-    <login  v-if="status==='loggingIn'"
+    <login  v-if="status===Status.loggingIn"
             @logged-in="loggedIn"
-            @sign-up="status='signingUp'"
-            @forgot-pass="status='reqPassword'"
+            @sign-up="status=Status.signingUp"
+            @forgot-pass="status=Status.reqPassword"
             @guest-visit="emit('doneLogin',new User())"
             ></login>
-    <reqpass v-else-if="status==='reqPassword'"
-            @done-pass="status='loggingIn'"
+    <reqpass v-else-if="status===Status.reqPassword"
+            @done-pass="status=Status.loggingIn"
     ></reqpass>
-    <signup v-else-if="status==='signingUp'"
-            @done-sign-up="status='loggingIn'"
+    <signup v-else-if="status===Status.signingUp"
+            @done-sign-up="status=Status.loggingIn"
     ></signup>
     <account v-else
-            :user="user"
-            @done-account="doneAccount"
+            :user="currentUser"
+            v-on="{[Events.doneAccount] : doneAccount}"
     ></account>
 </template>
 

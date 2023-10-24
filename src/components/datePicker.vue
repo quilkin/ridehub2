@@ -20,11 +20,22 @@ import 'v-calendar/style.css';
     datePickerActive.value = false;
   }
 
+//   const attributes = ref([
+//   {
+//     highlight: 'green',
+//     dates: [
+//       new Date(2023, 10, 23),
+//       new Date(2023, 11, 7),
+//       new Date(2023, 11, 17),
+//       new Date(2023, 11, 23),
+//     ],
+//   },
+// ]);
+
 </script>
 
 <template>
   <div class="text-center">
-    <DatePicker  v-model="workingDate" @update:modelValue="newDate"/>
     <v-btn  :size="props.large?'large':'medium'" :color="props.large? 'grey':'blue'"  variant=outlined :prepend-icon="mdiCalendarMonth" width="200">
         {{props.text}}
       <v-dialog
@@ -33,7 +44,11 @@ import 'v-calendar/style.css';
         width="auto"
         content-class="datepicker-dialog"
       >
-        <DatePicker  v-model="workingDate" @update:modelValue="newDate"/>
+        <DatePicker
+          v-model="workingDate"
+           @update:modelValue="newDate"
+           
+           />
 
       </v-dialog>
     </v-btn>
@@ -46,7 +61,7 @@ import 'v-calendar/style.css';
     /* align-items: start;
     justify-content: start; */
     position: absolute;
-    bottom: 10;
-    left: 10;
+    bottom: 0;
+    left: 0;
   }
 </style>
