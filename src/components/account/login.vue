@@ -81,7 +81,7 @@ function forgot() {
 
 <template>
   <div class="d-flex align-center flex-column">
-  <v-card  width="400">
+  <v-card >
     <v-card-title class="headline black" primary-title>
       Sign in to TCC RideHub
     </v-card-title>

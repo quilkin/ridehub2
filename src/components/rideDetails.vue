@@ -175,7 +175,7 @@ function speedStr() {
       <v-dialog 
         v-if="detailsActive"
         activator="parent"
-        width=400
+        
         content-class="details-dialog"
       >
       <v-card :title="props.dest">

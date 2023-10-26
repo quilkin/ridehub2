@@ -3,7 +3,6 @@ finish npm package for leaflet-gpx
 sort out css for mobile etc
 check promises / errors in account / login
 check route name hasn't been used already
-route changing when date edited?
 tidy / expand help page
 clear profile when route has no climbing
 show existing ride dates on calendar?

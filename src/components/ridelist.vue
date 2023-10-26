@@ -15,9 +15,10 @@ import { Route } from '@/utils/route'
 const props = defineProps<{
   date : Date
   user : User
+  rideIndex : number
 }>()
 
-const emit = defineEmits(['showRoute','logIn','editRide','participantsUpdated']);
+const emit = defineEmits(['showRoute','logIn','editRide','participantsUpdated','updateRideIndex']);
 const showTooltips = ref(true);
 const rides = ref() as Ref<Ride[]>
 
@@ -33,13 +34,14 @@ const rideSpeed = ref() as Ref<string[]>;
 // used to check if a rider is 'already' doing doing a ride on a given day
 const already = ref() as Ref<Already[]>;
 let currentRoute : Route = new Route();
+let currentRideIndex = 0;
 
 onBeforeMount(async() => {
 
   initialiseArrays();
   await getData();
   createRideList();
-  viewRoute(0);
+  viewRoute(props.rideIndex);
  
 });
 // onUpdated(async() => {
@@ -184,10 +186,12 @@ async function viewRoute(index : number) {
     return;
   }
   currentRoute = Routes.findRoute(ride.routeID);
+ // currentRideIndex = index;
   if (currentRoute.id == 0) {
     AlertError('internal problem','Route not found for this ride');
     return;
   }
+  emit('updateRideIndex',index);
   if (currentRoute.hasGPX==false)
   {
    //  Message('No map available for this ride');

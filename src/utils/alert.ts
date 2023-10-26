@@ -13,7 +13,7 @@ export async function Alert(
     text: text,
     footer: footer,
     icon: icon,
-    width: '300px',
+    width: '200px',
     confirmButtonText: confirmText,
     showConfirmButton: confirmText.length > 0
   }).then();
@@ -28,7 +28,7 @@ export async function AlertError(
     title: title,
     text: text,
     icon: 'error',
-    width: '300px',
+    width: '200px',
     confirmButtonText: 'OK',
     showConfirmButton: true
   }).then();

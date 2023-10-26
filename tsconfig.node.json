@@ -12,5 +12,7 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "types": ["node"],
-  }
+  },
+
+  //  "exclude": ["node_modules", "compiled", "__tests__", "types"]
 }

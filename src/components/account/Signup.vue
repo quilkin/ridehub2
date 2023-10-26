@@ -54,7 +54,7 @@ function cancel() {
 </script>
 
 <template>
-  <v-dialog v-model="signupDialog" activator="parent" width="300">
+  <v-dialog v-model="signupDialog" activator="parent" >
   <v-card>
     <v-card-title class="headline black" primary-title>
       Sign Up to RideHub

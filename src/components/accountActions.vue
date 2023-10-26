@@ -23,6 +23,7 @@ enum Status {
 
 const status = ref(Status.loggingIn)
 let currentUser : User;
+
 let updated = false;
 
 onMounted(async() => {
@@ -40,16 +41,17 @@ onMounted(async() => {
   else if (userWhoForgotPW !== null && regcode !== null) {
         await resetAccount(userWhoForgotPW);
   }
-  else if (currentUser != undefined)
-        status.value =  currentUser.role>0 ? Status.loggedIn : Status.loggingIn;
+  else if (props.user != undefined)
+        status.value =  props.user.role>0 ? Status.loggedIn : Status.loggingIn;
   })
   onUpdated(() => {
         if (updated) 
                 return;
-        if (currentUser != undefined)
+        if (props.user != undefined)
         {
+                currentUser = props.user;
                 if (status.value != Status.reqPassword)
-                        status.value =  currentUser.role>0 ? Status.loggedIn : Status.loggingIn;
+                        status.value =  props.user.role>0 ? Status.loggedIn : Status.loggingIn;
         }
         updated = true;
   })
@@ -61,7 +63,7 @@ function loggedIn(user : User) {
 }
 function doneAccount() {
         //status.value =  currentUser.role>0 ? Status.loggedIn : Status.loggingIn;
-        emit('doneAccount',currentUser);
+        emit('doneAccount',props.user);
 }
 async function completeRegistration(user: string,regcode: string) {
         var creds = { name: user, code: regcode };
@@ -88,9 +90,9 @@ async function resetAccount(lostPWuser : string) {
         if (user.id > 0) {
                 // we got full details of user
                 await Message("OK, now please set new password");
+                
                 currentUser = user;
-                // $('#account-tab').tab('show');
-                // rideData.setCurrentTab('account-tab');
+
                 status.value = Status.acccountPage;
         } else {
                 // error returned in dummy account name
@@ -115,7 +117,7 @@ async function resetAccount(lostPWuser : string) {
     ></signup>
     <account v-else
             :user="currentUser"
-            v-on="{[Events.doneAccount] : doneAccount}"
+            @done-account="doneAccount"
     ></account>
 </template>
 

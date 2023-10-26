@@ -26,6 +26,7 @@ const currentUser = ref(new User());
 const ridesDate = ref(new Date());
 //const ridesDate = ref(new Date('2022-03-01'));
 const currentRoute = ref(new Route());
+const currentRideIndex = ref(0);
 const newRoute = ref(new Route());
 const currentRide = ref(new Ride());
 const showProfile = ref(true);
@@ -35,29 +36,6 @@ const editing = ref(false);
 
 var map: Map | null = null;
 
-// onBeforeMount(() => {
-
-// // check for (and act on) any URL params for registration
-// let urlParams = new URLSearchParams(window.location.search);
-// const username = urlParams.get('user');
-// const regcode = urlParams.get('regcode');
-// const forgotPW = urlParams.get('pwuser');
-// let success = false;
-//       if (username !== null && regcode !== null) {
-
-//           // success = login.CompleteRegistration(username, regcode);
-//           // if (success === true) {
-//           //     // always need to login, 
-//           //     $('#loginModal').modal();
-//           //     // switch straight to ridestab
-//           //     $(".navbar-nav a[href=#rides-tab]").tab('show');
-//           // }
-//       }
-//       else if (forgotPW !== null && regcode !== null) {
-//           // login.ResetAccount(forgotPW);
-//       }
-
-// })
 
 function switchTab(tab: Tabs) {
   currentTab.value = tab;
@@ -123,7 +101,7 @@ function newDate(date : Date) {
   ++dataChanged.value;
 }
 function tabChanged() {
-  console.log('tab: '+ currentTab);
+  console.log('tab: '+ currentTab.value);
   if (currentTab.value === Tabs.newRide) {
     currentRide.value = new Ride();
     currentRoute.value = new Route();
@@ -139,10 +117,13 @@ function updateRouteInfo(r : Route) {
   newRoute.value.dest = r.dest;
   newRoute.value.distance = r.distance;
 }
+function updateRideIndex(i : number) {
+  currentRideIndex.value = i;
+}
 </script>
 
 <template>
-    <v-sheet width="auto" class="mx-auto">
+    <v-sheet >
     <v-row no-gutters>
     <v-col > 
       <v-tabs
@@ -172,10 +153,12 @@ function updateRouteInfo(r : Route) {
                  :key = "dataChanged"
                  :date = "ridesDate" 
                  :user = "currentUser"
+                 :ride-index="currentRideIndex"
                  @show-route = "updateCurrentRoute"
                  @log-in="logIn"
                  @edit-ride="editRide"
                  @participants-updated="++dataChanged"
+                 @update-ride-index="updateRideIndex"
                  >
                 </RideList>
                 
@@ -247,6 +230,7 @@ function updateRouteInfo(r : Route) {
         :user = "currentUser"
         @define-map="defineMap"
         @update-route-info="updateRouteInfo"
+
       ></RideMap>
 
     </v-col>
@@ -260,7 +244,8 @@ function updateRouteInfo(r : Route) {
 }
 .tab-item-wrapper {
   /* vuetify sets the v-tabs__container height to 48px */
-  height: calc(100vh - 48px)
+  height: calc(100vh - 48px);
+
 }
 .v-btn {
   text-transform: none;

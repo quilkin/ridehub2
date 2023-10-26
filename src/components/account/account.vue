@@ -20,11 +20,11 @@ const accountForm = ref();
 const units = ref('k')
 const climbing = ref('y')
 const notify = ref('y')
-//const emit = defineEmits(['doneAccount'])
+const emit = defineEmits(['doneAccount'])
 
-const emit = defineEmits<{
-  (e: Events.doneAccount): void
-}>()
+// const emit = defineEmits<{
+//   (e: Events.doneAccount): void
+// }>()
 
 const props = defineProps<{
   user : User
@@ -64,7 +64,7 @@ async function submit() {
       if (response != null) {
         if (response == 'OK') {
           await Alert('Registration', "Your details have been saved",'','info','OK');
-          emit(Events.doneAccount);
+          emit('doneAccount');
         }
         else {
           await AlertError('Registration',response);
@@ -79,7 +79,7 @@ async function submit() {
 }
 function cancel() {
     accountDialog.value = false;
-    emit(Events.doneAccount);
+    emit('doneAccount');
 }
 
 </script>
@@ -87,33 +87,33 @@ function cancel() {
 <template>
     
   <div class="d-flex align-center flex-column">
-   <v-card  width="600">
+   <v-card >
       <v-card-title class="headline black" primary-title>
         Your RideHub account
       </v-card-title>
-      <v-card-text class="pa-3">
+      <v-card-text class="pa-1">
         <v-form @submit.prevent="submit" ref="accountForm">
-          <v-row >
-            <v-col   >
+          <v-row no-gutters>
+            <v-col   class="pa-1" >
               <v-text-field v-model="userName"  :rules="nameRules"  label="Username"
                :placeholder=userName >
               </v-text-field>
             </v-col>
-            <v-col   >
+            <v-col    class="pa-1">
               <v-text-field v-model="email"     :rules="emailRules" label="Email"
                :placeholder=email >
               </v-text-field>
             </v-col>
           </v-row>
-          <v-row >
-            <v-col   >
+          <v-row  no-gutters>
+            <v-col   class="pa-1"  >
               <v-text-field v-model="password1" :append-inner-icon="showPass ? mdiEye : mdiEyeOff"
                 @click:append-inner="showPass = !showPass"   :type="showPass ? 'text' : 'password'" 
                 label="Password" placeholder="******"  
                 hint="Leave blank if you don't want to change" persistent-hint>
               </v-text-field>
             </v-col>
-            <v-col    >
+            <v-col   class="pa-1"   >
               <v-text-field v-model="password2" :append-inner-icon="showPass ? mdiEye : mdiEyeOff"
                 @click:append-inner="() => (showPass = !showPass)" :type="showPass ? 'text' : 'password'"
                 label="Confirm password" placeholder="******"

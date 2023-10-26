@@ -389,10 +389,15 @@ function loadGpx() {
           <v-row >
             <div v-if="newRide"> A ride could do with a route of some sort. So, please choose one of the following:</div>
 
-            <v-btn block :variant="buttonType(RouteTypes.oldGpx)" class="mt-2" color="blue"  @click="changeRouteType(RouteTypes.oldGpx)">
+            <v-btn block  class="pa-2" color="blue" 
+                @click="changeRouteType(RouteTypes.oldGpx)"
+                :variant="buttonType(RouteTypes.oldGpx)">
               Use an existing route from the RideHub list (there's over 100 of them!)</v-btn>
             <RouteList  v-if="showRouteList" :user="props.user" @show-route="showRoute" @route-chosen="routeChosen"></RouteList>
-            <v-btn block :variant="buttonType(RouteTypes.newGpx)" class="mt-2" color="blue" @click="changeRouteType(RouteTypes.newGpx)">
+
+            <v-btn block class="pa-2" color="blue"
+                :variant="buttonType(RouteTypes.newGpx)"
+                 @click="changeRouteType(RouteTypes.newGpx)">
               Upload a new GPX route that you have created or found elsewhere</v-btn>
             <v-row v-if="showFileUpload">
               <v-col cols="8" class="mt-6" >
@@ -405,10 +410,12 @@ function loadGpx() {
                   
               </v-col>
               <v-col cols = "4" class="mt-6" >
-                <v-btn color="blue" class="mt-2"  variant="outlined" @click="loadGpx">Load into RideHub</v-btn>
+                <v-btn color="blue" class="ma-2"  variant="outlined" @click="loadGpx">Load into RideHub</v-btn>
               </v-col>
             </v-row>
-            <v-btn block :variant="buttonType(RouteTypes.noGpx)" class="mt-2" color="blue" @click="changeRouteType(RouteTypes.noGpx)">
+            <v-btn block class="pa-2" color="blue"
+                :variant="buttonType(RouteTypes.noGpx)"
+                @click="changeRouteType(RouteTypes.noGpx)">
               Have a simple ride to somewhere, with no defined route</v-btn>
 
             
@@ -511,9 +518,17 @@ function loadGpx() {
   <!-- </div> -->
 
   </template>
-  <style>
+<style>
   .scrollable {
    overflow-y: scroll;
+   }
+   .v-btn__content {
+    white-space: normal;
+    flex: auto;
+  }
+.v-btn {
+  min-height: 52px;
+  height: 100% !important;
 }
 </style>
 

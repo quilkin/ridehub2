@@ -109,46 +109,49 @@ function changeOrder(alpha: number) {
 </script>
 
 <template>
-    <v-card>
-        <v-container>
-    <v-row >
-        <v-col cols="3">
-            <v-row>  <v-col ><v-chip color="blue">Route distance </v-chip></v-col></v-row>
+  <v-container  class="pa-1">
+
+        <v-row no-gutters>  <v-col cols="4"><v-chip color="blue">Route distance </v-chip></v-col>
+          <v-col cols="8">
             <v-radio-group inline v-model="chooseDistance">
                 <v-radio label="Short" value="s" @click="changeDistance(0,50)"></v-radio>
                 <v-radio label="Medium" value="m" @click="changeDistance(50,75)"></v-radio>
                 <v-radio label="Long" value="l" @click="changeDistance(75,999)"></v-radio>
-              </v-radio-group>
+            </v-radio-group>
+          </v-col>
+        </v-row>
 
-            <v-row> <v-col class="mt-n4"><v-chip color="blue">Order routes by</v-chip></v-col> </v-row>
+        <v-row no-gutters> <v-col  cols="4" class="mt-n4"><v-chip color="blue">Order routes by</v-chip></v-col> 
+          <v-col cols="8" class="mt-n4">
             <v-radio-group inline v-model="chooseOrder">
-                <v-radio label="Alphabetic" value="a" @click="changeOrder(1)"></v-radio>
+                <v-radio label="Alpha" value="a" @click="changeOrder(1)"></v-radio>
                 <v-radio label="Distance" value="d" @click="changeOrder(2)"></v-radio>
-                <v-radio label="Climbing" value="c" @click="changeOrder(3)"></v-radio>
-              </v-radio-group>
-        </v-col>
-        <v-col cols="9">
-            <v-chip color="blue">Click route to show map, dble-click/hold to select for your ride</v-chip>
+                <v-radio label="Climbs" value="c" @click="changeOrder(3)"></v-radio>
+            </v-radio-group>
+          </v-col>
+        </v-row>
 
-        <v-list density="compact"  >
-          
-            <v-list-item density="compact" 
+        <v-row no-gutters>
+        <v-col cols="12" class="mt-n4">
+          <v-chip color="blue"
+            >Click route to show map, dble-click/hold to select for your ride</v-chip
+          >
+        </v-col>
+      </v-row>
+
+          <v-list density="compact"  >
+            <v-list-item class="pa-0" density="compact" 
                 v-for="(item, i) in routeList" :key="i"  :value="i" :active="item === chosenRoute">
-                
                     <v-row  no-gutters  @click="viewRoute(i)"  @hold="routeChosen(i)" @dblclick="routeChosen(i)">
-                        <v-col cols="7"> {{ destinationStr[i] }}     </v-col>
-                        <v-col cols="1.5" title="distance"> <small>{{ distanceStr[i] }}</small></v-col>
+                        <v-col cols="7"> <span class="d-block text-truncate">{{ destinationStr[i] }} </span>    </v-col>
+                        <v-col cols="2" title="distance"> <small>{{ distanceStr[i] }}</small></v-col>
                         <v-col cols="2"   title="climbing"> <small v-bind:style="{'color': climbingColour[i]}"><b>&uarr;&darr;</b>{{ climbingStr[i] }}</small></v-col>
-                        <v-col cols="1.5" title="climb ratio: metres climb per km riding"><small v-bind:style="{'color': climbingColour[i]}"> {{ climbingRatio[i] }}</small></v-col>
+                        <v-col cols="1" title="climb ratio: metres climb per km riding"><small v-bind:style="{'color': climbingColour[i]}"> {{ climbingRatio[i] }}</small></v-col>
                     </v-row>
-              
             </v-list-item>
- 
-        </v-list>
-    </v-col>
-</v-row>
-</v-container>
-    </v-card>
+          </v-list>
+
+  </v-container>
 </template>
 
 <style scoped>
