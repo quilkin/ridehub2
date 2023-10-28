@@ -98,7 +98,7 @@ onBeforeMount(async() => {
 
         destination.value = route.dest;
         distance.value = route.distance;
-        showRoute(route);
+        showRoute(route, false);
       }
       
     }
@@ -296,18 +296,29 @@ function changeRouteType(t : RouteTypes)
   
 }
 
-function showRoute(route : Route) {
- 
-  emit('showRoute',route,true);
-  destination.value = route.dest;
-  distance.value = route.distance;
-  selectedRoute.value = route;
+function showRoute(route : Route, chosen: boolean) {
+  if (chosen)
+    console.log(`chosen route: ${route.dest}`);
+  else
+    console.log(`show route: ${route.dest}`);
+
+    
+    setTimeout(()=> {
+      emit('showRoute',route,true);
+    },500)
+    destination.value = route.dest;
+      distance.value = route.distance;
+      selectedRoute.value = route;
+     showRouteList.value = !chosen;
+
 
 }
-function routeChosen(route : Route) {
-  showRouteList.value = false;
+// function routeChosen(route : Route) {
+//   console.log(`route chosen: ${route.dest}`);
+//   showRouteList.value = false;
+//   showRoute(route);
 
-}
+// }
 function buttonType(t : RouteTypes) {
   if (routeType.value === t)
     return "tonal";
@@ -377,6 +388,8 @@ function loadGpx() {
   showFileUpload.value = false;
 }
 
+
+
 </script>
 
 <template>
@@ -395,7 +408,7 @@ function loadGpx() {
                 @click="changeRouteType(RouteTypes.oldGpx)"
                 :variant="buttonType(RouteTypes.oldGpx)">
               Use an existing route from the RideHub list (there's over 100 of them!)</v-btn>
-            <RouteList  v-if="showRouteList" :user="props.user" @show-route="showRoute" @route-chosen="routeChosen"></RouteList>
+            <RouteList  v-if="showRouteList" :user="props.user" @show-route="showRoute" ></RouteList>
 
             <v-btn block class="pa-2 ma-1" color="blue"
                 :variant="buttonType(RouteTypes.newGpx)"

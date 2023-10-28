@@ -6,14 +6,15 @@ import { AlertError} from '../utils/alert'
 import { User } from '../utils/user'
 import { Route } from '../utils/route'
 import Routes  from '../utils/routes'
+import { mdiBike } from '@mdi/js'
 
 const minRouteLength = ref(0);
 const alphaOrder = ref(1);
 const maxRouteLength = ref(50);
-const emit = defineEmits(['showRoute','routeChosen']);
+const emit = defineEmits(['showRoute']);
 const routeList= ref() as Ref<Route[]>;
 const chosenRoute = ref() as Ref<Route>;
-const menuOpen = ref(true);
+//const menuOpen = ref(true);
 const destinationStr = ref() as Ref<string[]>;
 const distanceStr = ref() as Ref<string[]>;
 const climbingStr = ref() as Ref<string[]>;
@@ -59,7 +60,7 @@ function DestinationString(dest : string) {
   return (dest.length >= 30) ? dest.slice(0, 29) + '...' : dest;
 }
 
-async function viewRoute( index : number) {
+async function viewRoute( index : number, chosen : boolean) {
  
   const route = routeList.value[index];
   if (route === null || route === undefined) {
@@ -68,28 +69,26 @@ async function viewRoute( index : number) {
   }
   if (route.url != null && route.url.length > 100) {
     console.log('route gpx aleady in store');
+    emit('showRoute',route,chosen);
   }
   else {
     const gpxdata  = await myFetch(apiMethods.getGpx, route.id, true);
     if (gpxdata != null) {
 
         route.url = gpxdata;
-  
+        emit('showRoute',route,chosen);
     }
   }
-  emit('showRoute',route,false);
-
-  chosenRoute.value = route;
+    chosenRoute.value = route;
 }
 
-function routeChosen(index : number)
-{   
-    viewRoute(index);
-    if (chosenRoute.value != null) {
-       emit("routeChosen",chosenRoute.value);
-        menuOpen.value = false;
-    }
-}
+// async function routeChosen(index : number)
+// {   
+//     await viewRoute(index);
+//     if (chosenRoute.value != null) {
+//        emit("routeChosen",chosenRoute.value);
+//     }
+// }
 
 function changeDistance(min: number,max: number)
 {
@@ -142,11 +141,18 @@ function changeOrder(alpha: number) {
           <v-list density="compact"  >
             <v-list-item class="pa-0" density="compact" 
                 v-for="(item, i) in routeList" :key="i"  :value="i" :active="item === chosenRoute">
-                    <v-row  no-gutters  @click="viewRoute(i)"  @hold="routeChosen(i)" @dblclick="routeChosen(i)">
+                    <v-row  no-gutters  @click="viewRoute(i,false)"  >
                         <v-col cols="7"> <span class="d-block text-truncate">{{ destinationStr[i] }} </span>    </v-col>
-                        <v-col cols="2" title="distance"> <small>{{ distanceStr[i] }}</small></v-col>
-                        <v-col cols="2"   title="climbing"> <small v-bind:style="{'color': climbingColour[i]}"><b>&uarr;&darr;</b>{{ climbingStr[i] }}</small></v-col>
-                        <v-col cols="1" title="climb ratio: metres climb per km riding"><small v-bind:style="{'color': climbingColour[i]}"> {{ climbingRatio[i] }}</small></v-col>
+                        <v-col cols="4" title="distance, climbing, climb ratio (metres climb per km riding)">
+                           <small>{{ distanceStr[i] }}&nbsp;
+                            <span v-bind:style="{'color': climbingColour[i]}"><b>&uarr;&darr;</b>{{ climbingStr[i] }}&nbsp; <b>{{ climbingRatio[i] }}</b></span>
+                             </small>
+                          </v-col>
+                          <v-col cols="1">
+                            <v-btn size="x-small" height="20" :icon="mdiBike" @click.prevent="viewRoute(i,true)" ></v-btn>
+                          </v-col>
+                        <!-- <v-col cols="2" title="climbing"> <small v-bind:style="{'color': climbingColour[i]}"><b>&uarr;&darr;</b>{{ climbingStr[i] }}</small></v-col>
+                        <v-col cols="1" title="climb ratio: metres climb per km riding"><small v-bind:style="{'color': climbingColour[i]}"> {{ climbingRatio[i] }}</small></v-col> -->
                     </v-row>
             </v-list-item>
           </v-list>

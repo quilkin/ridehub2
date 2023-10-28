@@ -13,7 +13,7 @@ export async function Alert(
     text: text,
     footer: footer,
     icon: icon,
-    width: '200px',
+    width: '250px',
     confirmButtonText: confirmText,
     showConfirmButton: confirmText.length > 0
   }).then();
@@ -28,7 +28,7 @@ export async function AlertError(
     title: title,
     text: text,
     icon: 'error',
-    width: '200px',
+    width: '250px',
     confirmButtonText: 'OK',
     showConfirmButton: true
   }).then();
@@ -52,6 +52,7 @@ export async function YesNo(
         title: title,
         showDenyButton: true,
         showCancelButton: true,
+        width: '250px',
         confirmButtonText: 'Yes',
         denyButtonText: 'No',
 
@@ -74,6 +75,7 @@ export async function chooseFromTwo(
 ) {
     await Swal.fire({
         title: title,
+        width: '250px',
         showDenyButton: true,
         showCancelButton: true,
         confirmButtonText: choice1,
