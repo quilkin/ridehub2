@@ -162,7 +162,7 @@ function updateRideIndex(i : number) {
                  >
                 </RideList>
                 
-                <datePicker  :large='false' text="Select other dates" :date="ridesDate"    @new-date="newDate"   />
+                <datePicker  :icon='true' text="Select other dates" :date="ridesDate"    @new-date="newDate"   />
               <!-- </v-col>
             </v-row> -->
           </v-container>

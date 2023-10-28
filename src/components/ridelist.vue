@@ -214,30 +214,29 @@ async function viewRoute(index : number) {
 <template>
 <v-list lines="three"  density="compact">
     <v-list-item v-for="(ride, i) in rides" :key="i"  @click="viewRoute(i)">
-      <v-list-item-title v-if="newDateReqd(ride.date)" style="background-color:rgb(46, 195, 245);" >{{TimesDates.StrFromIntDays(ride.date)}}</v-list-item-title>
+      <v-list-item-title v-if="newDateReqd(ride.date)" style="background-color:rgb(164, 189, 197);" >{{TimesDates.StrFromIntDays(ride.date)}}</v-list-item-title>
       <v-row  no-gutters>
-        <v-col cols="1">
+        <v-col cols="2" sm="1">
           <v-chip size="small" color="blue" variant="outlined">{{ TimesDates.fromIntTime( ride.time) }}</v-chip>
         </v-col>
-        <v-col cols="3">
+        <v-col cols="6" sm="3">
           <v-chip size="small" variant='elevated' color="blue"  title="Click to show route on map">
             <span class="text-truncate" style="width:170px" >{{ destination[i]  }}</span>
           </v-chip>
         </v-col>
-        <v-col cols="1.5">
+        <v-col cols="4" sm="2" title="ride leader"> &nbsp;{{ ride.leaderName }}   </v-col>
+
+         <!-- 12 cols below sm breakpoint -->
+         <v-col cols="3" sm="1">
           <small>&nbsp;{{ distanceStr[i] }}</small> 
         </v-col>
-        <v-col cols="1.5" title="amount of climbing">
+        <v-col cols="3" sm="2" title="amount of climbing">
           <small v-bind:style="{'color': climbingColour[i]}"><b>&uarr;&darr;</b>{{ climbingStr[i] }}</small>
         </v-col>
-        <v-col cols="1.5"  title="average speed suggested">
+        <v-col cols="3" sm="1"  title="average speed suggested">
           <small style="color:blue"> {{ rideSpeed[i] }}</small>
         </v-col>
-        <v-col cols="1.5"  title="ride leader">
-          <v-list-item-title v-text="ride.leaderName"></v-list-item-title>
-        </v-col>
-
-        <v-col  cols="2">
+        <v-col  cols="3" sm="2">
           <RideDetails v-if="allDataLoaded(i)"
             :ride="ride" 
             :participants="participants[i]" 

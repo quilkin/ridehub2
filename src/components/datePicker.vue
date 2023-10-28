@@ -1,13 +1,10 @@
 <script setup lang="ts">
   import { ref } from 'vue'
-  //import { VDatePicker } from 'vuetify/labs/VDatePicker'
   import { mdiCalendarMonth } from '@mdi/js'
-  import { setupCalendar, Calendar, DatePicker } from 'v-calendar';
-import 'v-calendar/style.css';
+  import { DatePicker } from 'v-calendar';
+  import 'v-calendar/style.css';
 
-
-
-  const props = defineProps<{ date : Date, text : string, large: boolean }>()
+  const props = defineProps<{ date : Date, text : string, icon: boolean }>()
   const emit = defineEmits(['newDate']);
   const datePickerActive = ref(false);
   const workingDate = ref(props.date);
@@ -20,23 +17,12 @@ import 'v-calendar/style.css';
     datePickerActive.value = false;
   }
 
-//   const attributes = ref([
-//   {
-//     highlight: 'green',
-//     dates: [
-//       new Date(2023, 10, 23),
-//       new Date(2023, 11, 7),
-//       new Date(2023, 11, 17),
-//       new Date(2023, 11, 23),
-//     ],
-//   },
-// ]);
-
 </script>
 
 <template>
   <div class="text-center">
-    <v-btn  :size="props.large?'large':'medium'" :color="props.large? 'grey':'blue'"  variant=outlined :prepend-icon="mdiCalendarMonth" width="200">
+    <v-btn class="pa-2 ma-2" size='large'  variant=outlined  >
+      <v-icon start v-if="props.icon" :icon="mdiCalendarMonth">  </v-icon>
         {{props.text}}
       <v-dialog
         v-model="datePickerActive"
@@ -46,10 +32,7 @@ import 'v-calendar/style.css';
       >
         <DatePicker
           v-model="workingDate"
-           @update:modelValue="newDate"
-           
-           />
-
+           @update:modelValue="newDate"    />
       </v-dialog>
     </v-btn>
   </div>
@@ -57,9 +40,6 @@ import 'v-calendar/style.css';
   
 <style scoped>
   .v-dialog  :deep(.datepicker-dialog) {
-    /* align-self: flex-start; */
-    /* align-items: start;
-    justify-content: start; */
     position: absolute;
     bottom: 0;
     left: 0;

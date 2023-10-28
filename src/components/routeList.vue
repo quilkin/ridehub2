@@ -134,7 +134,7 @@ function changeOrder(alpha: number) {
         <v-row no-gutters>
         <v-col cols="12" class="mt-n4">
           <v-chip color="blue"
-            >Click route to show map, dble-click/hold to select for your ride</v-chip
+            >Click route to show map, dble-click to select for your ride</v-chip
           >
         </v-col>
       </v-row>

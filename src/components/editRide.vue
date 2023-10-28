@@ -15,6 +15,8 @@ import TimesDates  from '../utils/timesdates'
 import datePicker  from './datePicker.vue'
 import { watch } from 'vue'
 import rideData from '@/utils/ridedata'
+import { mdiRoutes} from '@mdi/js'
+import { mdiCalendarMonth } from '@mdi/js'
 
 enum RouteTypes {
   none,
@@ -389,13 +391,13 @@ function loadGpx() {
           <v-row >
             <div v-if="newRide"> A ride could do with a route of some sort. So, please choose one of the following:</div>
 
-            <v-btn block  class="pa-2" color="blue" 
+            <v-btn block  class="pa-2 ma-1" color="blue" 
                 @click="changeRouteType(RouteTypes.oldGpx)"
                 :variant="buttonType(RouteTypes.oldGpx)">
               Use an existing route from the RideHub list (there's over 100 of them!)</v-btn>
             <RouteList  v-if="showRouteList" :user="props.user" @show-route="showRoute" @route-chosen="routeChosen"></RouteList>
 
-            <v-btn block class="pa-2" color="blue"
+            <v-btn block class="pa-2 ma-1" color="blue"
                 :variant="buttonType(RouteTypes.newGpx)"
                  @click="changeRouteType(RouteTypes.newGpx)">
               Upload a new GPX route that you have created or found elsewhere</v-btn>
@@ -404,7 +406,7 @@ function loadGpx() {
                 <v-file-input v-model="gpxfiles"  density="compact" variant="outlined"
                     accept=".gpx,.tcx"
                     label="Find GPX or TCX file"
-                    prepend-icon="mdi-routes"
+                    :prepend-icon="mdiRoutes"
                     :rules="gpxRules"
                   ></v-file-input> 
                   
@@ -413,16 +415,14 @@ function loadGpx() {
                 <v-btn color="blue" class="ma-2"  variant="outlined" @click="loadGpx">Load into RideHub</v-btn>
               </v-col>
             </v-row>
-            <v-btn block class="pa-2" color="blue"
+            <v-btn block class="pa-2 ma-1" color="blue"
                 :variant="buttonType(RouteTypes.noGpx)"
                 @click="changeRouteType(RouteTypes.noGpx)">
               Have a simple ride to somewhere, with no defined route</v-btn>
-
-            
           </v-row>
           <!-- <v-spacer></v-spacer> -->
           <div  v-if="routeType!=RouteTypes.none && showRouteList==false &&  showFileUpload==false" >
-          <v-container >
+          <!-- <v-container  class="pa-0"> -->
             <v-row v-if="props.user.role>1" >
               <!-- only for admin users, to change ride leader -->
               <!-- todo: maybe add a special secret button to override this? -->
@@ -452,30 +452,30 @@ function loadGpx() {
               </v-col>
             </v-row>
             <v-row >
-              <v-col cols="12"  class="mt-n4" >
+              <v-col cols="12"  class="mt-n6" >
                   <v-textarea density="compact" variant="outlined" rows="1" label="Description"
                   v-model="description"
                   :rules="descriptionRules"   
                   hint="Help others to know if they would like to ride this route. e.g. mention 'Gravel' if it's off-road"/>
               </v-col>
             </v-row>
-            <v-row  >
-              <v-col cols="1" class="pr-0 mt-n4">Ride Date</v-col>
-              <v-col cols="5" class="mt-n4">
-                    <datePicker :large="true"
+            <v-row  > <v-col class="mt-n8">   <v-icon :icon="mdiCalendarMonth"/>Ride date and time</v-col> </v-row>
+            <v-row no-gutters>
+              <v-col cols="6" >
+                    <datePicker :icon="false"
                       :text="TimesDates.dateString(date)"
                       :date="date"
                       @new-date="newDate"   />
               </v-col>
 
-              <v-col cols="3" class="mt-n4">
-                  <v-combobox density="compact" variant="outlined" v-model="hour"
-                    label="Time: Hour"
+              <v-col cols="3" >
+                  <v-combobox density="compact" variant="underlined" v-model="hour"
+                    label="Hour"
                     :items="['6', '7', '8', '9', '10', '11','12', '13','14', '15','16','17', '18']"
                   ></v-combobox>
               </v-col>
-              <v-col cols="3" class="mt-n4">
-                  <v-combobox  density="compact" variant="outlined" v-model="minute"
+              <v-col cols="3" >
+                  <v-combobox  density="compact" variant="underlined" v-model="minute"
                     label="Minute"
                     :items="['00', '15', '30', '45']"
                   ></v-combobox>
@@ -483,22 +483,24 @@ function loadGpx() {
 
             </v-row>
         
-            <v-row  >
-              <v-col cols="6">
+            <v-row   no-gutters>
+              <v-col cols="6" >
                   <v-text-field variant="outlined" density="compact" v-model="meetingAt"  :rules="meetingRules"  label="Starting At" 
                       hint="Please be precise if ride is not starting at the usual place" />
               </v-col>
-              <v-col cols="3">
-                  <v-text-field variant="outlined" density="compact" v-model="maxRiders"  :rules="ridersRules"  label="Maximum riders" 
+              <v-col cols="3" >
+                  <v-text-field variant="outlined" density="compact" v-model="maxRiders"  :rules="ridersRules"  label="Max riders" 
                    hint="Limit rider numbers if you don't want a big group" />
               </v-col>
-              <v-col cols="3">
-                  <v-text-field variant="outlined" density="compact" v-model="speedStr"  :suffix="props.user.units==='k'?'km/hr':'mph'" :rules="speedRules"  label="Ave speed" 
+              <v-col cols="3" >
+                  <v-text-field variant="outlined" density="compact" v-model="speedStr"
+                      :rules="speedRules"
+                    :label="props.user.units==='k'?'km/hr':'mph'" 
                   hint="Suggested speed. May depend on riders present"  />
               </v-col>
 
             </v-row>
-          </v-container>
+          <!-- </v-container> -->
           </div>
   
           <v-row >
@@ -526,10 +528,7 @@ function loadGpx() {
     white-space: normal;
     flex: auto;
   }
-.v-btn {
-  min-height: 52px;
-  height: 100% !important;
-}
+
 </style>
 
 
