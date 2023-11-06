@@ -2,7 +2,8 @@
 import { ref, onBeforeMount } from 'vue'
 
 import {nameRules,pwRules,emailRules} from '../../utils/rules'
-import { myFetch, apiMethods } from '../../utils/./fetch'
+import { myFetch } from '@/utils/fetch'
+import { apiMethods } from '../../../../ridehub-common'
 import { Alert } from '../../utils/alert'
 import { mdiEye } from '@mdi/js'
 import { mdiEyeOff } from '@mdi/js'

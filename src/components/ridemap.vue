@@ -8,7 +8,8 @@ import 'leaflet-gpx-coords';
 
 import 'leaflet-polylineDecorator';
 import { Route } from '../utils/route'
-import { apiMethods,myFetch } from '../utils/fetch'
+import { myFetch } from '@/utils/fetch'
+import { apiMethods } from '../../../ridehub-common'
 import Profile from './profile.vue'
 import type { User } from '@/utils/user';
 import { Tabs } from '../utils/tabs'

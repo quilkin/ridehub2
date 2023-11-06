@@ -8,7 +8,7 @@ import datePicker  from './components/datePicker.vue'
 import Help from './components/help.vue'
 import { User } from './utils/user'
 import { Route }  from './utils/route'
-import { Ride }  from './utils/ride'
+import { Ride } from '../../ridehub-common'
 import { Message } from './utils/alert'
 import { Tabs } from './utils/tabs'
 import type { Map } from 'leaflet';
@@ -252,3 +252,4 @@ function updateRideIndex(i : number) {
   padding: 0;
 }
 </style>
+./utils/classes/ride

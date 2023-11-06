@@ -1,4 +1,4 @@
-import  TimesDates  from '../utils/timesdates'
+import  TimesDates  from './timesdates'
 export class Ride {
     leaderName = '';
     routeID = 0;

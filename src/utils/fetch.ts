@@ -8,32 +8,32 @@ import { serviceBase } from '../../service'
 //     return "/Routes.svc/";
 
 // }
-export enum apiMethods {
-  signup = 'Signup',
-  login = 'Login',
-  changeAccount = 'ChangeAccount',
-  forgotPW ='ForgetPassword',
-  getRides = 'GetRidesForDate',
-  getRoutes = 'GetRoutes',
-  getPpts = 'GetParticipants',
-  getGpx = 'GetGPXforRoute',
-  saveRoute = 'SaveRoute',
-  saveRide = 'SaveRide',
-  editRide = 'EditRide',
-  updateRoute = 'UpdateRoute',
-  savePpt = 'SaveParticipant',
-  leavePpt= 'LeaveParticipant',
-  deleteRide = 'DeleteRide',
-  tcx2gpx = 'TCX2GPX',
-  getLogins = 'GetLogins',
-  register = 'Register',
-  checkTimeout = 'CheckTimeout',
-  findUser = 'FindUser'
-}
+// export enum apiMethods {
+//   signup = 'Signup',
+//   login = 'Login',
+//   changeAccount = 'ChangeAccount',
+//   forgotPW ='ForgetPassword',
+//   getRides = 'GetRidesForDate',  // done
+//   getRoutes = 'GetRoutes',        // done
+//   getPpts = 'GetParticipants',
+//   getGpx = 'GetGPXforRoute',
+//   saveRoute = 'SaveRoute',
+//   saveRide = 'SaveRide',
+//   editRide = 'EditRide',
+//   updateRoute = 'UpdateRoute',
+//   savePpt = 'SaveParticipant',
+//   leavePpt= 'LeaveParticipant',
+//   deleteRide = 'DeleteRide',
+//   tcx2gpx = 'TCX2GPX',
+//   getLogins = 'GetLogins',
+//   register = 'Register',
+//   checkTimeout = 'CheckTimeout',
+//   findUser = 'FindUser'
+// }
 
-export async function myFetch(url : String, data : Object | null, waitDlg : Boolean = false)  {
+export async function myFetch(url : String, data : Object | null, waitDlg : Boolean = false, nodeServer : boolean = false)  {
 
-    const bodyData = JSON.stringify(data);
+   const bodyData = nodeServer? JSON.stringify({data}) : JSON.stringify(data);
     const options = {
         method: 'POST',
         headers: {
@@ -44,7 +44,7 @@ export async function myFetch(url : String, data : Object | null, waitDlg : Bool
     if (waitDlg)   Alert('Loading','Please wait...','','info','');
     
     console.log('fetch: ' + url)
-    const fullUrl = serviceBase() + url;
+    const fullUrl = serviceBase(nodeServer) + url;
     let res;
 
     try {
@@ -59,11 +59,13 @@ export async function myFetch(url : String, data : Object | null, waitDlg : Bool
       }
 
       if (waitDlg) CloseAlert();
+      // if (nodeServer)
+      //   return res;
       return await res.json();
     }
 
    catch (error : any) {
-      AlertError('Web error',error)
+      await AlertError('Web error',error)
     }
   
   }

@@ -1,6 +1,7 @@
 // non-vue parts extracted to keep 'ridelist.vue' a sensible size
 
-import { apiMethods, myFetch } from './fetch'
+import { myFetch } from '@/utils/fetch'
+import { apiMethods } from '../../../ridehub-common'
 import { AlertError, YesNo, Message, chooseFromTwo} from './alert'
 
 class Participant {

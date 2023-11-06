@@ -1,4 +1,5 @@
-import { apiMethods, myFetch } from './fetch'
+import { myFetch } from '@/utils/fetch'
+import { apiMethods } from '../../../ridehub-common'
 import { Alert, Message} from './alert'
 import { Route } from './route'
 import {Buffer} from 'buffer'
@@ -45,7 +46,7 @@ const Routes = {
 
     getRouteSummaries: async function()
     {
-        const response : Route[]  = await myFetch(apiMethods.getRoutes,0);
+        const response : Route[]  = await myFetch(apiMethods.getRoutes,0, true,true);
         if (response != null) {
             routes = response;
             if (routes.length === 0) {

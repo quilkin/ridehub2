@@ -18,7 +18,7 @@
             "type": "chrome",
             "request": "launch",
             "name": "Launch Chrome against localhost",
-            //"url": "http://localhost:5173?pwuser=chrisf&regcode=0A21A6C44677BB2302137953D5327DE54EEE04748548D40F6E1D05C883767A37",
+            //"url": "http://localhost:5173?pwuser=TT-list&regcode=43D8D3F2FD02BF91D4F3756091F824DC862F338D18F698B237C5FD9F5059F53B",
             "url": "http://localhost:5173",
             "webRoot": "${workspaceFolder}",
             "skipFiles": [

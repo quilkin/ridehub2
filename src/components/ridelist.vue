@@ -1,7 +1,8 @@
 <script setup  lang="ts">
 import { ref, onBeforeMount, type Ref } from 'vue'
-import { apiMethods, myFetch } from '../utils/fetch'
-import { Ride } from '../utils/ride'
+import { myFetch } from '@/utils/fetch'
+import { apiMethods } from '../../../ridehub-common'
+import { Ride } from '../../../ridehub-common'
 import { Already} from '../utils/already'
 import { AlertError, Message } from '../utils/alert'
 import { User } from '../utils/user'
@@ -79,14 +80,15 @@ async function getData() {
     const result = await Routes.getRouteSummaries();
     if (result === null)    throw new Error(`Cannot get routes`);
 
-    rides.value   = await myFetch(apiMethods.getRides,TimesDates.toIntDays(props.date));
+    //rides.value   = await myFetch(apiMethods.getRides,TimesDates.toIntDays(props.date),true,true);
+    rides.value   = await myFetch(apiMethods.getRides,TimesDates.toIntDays(props.date),true);
     if (rides.value  === null)  throw new Error(`Cannot get rides`);
 
     rides.value.forEach((ride) => {
         rideIDs.push(ride.rideID);
     });
   
-    const ppts = await myFetch(apiMethods.getPpts, rideIDs);
+    const ppts = await myFetch(apiMethods.getPpts, rideIDs, false, true);
     if (ppts === null)    throw new Error(`Cannot get participants`);
    
     for (let index in rideIDs)
@@ -259,3 +261,4 @@ async function viewRoute(index : number) {
   </v-list>
 </template>
 
+../utils/classes/ride../utils/classes/already

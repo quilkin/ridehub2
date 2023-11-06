@@ -1,7 +1,8 @@
 <script setup lang="ts">
 
 import { ref , onMounted, type Ref } from 'vue'
-import { apiMethods, myFetch } from '../utils/fetch'
+import { myFetch } from '@/utils/fetch'
+import { apiMethods } from '../../../ridehub-common'
 import { AlertError} from '../utils/alert'
 import { User } from '../utils/user'
 import { Route } from '../utils/route'

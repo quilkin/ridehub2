@@ -1,16 +1,15 @@
 <script setup lang="ts">
   import { ref , onMounted, onBeforeMount} from 'vue'
-  import { Ride } from '../utils/ride'
+  import { Ride  } from '../../../ridehub-common'
+  import {TimesDates} from '../../../ridehub-common'
   import { User } from '../utils/user'
   import { Message } from '../utils/alert'
   import { Already} from '../utils/already'
   import rideData  from '../utils/ridedata'
   import { Route } from '@/utils/route'
   import Routes  from '@/utils/routes'
-  import TimesDates from '@/utils/timesdates'
-
   import { mdiBike } from '@mdi/js'
-
+ 
   const props = defineProps<{ 
     ride : Ride ,
     participants : string[],
@@ -234,3 +233,4 @@ function speedStr() {
   padding-bottom: 0;
 }
 </style>
+../utils/classes/ride../utils/classes/already

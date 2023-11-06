@@ -4,10 +4,11 @@
 import { ref, type Ref, onBeforeMount} from 'vue'
 import { destinationRules, distanceRules, meetingRules, ridersRules, speedRules, gpxRules, descriptionRules} from '../utils/rules'
 
-import { apiMethods, myFetch } from '../utils/fetch'
+import { myFetch } from '@/utils/fetch'
+import { apiMethods } from '../../../ridehub-common'
 import { Alert, Message, YesNo, AlertError } from '../utils/alert'
 import { User } from '../utils/user'
-import { Ride } from '../utils/ride'
+import { Ride } from '../../../ridehub-common'
 import { Route } from '../utils/route'
 import Routes  from '../utils/routes'
 import RouteList from './routeList.vue'
@@ -545,3 +546,4 @@ function loadGpx() {
 </style>
 
 
+../utils/classes/ride
