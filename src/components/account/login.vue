@@ -2,9 +2,9 @@
 import { ref, onBeforeMount} from 'vue'
 // @ts-ignore
 import { nameRules,pwRules} from '../../utils/rules'
-import { User } from '../../utils/user'
+//import { User } from '../../utils/user'
 import { myFetch } from '@/utils/fetch'
-import { apiMethods } from '../../../../ridehub-common'
+import { apiMethods, User } from '../../../../ridehub-common'
 import { Alert, AlertError } from '../../utils/alert'
 import { mdiEye } from '@mdi/js'
 import { mdiEyeOff } from '@mdi/js'
@@ -36,9 +36,10 @@ async function submit() {
         window.localStorage.username = username;
         window.localStorage.password = pass;
       }
-    let creds = { name: username, pw: pass, email: "", code: 0 };
+    //let creds = { name: username, pw: pass, email: "", code: 0 };
+    let user = new User(username,pass);
     
-    myFetch(apiMethods.login,creds)
+    myFetch(apiMethods.login,user,false,true)
       .then((response) => {
         
           const user : User = response;

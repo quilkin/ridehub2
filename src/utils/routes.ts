@@ -1,10 +1,12 @@
 import { myFetch } from '@/utils/fetch'
-import { apiMethods } from '../../../ridehub-common'
+import { apiMethods, Route } from '../../../ridehub-common'
+import  routeFuncs  from '../utils/routeFuncs'
 import { Alert, Message} from './alert'
-import { Route } from './route'
+//import { Route } from './route'
 import {Buffer} from 'buffer'
 
 let routes = [] as Route[];
+
 
 const Routes = {
     getIndex: function(index : number) {
@@ -28,7 +30,7 @@ const Routes = {
             else if (alphaOrder == 2)
                 partRoutes.sort((a,b) => b.distance - a.distance);
             else {
-                partRoutes.sort((a,b) => Route.climbingRatio(b) - Route.climbingRatio(a));
+                partRoutes.sort((a,b) => routeFuncs.climbingRatio(b) - routeFuncs.climbingRatio(a));
             }
         }
         else {
@@ -37,7 +39,7 @@ const Routes = {
             else if (alphaOrder == 2)
                 partRoutes.sort((a,b) => a.distance - b.distance);
             else {
-                partRoutes.sort((a,b) => Route.climbingRatio(a) - Route.climbingRatio(b));
+                partRoutes.sort((a,b) => routeFuncs.climbingRatio(a) - routeFuncs.climbingRatio(b));
 
             }
         }
@@ -72,7 +74,7 @@ const Routes = {
         return new Route();
     },
     downloadGpx: async (route: Route) => {
-        let gpx: string = route.url;
+        let gpx: string = route.gpxData;
     
         if (gpx.length>0) {
             const link = document.createElement('a');

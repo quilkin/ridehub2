@@ -1,17 +1,16 @@
 
 <script setup lang="ts">
-import {  ref, watch,onMounted,onBeforeUnmount, onUpdated} from 'vue'
+import {  ref, watch,onMounted,onBeforeUnmount, onUpdated, type Ref} from 'vue'
 import type { Map } from 'leaflet';
 import "leaflet/dist/leaflet.css";
 import * as L from 'leaflet';
 import 'leaflet-gpx-coords';
+//import 'leaflet-gpx';
 
 import 'leaflet-polylineDecorator';
-import { Route } from '../utils/route'
 import { myFetch } from '@/utils/fetch'
-import { apiMethods } from '../../../ridehub-common'
+import { apiMethods, Route, User } from '../../../ridehub-common'
 import Profile from './profile.vue'
-import type { User } from '@/utils/user';
 import { Tabs } from '../utils/tabs'
 import bikeMarker from '../assets/bike2.png';
 import Routes  from '@/utils/routes'
@@ -27,14 +26,12 @@ const props = defineProps<{
 
 const emit = defineEmits(['defineMap','updateRouteInfo']);
 
-//const currentGPX = computed(()=>props.route.url);
 var map: Map | null = null;
 const mapMessage = ref('');
 const gpxLinkText = ref('no link available');
 const gpxLink = ref('');
 const downloadName = ref('');
-//let gpx : L.GPX ;
-const gpx : L.GPX = ref();
+const gpx = ref() as Ref<L.GPX>;
 let marker : L.Marker;
 let mapKey = 0;
 
@@ -107,11 +104,15 @@ function showRoute(route : Route )
 
     window.dispatchEvent(new Event('resize'));
 
-    if (route.url === '')
+    if (route.gpxData === '')
         return;
+    if (map === null)
+    {
+        mapMessage.value = "leaflet: map load error";
+        return;
+    }
 
-
-    new L.GPX(route.url, {
+    new L.GPX(route.gpxData, {
         async: true,
         marker_options: {
             startIconUrl: '',

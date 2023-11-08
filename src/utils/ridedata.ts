@@ -1,20 +1,13 @@
 // non-vue parts extracted to keep 'ridelist.vue' a sensible size
 
 import { myFetch } from '@/utils/fetch'
-import { apiMethods } from '../../../ridehub-common'
+import { apiMethods, Participant } from '../../../ridehub-common'
 import { AlertError, YesNo, Message, chooseFromTwo} from './alert'
 
-class Participant {
-    rider : string;
-    rideID : number;
-    constructor(r: string, id : number) {
-        this.rider = r;
-        this.rideID = id;
-      }
-}
 const rideData = {
 
     speedsToString: function(min:number,max:number) {
+
         // make a 'from-to' text for max and min average speeds, e.g. 18-20 kph
         let speedStr = '';
         if (min == max)

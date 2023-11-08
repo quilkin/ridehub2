@@ -2,11 +2,12 @@
 
 import { ref , onMounted, type Ref } from 'vue'
 import { myFetch } from '@/utils/fetch'
-import { apiMethods } from '../../../ridehub-common'
+import { apiMethods, Route, User } from '../../../ridehub-common'
 import { AlertError} from '../utils/alert'
-import { User } from '../utils/user'
-import { Route } from '../utils/route'
+//import { User } from '../utils/user'
+//import { Route } from '../utils/route'
 import Routes  from '../utils/routes'
+import  routeFuncs  from '../utils/routeFuncs'
 import { mdiBike } from '@mdi/js'
 
 const minRouteLength = ref(0);
@@ -44,22 +45,22 @@ onMounted(() => {
 })
 function updateList()
 {
+    function DestinationString(dest : string) {
+      return (dest.length >= 30) ? dest.slice(0, 29) + '...' : dest;
+    }
     routeList.value.forEach((route,index) => {
       if (route.id > 0)
       {
         destinationStr.value[index] = DestinationString(route.dest);
-       // distanceStr.value[index]    = Routes.distanceStr(route,props.user.units);
-        distanceStr.value[index]    = Route.distanceStr(route,props.user.units);
-        climbingStr.value[index]    = Route.climbingStr(route,props.user.units);
-        climbingColour.value[index] = Route.climbingColour(route);
-        climbingRatio.value[index] = Route.climbingRatio(route);
+        distanceStr.value[index]    = routeFuncs.distanceStr(route,props.user.units);
+        climbingStr.value[index]    = routeFuncs.climbingStr(route,props.user.units);
+        climbingColour.value[index] = routeFuncs.climbingColour(route);
+        climbingRatio.value[index] = routeFuncs.climbingRatio(route);
       }
     });
 }
 
-function DestinationString(dest : string) {
-  return (dest.length >= 30) ? dest.slice(0, 29) + '...' : dest;
-}
+
 
 async function viewRoute( index : number, chosen : boolean) {
  
@@ -68,7 +69,7 @@ async function viewRoute( index : number, chosen : boolean) {
     AlertError('internal problem','Route not found');
     return;
   }
-  if (route.url != null && route.url.length > 100) {
+  if (route.gpxData != null && route.gpxData.length > 100) {
     console.log('route gpx aleady in store');
     emit('showRoute',route,chosen);
   }
@@ -76,7 +77,7 @@ async function viewRoute( index : number, chosen : boolean) {
     const gpxdata  = await myFetch(apiMethods.getGpx, route.id, true);
     if (gpxdata != null) {
 
-        route.url = gpxdata;
+        route.gpxData = gpxdata.route;
         emit('showRoute',route,chosen);
     }
   }

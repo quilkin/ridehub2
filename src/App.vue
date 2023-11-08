@@ -6,9 +6,8 @@ import RideMap from './components/ridemap.vue'
 import RideList from './components/ridelist.vue'
 import datePicker  from './components/datePicker.vue'
 import Help from './components/help.vue'
-import { User } from './utils/user'
-import { Route }  from './utils/route'
-import { Ride } from '../../ridehub-common'
+//import { User } from './utils/user'
+import { Ride, Route , User} from '../../ridehub-common'
 import { Message } from './utils/alert'
 import { Tabs } from './utils/tabs'
 import type { Map } from 'leaflet';
@@ -22,7 +21,7 @@ import { mdiHelp } from '@mdi/js'
 
 
 const currentTab = ref(Tabs.account);
-const currentUser = ref(new User());
+const currentUser = ref(new User('',''));
 const ridesDate = ref(new Date());
 //const ridesDate = ref(new Date('2022-03-01'));
 const currentRoute = ref(new Route());
@@ -252,4 +251,4 @@ function updateRideIndex(i : number) {
   padding: 0;
 }
 </style>
-./utils/classes/ride
+./utils/classes/ride./utils/routeFuncs

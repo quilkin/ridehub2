@@ -9,8 +9,10 @@ import { getRelativePosition } from 'chart.js/helpers';
 import "leaflet/dist/leaflet.css";
 import * as L from 'leaflet';
 import 'leaflet-gpx-coords';
+//import 'leaflet-gpx';
 import 'leaflet-polylineDecorator';
-import type { User } from '@/utils/user';
+//import type { User } from '@/utils/user';
+import { User  } from '../../../ridehub-common'
 import { Tabs } from '../utils/tabs'
 
 const props = defineProps<{
@@ -59,7 +61,7 @@ onBeforeUpdate(() => {
 
 function showProfile(gpx : L.GPX) {
   
-    
+   
     var elev_data;
     var latlng_data;
     var maxDistance = Math.floor(gpx.get_distance() / 1000);

@@ -1,12 +1,13 @@
 <script setup lang="ts">
   import { ref , onMounted, onBeforeMount} from 'vue'
-  import { Ride  } from '../../../ridehub-common'
-  import {TimesDates} from '../../../ridehub-common'
-  import { User } from '../utils/user'
+  //import { Ride  } from '../../../ridehub-common'
+  import {TimesDates, Ride, Route, User} from '../../../ridehub-common'
+  //import { User } from '../utils/user'
   import { Message } from '../utils/alert'
   import { Already} from '../utils/already'
   import rideData  from '../utils/ridedata'
-  import { Route } from '@/utils/route'
+  import routeFuncs  from '../utils/routeFuncs'
+  //import { Route } from '@/utils/route'
   import Routes  from '@/utils/routes'
   import { mdiBike } from '@mdi/js'
  
@@ -188,9 +189,9 @@ function speedStr() {
         </v-row>
         <v-row no-gutters>
             <v-col cols="3" class="mt-n4"><v-chip class="mt-3">Distance</v-chip></v-col>
-            <v-col cols="3" class="mt-n4"><v-card-text > {{ Route.distanceStr(props.route,props.user.units) }}   </v-card-text></v-col>
+            <v-col cols="3" class="mt-n4"><v-card-text > {{ routeFuncs.distanceStr(props.route,props.user.units) }}   </v-card-text></v-col>
             <v-col cols="3" class="mt-n4"><v-chip v-if="props.route.climbing > 0" class="mt-3">Climbing</v-chip></v-col>
-            <v-col cols="3" class="mt-n4"><v-card-text> {{ Route.climbingStr(props.route,props.user.units)  }}   </v-card-text></v-col>
+            <v-col cols="3" class="mt-n4"><v-card-text> {{ routeFuncs.climbingStr(props.route,props.user.units)  }}   </v-card-text></v-col>
         </v-row>
         <v-row no-gutters>
             <v-col cols="3" class="mt-n4"><v-chip class="mt-3">Meeting at</v-chip></v-col>

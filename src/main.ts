@@ -8,7 +8,8 @@ import * as directives from 'vuetify/directives'
 import { aliases, mdi } from "vuetify/iconsets/mdi-svg";
 import './assets/main.css'
 
-import { setupCalendar } from 'v-calendar';
+import  VCalendar  from 'v-calendar';
+import 'v-calendar/style.css';
 
 const vuetify = createVuetify({
     icons: {
@@ -22,6 +23,6 @@ const vuetify = createVuetify({
    
   })
 
-createApp(App).use(vuetify).use(setupCalendar, {}).mount('#app')
+createApp(App).use(vuetify).use(VCalendar, {}).mount('#app')
 
 

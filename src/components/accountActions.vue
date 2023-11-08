@@ -4,9 +4,9 @@ import signup from './account/Signup.vue'
 import login from './account/login.vue'
 import account from './account/account.vue'
 import reqpass from './account/reqpassword.vue'
-import { User } from '../utils/user'
+//import { User } from '../utils/user'
 import { myFetch } from '@/utils/fetch'
-import { apiMethods } from '../../../ridehub-common'
+import { apiMethods, User } from '../../../ridehub-common'
 import { Message, AlertError } from '../utils/alert'
 import { Events } from '../utils/events'
 
@@ -108,7 +108,7 @@ async function resetAccount(lostPWuser : string) {
             @logged-in="loggedIn"
             @sign-up="status=Status.signingUp"
             @forgot-pass="status=Status.reqPassword"
-            @guest-visit="emit('doneLogin',new User())"
+            @guest-visit="emit('doneLogin',new User('',''))"
             ></login>
     <reqpass v-else-if="status===Status.reqPassword"
             @done-pass="status=Status.loggingIn"

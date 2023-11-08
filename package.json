@@ -24,7 +24,7 @@
     "install": "^0.13.0",
     "leaflet": "^1.9.4",
     "leaflet-gpx": "^1.7.0",
-    "leaflet-gpx-coords": "^1.0.0",
+    "leaflet-gpx-coords": "^1.0.4",
     "leaflet-polylinedecorator": "^1.6.0",
     "sweetalert2": "^11.6.13",
     "v-calendar": "^3.1.2",

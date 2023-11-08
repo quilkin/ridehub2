@@ -1,16 +1,8 @@
-export class Route {
-    dest = '';
-    url= '';
-    id = 0;
-    climbing = 0;
-    distance= 0;
-    owner = '';
-    hasGPX = this.url.length > 0;
-    // not actually used but required for compatability with old DB
-    description = '';
+import { Route } from '../../../ridehub-common'
 
+    const routeFuncs = {
   
-    public static distanceStr(route: Route, userUnits : string): string   {
+    distanceStr: function(route: Route, userUnits : string): string   {
         var distance = 0;
         if (route.distance !== undefined) {
             distance = route.distance;
@@ -23,8 +15,8 @@ export class Route {
             distance = Math.round(distance * 0.62137);
         }
         return distance + units;
-    }
-    public static climbingStr(route : Route, userUnits : string) {
+    },
+    climbingStr: function(route : Route, userUnits : string) {
         //var style = '<span style="color:orange; ';
         var units = ' m';
         var climbing = 0;
@@ -40,15 +32,15 @@ export class Route {
             return climbingStr;
         }
         return '';
-    }
-    public static climbingColour (route : Route) {
+    },
+    climbingColour: function (route : Route) {
         const ratio = this.climbingRatio(route);
         if (ratio > 17) return 'red';
         if (ratio > 12) return 'orange';
         if (ratio > 0) return 'green';
         return 'white';
-    }
-    public static climbingRatio(route: Route)
+    },
+    climbingRatio: function(route: Route)
     {
         if (route.climbing == undefined) 
             return 0;
@@ -61,3 +53,4 @@ export class Route {
         return Math.round(climbRatio);
     }
 }
+export default routeFuncs;

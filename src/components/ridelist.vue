@@ -1,17 +1,15 @@
 <script setup  lang="ts">
 import { ref, onBeforeMount, type Ref } from 'vue'
 import { myFetch } from '@/utils/fetch'
-import { apiMethods } from '../../../ridehub-common'
-import { Ride } from '../../../ridehub-common'
+import { apiMethods, Ride, Route, User } from '../../../ridehub-common'
+import  routeFuncs  from '../utils/routeFuncs'
 import { Already} from '../utils/already'
 import { AlertError, Message } from '../utils/alert'
-import { User } from '../utils/user'
+//import { User } from '../utils/user'
 import Routes  from '../utils/routes'
 import RideDetails from './rideDetails.vue'
 import rideData from '@/utils/ridedata'
 import TimesDates  from '../utils/timesdates'
-import { Route } from '@/utils/route'
-
 
 const props = defineProps<{
   date : Date
@@ -80,8 +78,8 @@ async function getData() {
     const result = await Routes.getRouteSummaries();
     if (result === null)    throw new Error(`Cannot get routes`);
 
-    //rides.value   = await myFetch(apiMethods.getRides,TimesDates.toIntDays(props.date),true,true);
-    rides.value   = await myFetch(apiMethods.getRides,TimesDates.toIntDays(props.date),true);
+    rides.value   = await myFetch(apiMethods.getRides,TimesDates.toIntDays(props.date),true,true);
+   // rides.value   = await myFetch(apiMethods.getRides,TimesDates.toIntDays(props.date),true);
     if (rides.value  === null)  throw new Error(`Cannot get rides`);
 
     rides.value.forEach((ride) => {
@@ -128,10 +126,11 @@ function createRideList() {
       const route  = Routes.findRoute(ride.routeID);
       if (route.id > 0)
       {
+        console.log('createRideList route id: ' + route.id );
         destination.value[index] = route?.dest;
-        distanceStr.value[index] = Route.distanceStr(route,props.user.units);
-        climbingStr.value[index] = Route.climbingStr(route,props.user.units);
-        climbingColour.value[index] = Route.climbingColour(route);
+        climbingStr.value[index] = routeFuncs.climbingStr(route,props.user.units);
+        distanceStr.value[index] = routeFuncs.distanceStr(route,props.user.units);
+        climbingColour.value[index] = routeFuncs.climbingColour(route);
         rideSpeed.value[index] = speedStr(ride);
       }
     });
@@ -199,11 +198,11 @@ async function viewRoute(index : number) {
    //  Message('No map available for this ride');
 
   }
-  else if (currentRoute.url == null || currentRoute.url.length < 100) {
+  else if (currentRoute.gpxData == null || currentRoute.gpxData.length < 100) {
     // don't yet have the GPX data
-    let gpxData  = await myFetch(apiMethods.getGpx, currentRoute.id, true);
+    let gpxData  = await myFetch(apiMethods.getGpx, currentRoute.id, true, true);
     if (gpxData != null) {
-      currentRoute.url = gpxData;
+      currentRoute.gpxData = gpxData.route;
     }
   }
   emit('showRoute',currentRoute,true);

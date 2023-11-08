@@ -9,6 +9,7 @@
   "compilerOptions": {
    // "composite": true,
     "baseUrl": ".",
+    "noEmit": true,
     "types": ["node"],
     "paths": {
       "@/*": ["./src/*"]
