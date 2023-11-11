@@ -1,8 +1,8 @@
 <script setup lang="ts">
   import { ref } from 'vue'
   import { mdiCalendarMonth } from '@mdi/js'
-  //import { DatePicker } from 'v-calendar';
-  //import 'v-calendar/style.css';
+  import { DatePicker } from 'v-calendar';
+  import 'v-calendar/style.css';
 
   const props = defineProps<{ date : Date, text : string, icon: boolean }>()
   const emit = defineEmits(['newDate']);

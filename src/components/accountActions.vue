@@ -68,32 +68,29 @@ function doneAccount() {
 }
 async function completeRegistration(user: string,regcode: string) {
         var creds = { name: user, code: regcode };
-        //var success = false;
-        const res = await myFetch(apiMethods.register, creds, true);
-        if (res.substring(0, 9) === "Thank you")           //"Thank you, you have now registered"
+        const res = await myFetch(apiMethods.register, creds, false);
+        if (res===null)
+                await AlertError("Credentials","Invalid username , code or email");
+        else if (res.substring(0, 9) === "Thank you")           //"Thank you, you have now registered"
         {
-                //success = true;
-                Message("Thank you, you can now log in");
+                await Message("Thank you, you can now log in");
                 status.value = Status.loggingIn;
         } else {
-                AlertError("Credentials","Invalid username , code or email");
+                await AlertError("Credentials",res);
         }
-        //return success;
+
 }
 async function resetAccount(lostPWuser : string) {
         // get user's details
         // server will check that timeout hasn't expired
-        const user : User = await myFetch(apiMethods.findUser,  lostPWuser,true);
+        const user : User = await myFetch(apiMethods.findUser,  lostPWuser,false);
         if (user==null) {
                 await AlertError("Credentials","Database connection error");
-                return;
         }
-        if (user.id > 0) {
+        else if (user.id > 0) {
                 // we got full details of user
                 await Message("OK, now please set new password");
-                
                 currentUser = user;
-
                 status.value = Status.acccountPage;
         } else {
                 // error returned in dummy account name

@@ -13,7 +13,7 @@ import { Alert, Message, YesNo, AlertError } from '../utils/alert'
 import Routes  from '../utils/routes'
 import RouteList from './routeList.vue'
 import TimesDates  from '../utils/timesdates'
-import datePicker  from './datePicker.vue'
+import DateSelector  from './dateSelector.vue'
 import { watch } from 'vue'
 import rideData from '@/utils/ridedata'
 import { mdiRoutes} from '@mdi/js'
@@ -145,8 +145,8 @@ function cancel() {
     emit('doneRideEdit');
 }
 async function getMembers() {
-  const logins : User[] = await myFetch(apiMethods.getLogins,null, true);
-  if (logins != undefined) {
+  const logins : User[] = await myFetch(apiMethods.getLogins,null);
+  if (logins != null) {
     members.value = [];
     logins.forEach((login) => {
       const member = login.name;
@@ -155,20 +155,19 @@ async function getMembers() {
   }
   return members.value;
 }
-// function getMemberList() {
-//   return getMembers();
-// }
+
 async function deleteRide()
 {
   await YesNo('Delete this ride, are you sure?', async ()=> {
     await Alert('Deleting ride','Please inform any riders that have signed up','using the WhatsApp RideInfo group','info','OK');
     const res = await myFetch(apiMethods.deleteRide,thisRide.rideID);
-    if (res == 'OK') {
-      await Message('You have deleted this ride');
-
-    }
-    else {
-      await AlertError(res,'Ride may not be deleted');
+    if (res != null) {
+      if (res == 'OK') {
+        await Message('You have deleted this ride');
+      }
+      else {
+        await AlertError(res,'Ride may not be deleted');
+      }
     }
     emit('doneRideEdit');
 
@@ -212,7 +211,9 @@ async function submit() {
         newRoute.distance = distance.value;
       }
       newRoute.owner = props.user.name;
-      const res = await myFetch(apiMethods.saveRoute,newRoute,true);
+      const res = await myFetch(apiMethods.saveRoute,newRoute,false);
+      if (res===null)
+        return;
       const id = parseInt(res);
       if (Number.isInteger(id)) {
    
@@ -249,7 +250,9 @@ async function submit() {
     thisRide.leaderName = leader.value;
 
      if (newRide) {
-      const res = await myFetch(apiMethods.saveRide,thisRide,true);
+      const res = await myFetch(apiMethods.saveRide,thisRide);
+      if (res === null) 
+        return;
       const id = parseInt(res);
       if (Number.isInteger(id)) {
         await Message('Ride has been saved');
@@ -260,7 +263,9 @@ async function submit() {
       }
     }
     else {
-      const res = await myFetch(apiMethods.editRide,thisRide,true);
+      const res = await myFetch(apiMethods.editRide,thisRide);
+      if (res === null) 
+        return;
       if (res=="OK") {
         await Message('Edited ride has been saved');
       }
@@ -311,7 +316,7 @@ function showRoute(route : Route, chosen: boolean) {
       distance.value = route.distance;
       selectedRoute.value = route;
      showRouteList.value = !chosen;
-
+    thisRide.routeID = route.id;
 
 }
 // function routeChosen(route : Route) {
@@ -355,7 +360,9 @@ async function readSuccess(event: ProgressEvent<FileReader>) {
   }
   if (routeXML.includes("TrainingCenterDatabase")) {
     // tcx needs converting to gpx
-    const res = await myFetch(apiMethods.tcx2gpx,routeXML,true);
+    const res = await myFetch(apiMethods.tcx2gpx,routeXML,false);
+    if (res === null) 
+        return;
     if (res.length > 0) {
       routeXML = res;
     }
@@ -476,7 +483,7 @@ function loadGpx() {
             <v-row  > <v-col class="mt-n8">   <v-icon :icon="mdiCalendarMonth"/>Ride date and time</v-col> </v-row>
             <v-row no-gutters>
               <v-col cols="6" >
-                    <datePicker :icon="false"
+                    <DateSelector :icon="false"
                       :text="TimesDates.dateString(date)"
                       :date="date"
                       @new-date="newDate"   />

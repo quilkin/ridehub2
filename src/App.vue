@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { ref , onBeforeMount, type Ref } from 'vue'
+import { ref } from 'vue'
 import accountActions from './components/accountActions.vue'
 import RideEdit from './components/editRide.vue'
 import RideMap from './components/ridemap.vue'
 import RideList from './components/ridelist.vue'
-import datePicker  from './components/datePicker.vue'
+import DateSelector  from './components/dateSelector.vue'
 import Help from './components/help.vue'
 //import { User } from './utils/user'
 import { Ride, Route , User} from '../../ridehub-common'
@@ -161,7 +161,7 @@ function updateRideIndex(i : number) {
                  >
                 </RideList>
                 
-                <datePicker  :icon='true' text="Select other dates" :date="ridesDate"    @new-date="newDate"   />
+                <DateSelector  :icon='true' text="Select other dates" :date="ridesDate"    @new-date="newDate"   />
               <!-- </v-col>
             </v-row> -->
           </v-container>

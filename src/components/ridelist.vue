@@ -78,16 +78,17 @@ async function getData() {
     const result = await Routes.getRouteSummaries();
     if (result === null)    throw new Error(`Cannot get routes`);
 
-    rides.value   = await myFetch(apiMethods.getRides,TimesDates.toIntDays(props.date),true,true);
+    rides.value   = await myFetch(apiMethods.getRides,TimesDates.toIntDays(props.date));
    // rides.value   = await myFetch(apiMethods.getRides,TimesDates.toIntDays(props.date),true);
-    if (rides.value  === null)  throw new Error(`Cannot get rides`);
+    if (!rides.value  )  throw new Error(`Cannot get rides`);
 
     rides.value.forEach((ride) => {
         rideIDs.push(ride.rideID);
     });
   
-    const ppts = await myFetch(apiMethods.getPpts, rideIDs, false, true);
-    if (ppts === null)    throw new Error(`Cannot get participants`);
+    const ppts = await myFetch(apiMethods.getPpts, rideIDs);
+    //if (ppts === undefined)    throw new Error(`Cannot get participants`);
+    if (!ppts )    throw new Error(`Cannot get participants`);
    
     for (let index in rideIDs)
     {
@@ -111,7 +112,7 @@ async function getData() {
   }
   catch (e) {
     const err = e as Error;
-    AlertError('Unsuccessful',err.message);
+   await  AlertError('Unsuccessful',err.message);
   }
 }   
 function speedStr(ride : Ride) {
@@ -200,7 +201,7 @@ async function viewRoute(index : number) {
   }
   else if (currentRoute.gpxData == null || currentRoute.gpxData.length < 100) {
     // don't yet have the GPX data
-    let gpxData  = await myFetch(apiMethods.getGpx, currentRoute.id, true, true);
+    let gpxData  = await myFetch(apiMethods.getGpx, currentRoute.id);
     if (gpxData != null) {
       currentRoute.gpxData = gpxData.route;
     }

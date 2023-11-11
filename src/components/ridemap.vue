@@ -167,7 +167,7 @@ function showRoute(route : Route )
             emit('updateRouteInfo',route);
             if (listedRoute)
                 // also need to update the database
-                await myFetch(apiMethods.updateRoute, route, true);
+                await myFetch(apiMethods.updateRoute, route, false);
         }
     
     }).addTo(map);

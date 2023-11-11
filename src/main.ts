@@ -8,8 +8,7 @@ import * as directives from 'vuetify/directives'
 import { aliases, mdi } from "vuetify/iconsets/mdi-svg";
 import './assets/main.css'
 
-import  VCalendar  from 'v-calendar';
-import 'v-calendar/style.css';
+import   { DatePicker}  from 'v-calendar';
 
 const vuetify = createVuetify({
     icons: {
@@ -23,6 +22,6 @@ const vuetify = createVuetify({
    
   })
 
-createApp(App).use(vuetify).use(VCalendar, {}).mount('#app')
+createApp(App).use(vuetify).mount('#app')
 
 

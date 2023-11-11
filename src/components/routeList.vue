@@ -64,6 +64,7 @@ function updateList()
 
 async function viewRoute( index : number, chosen : boolean) {
  
+  console.log('viewRoute: chosen? ' + chosen);
   const route = routeList.value[index];
   if (route === null || route === undefined) {
     AlertError('internal problem','Route not found');
@@ -74,7 +75,7 @@ async function viewRoute( index : number, chosen : boolean) {
     emit('showRoute',route,chosen);
   }
   else {
-    const gpxdata  = await myFetch(apiMethods.getGpx, route.id, true);
+    const gpxdata  = await myFetch(apiMethods.getGpx, route.id);
     if (gpxdata != null) {
 
         route.gpxData = gpxdata.route;
@@ -135,7 +136,7 @@ function changeOrder(alpha: number) {
         <v-row no-gutters>
         <v-col cols="12" class="mt-n4">
           <v-chip color="blue"
-            >Click route to show map, dble-click to select for your ride</v-chip
+            >Click destination to show map, click bike to select for your ride</v-chip
           >
         </v-col>
       </v-row>
@@ -143,8 +144,8 @@ function changeOrder(alpha: number) {
           <v-list density="compact"  >
             <v-list-item class="pa-0" density="compact" 
                 v-for="(item, i) in routeList" :key="i"  :value="i" :active="item === chosenRoute">
-                    <v-row  no-gutters  @click="viewRoute(i,false)"  >
-                        <v-col cols="7"> <span class="d-block text-truncate">{{ destinationStr[i] }} </span>    </v-col>
+                    <v-row  no-gutters    >
+                        <v-col cols="7" @click.prevent="viewRoute(i,false)"> <span class="d-block text-truncate">{{ destinationStr[i] }} </span>    </v-col>
                         <v-col cols="4" title="distance, climbing, climb ratio (metres climb per km riding)">
                            <small>{{ distanceStr[i] }}&nbsp;
                             <span v-bind:style="{'color': climbingColour[i]}"><b>&uarr;&darr;</b>{{ climbingStr[i] }}&nbsp; <b>{{ climbingRatio[i] }}</b></span>

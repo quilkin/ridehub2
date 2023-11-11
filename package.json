@@ -35,7 +35,7 @@
   },
   "devDependencies": {
     "@tsconfig/node18": "^18.2.0",
-    "@types/leaflet-gpx": "^1.3.5",
+    "@types/leaflet-gpx-coords": "^1.3.5",
     "@types/leaflet-polylinedecorator": "^1.6.2",
     "@types/node": "^18.18.7",
     "@vitejs/plugin-vue": "^4.2.3",

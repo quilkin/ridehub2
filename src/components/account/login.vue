@@ -39,7 +39,7 @@ async function submit() {
     //let creds = { name: username, pw: pass, email: "", code: 0 };
     let user = new User(username,pass);
     
-    myFetch(apiMethods.login,user,false,true)
+    myFetch(apiMethods.login,user)
       .then((response) => {
         
           const user : User = response;

@@ -48,7 +48,7 @@ const Routes = {
 
     getRouteSummaries: async function()
     {
-        const response : Route[]  = await myFetch(apiMethods.getRoutes,0, true,true);
+        const response : Route[]  = await myFetch(apiMethods.getRoutes,0);
         if (response != null) {
             routes = response;
             if (routes.length === 0) {

@@ -60,7 +60,7 @@ async function submit() {
       climbs: climbing.value === 'y'? 1:0,
       notifications: notify.value === 'y'? 1:0
     };
-    myFetch(apiMethods.changeAccount,creds,true)
+    myFetch(apiMethods.changeAccount,creds,false)
     .then(async (response) => {
       if (response != null) {
         if (response == 'OK') {
