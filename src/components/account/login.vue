@@ -38,6 +38,11 @@ async function submit() {
       }
     //let creds = { name: username, pw: pass, email: "", code: 0 };
     let user = new User(username,pass);
+    myFetch('testpost',0)
+      .then((response) => {
+        alert(response);
+      });
+        
     
     myFetch(apiMethods.login,user)
       .then((response) => {

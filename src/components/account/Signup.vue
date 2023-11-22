@@ -40,12 +40,15 @@ async function submit() {
 
     creds.value = { name: username, pw: pass, email: email, code: 0 };
     
-    myFetch(apiMethods.signup,creds.value,false)
+    myFetch(apiMethods.signup,creds.value)
       .then((response) => {
         if (response != null) {
           Alert('Registration',response,'','info','OK');
           signupDialog.value = false;
           emit('doneSignUp');
+          }
+          else {
+            signupDialog.value = true;
           }
       })
   }

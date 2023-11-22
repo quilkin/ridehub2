@@ -31,7 +31,7 @@ const props = defineProps<{
   user : User
 }>()
 
-onBeforeMount(() => {
+onBeforeMount(async() => {
         if (props.user != undefined) {
             units.value = props.user.units;
             climbing.value = props.user.climbs? 'y':'n';
@@ -60,7 +60,7 @@ async function submit() {
       climbs: climbing.value === 'y'? 1:0,
       notifications: notify.value === 'y'? 1:0
     };
-    myFetch(apiMethods.changeAccount,creds,false)
+    myFetch(apiMethods.changeAccount,creds)
     .then(async (response) => {
       if (response != null) {
         if (response == 'OK') {

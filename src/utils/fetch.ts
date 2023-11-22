@@ -1,9 +1,18 @@
+import { apiMethods } from '../../../ridehub-common';
 import  { Alert, AlertError,CloseAlert } from './alert'
-import { serviceBase } from '../../service'
 
-export async function myFetch(url : String, data : Object | null, nodeServer : boolean = true)  {
+function serviceBase() : string {
+  
+  if (process.env.NODE_ENV !== 'development')
+       return "../";
+  return "http://localhost:3000/";
 
-   const bodyData = nodeServer? JSON.stringify({data}) : JSON.stringify(data);
+
+}
+
+export async function myFetch(url : String, data : Object | null)  {
+
+    const bodyData =  JSON.stringify({data}) ;
     const options = {
         method: 'POST',
         headers: {
@@ -13,11 +22,17 @@ export async function myFetch(url : String, data : Object | null, nodeServer : b
     }
     
     console.log('fetch: ' + url)
-    const fullUrl = serviceBase(nodeServer) + url;
+    const fullUrl =  serviceBase() +  url;
+    // if (url.includes(apiMethods.login)) {
+    //   alert(fullUrl);
+    // }
     let res;
 
     try {
-      res = await fetch(fullUrl, options);
+      if (data != null)
+        res = await fetch(fullUrl, options);
+      else
+        res = await fetch(fullUrl);
 
       if (res.ok) {
         return await res.json();

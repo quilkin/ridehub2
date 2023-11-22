@@ -17,7 +17,7 @@ async function submit() {
   const {valid} = await passForm.value?.validate()
   if (valid) {
     //creds.value = email.value;
-    myFetch(apiMethods.forgotPW,email.value,false)
+    myFetch(apiMethods.forgotPW,email.value)
     .then((response) => {
       if (response != null) {
         Alert('Registration',response,'','info','OK');

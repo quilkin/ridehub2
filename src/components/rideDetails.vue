@@ -178,7 +178,7 @@ function speedStr() {
         
         content-class="details-dialog"
       >
-      <v-card :title="props.dest">
+      <v-card :title="props.dest" max-width="550">
         <v-card-text>    {{ ride.description }}   </v-card-text>
         <v-spacer></v-spacer>
         <v-row no-gutters>
@@ -234,4 +234,3 @@ function speedStr() {
   padding-bottom: 0;
 }
 </style>
-../utils/classes/ride../utils/classes/already

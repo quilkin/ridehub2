@@ -8,6 +8,7 @@ import { getRelativePosition } from 'chart.js/helpers';
 
 import "leaflet/dist/leaflet.css";
 import * as L from 'leaflet';
+import type { LatLngExpression } from 'leaflet'
 import 'leaflet-gpx-coords';
 //import 'leaflet-gpx';
 import 'leaflet-polylineDecorator';
@@ -15,10 +16,12 @@ import 'leaflet-polylineDecorator';
 import { User  } from '../../../ridehub-common'
 import { Tabs } from '../utils/tabs'
 
+
 const props = defineProps<{
-  gpx : L.GPX
+  latlngs : LatLngExpression[]
   tab : Tabs
   user : User
+  gpx : L.GPX;
 
 }>()
 
@@ -47,19 +50,19 @@ onMounted(() => {
     console.log('Profile mounted')
     //if (props.tab !== Tabs.newRide && props.gpx != null) {
     if ( props.gpx != null) {
-         showProfile(props.gpx);
+         showProfile(props.gpx,props.latlngs);
      }
 })
 onBeforeUpdate(() => {
     console.log('Profile before update')
     //if (props.tab !== Tabs.newRide && props.gpx != null) {
         if ( props.gpx != null) {
-         showProfile(props.gpx);
+         showProfile(props.gpx,props.latlngs);
      }
 })
 
 
-function showProfile(gpx : L.GPX) {
+function showProfile(gpx : L.GPX, latlngs : LatLngExpression[]) {
   
    
     var elev_data;
@@ -89,7 +92,7 @@ function showProfile(gpx : L.GPX) {
     elevGainText= elev_gain.toString() + heightUnits;
     elevLossText = elev_loss.toString() + heightUnits;
 
-    latlng_data = gpx.get_coords();
+//latlng_data = gpx.get_coords();
 
     if (gpx.get_elevation_gain() < 1 ||  gpx.get_elevation_loss() < 1 )
     {
@@ -115,7 +118,7 @@ function showProfile(gpx : L.GPX) {
     let json_latlng: any[]  = []
     for (i = 0; i < n; i+=spacing) {
         json_elev.push({Distance: elev_data[i][0], Height: Math.round(elev_data[i][1])});
-        json_latlng.push(latlng_data[i]);
+        json_latlng.push(latlngs[i]);
     }
 
     chartData.value =      {

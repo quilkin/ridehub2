@@ -44,6 +44,9 @@ onMounted(async() => {
   }
   else if (props.user != undefined)
         status.value =  props.user.role>0 ? Status.loggedIn : Status.loggingIn;
+
+        // const response = await myFetch('test',null);
+        // alert(response);
   })
   onUpdated(() => {
         if (updated) 
@@ -51,7 +54,7 @@ onMounted(async() => {
         if (props.user != undefined)
         {
                 currentUser = props.user;
-                if (status.value != Status.reqPassword)
+                if (status.value != Status.reqPassword && status.value != Status.signingUp)
                         status.value =  props.user.role>0 ? Status.loggedIn : Status.loggingIn;
         }
         updated = true;
@@ -68,7 +71,7 @@ function doneAccount() {
 }
 async function completeRegistration(user: string,regcode: string) {
         var creds = { name: user, code: regcode };
-        const res = await myFetch(apiMethods.register, creds, false);
+        const res = await myFetch(apiMethods.register, creds);
         if (res===null)
                 await AlertError("Credentials","Invalid username , code or email");
         else if (res.substring(0, 9) === "Thank you")           //"Thank you, you have now registered"
@@ -83,20 +86,23 @@ async function completeRegistration(user: string,regcode: string) {
 async function resetAccount(lostPWuser : string) {
         // get user's details
         // server will check that timeout hasn't expired
-        const user : User = await myFetch(apiMethods.findUser,  lostPWuser,false);
-        if (user==null) {
-                await AlertError("Credentials","Database connection error");
-        }
-        else if (user.id > 0) {
-                // we got full details of user
+        var success = false;
+        const result : string = await myFetch(apiMethods.findUser,  lostPWuser);
+        if (result.substring(0, 2) === "OK") {
+
+                success = true;
+                //passwordReset = true;
+                // remainder of res has login id
+                const userID = result.substring(2);
+                const id = parseInt(userID);
                 await Message("OK, now please set new password");
-                currentUser = user;
+                currentUser = new User(lostPWuser,'');
                 status.value = Status.acccountPage;
-        } else {
-                // error returned in dummy account name
-                await AlertError("Reset account",user.name);
         }
 
+        else {
+                await AlertError("Credentials",result);
+        }
 }
 </script>
 

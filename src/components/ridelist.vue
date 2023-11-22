@@ -39,6 +39,8 @@ onBeforeMount(async() => {
 
   initialiseArrays();
   await getData();
+  if (rides.value.length == 0)
+    return;
   createRideList();
   viewRoute(props.rideIndex);
  
@@ -81,6 +83,12 @@ async function getData() {
     rides.value   = await myFetch(apiMethods.getRides,TimesDates.toIntDays(props.date));
    // rides.value   = await myFetch(apiMethods.getRides,TimesDates.toIntDays(props.date),true);
     if (!rides.value  )  throw new Error(`Cannot get rides`);
+
+    if (rides.value.length == 0)
+    {
+      await Message('No rides found for these dates; please try another date');
+      return;
+    }
 
     rides.value.forEach((ride) => {
         rideIDs.push(ride.rideID);

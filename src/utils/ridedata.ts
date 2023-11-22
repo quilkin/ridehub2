@@ -42,7 +42,7 @@ const rideData = {
             const response = await myFetch(apiMethods.savePpt, pp);
             if (!response ) 
                 await  AlertError('server error', 'could not join ride');
-            else if (response[0] === '*') {
+            else if (response =='OK') {
                 await Message("You have been added to this ride");
             }
             else {
@@ -58,7 +58,7 @@ const rideData = {
             const response = await myFetch(apiMethods.savePpt, pp);
             if (!response ) 
                 await  AlertError('server error', 'could not reserve ride');
-            else if (response[0] === '*') {
+            else if (response === 'OK') {
                 await Message("You have been added to reserve list for this ride");
             }
             else {
@@ -89,7 +89,7 @@ const rideData = {
                 const response = await myFetch(apiMethods.savePpt, pp);
                 if (!response ) 
                     await  AlertError('server error', 'could not add guest to ride');
-                else if (response[0] === '*') {
+                else if (response === 'OK') {
                     await Message("A guest has been added to this ride. Guest will need to complete a guest form at the start");
                 }
                 else {
@@ -149,7 +149,7 @@ const rideData = {
             const response = await myFetch(apiMethods.savePpt, pp);
             if (!response ) 
                 await  AlertError('server error', 'guest could not join ride');
-            else if (response[0] === '*') {
+            else if (response === 'OK') {
                 await Message("A guest has been added to this ride. Guest will need to complete a guest form at the start");
             }
             else {

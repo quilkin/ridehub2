@@ -211,7 +211,7 @@ async function submit() {
         newRoute.distance = distance.value;
       }
       newRoute.owner = props.user.name;
-      const res = await myFetch(apiMethods.saveRoute,newRoute,false);
+      const res = await myFetch(apiMethods.saveRoute,newRoute);
       if (res===null)
         return;
       const id = parseInt(res);
@@ -360,7 +360,7 @@ async function readSuccess(event: ProgressEvent<FileReader>) {
   }
   if (routeXML.includes("TrainingCenterDatabase")) {
     // tcx needs converting to gpx
-    const res = await myFetch(apiMethods.tcx2gpx,routeXML,false);
+    const res = await myFetch(apiMethods.tcx2gpx,routeXML);
     if (res === null) 
         return;
     if (res.length > 0) {

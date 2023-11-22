@@ -15,6 +15,7 @@ import { Tabs } from '../utils/tabs'
 import bikeMarker from '../assets/bike2.png';
 import Routes  from '@/utils/routes'
 import { mdiRoutes} from '@mdi/js'
+import type { LatLngExpression } from 'leaflet';
 
 const props = defineProps<{
   route : Route
@@ -34,6 +35,7 @@ const downloadName = ref('');
 const gpx = ref() as Ref<L.GPX>;
 let marker : L.Marker;
 let mapKey = 0;
+let latlngs = ref() as Ref<LatLngExpression[]>;
 
 function setupMap() {
     if (map != null) {
@@ -94,6 +96,22 @@ watch(() => props.route,  () => {
   }
 )
 
+function LatLngs(gpxData : string) : LatLngExpression[]{
+    const parser = new DOMParser();
+    const xmlDoc = parser.parseFromString(gpxData,"text/xml");
+    var trackpoints = xmlDoc.getElementsByTagName("trkpt");
+    var latlngs = [] as LatLngExpression[];
+    for (var key in trackpoints){
+           const trkpt = trackpoints[key];
+           if (trkpt.attributes) {
+            const lat = trkpt.attributes[0].value;
+            const lng = trkpt.attributes[1].value;
+            latlngs.push([+lat,+lng]);
+           }
+        }
+    return latlngs;
+}
+
 function showRoute(route : Route )
 {
 // listedRoute is true only if the route has already been added to the list of routes
@@ -112,6 +130,10 @@ function showRoute(route : Route )
         return;
     }
 
+    // shouldn't need to do this - how to get routeline direct from L.GPX?
+    latlngs.value = LatLngs(route.gpxData);
+    const routeLine =  L.polyline(latlngs.value);
+
     new L.GPX(route.gpxData, {
         async: true,
         marker_options: {
@@ -126,11 +148,10 @@ function showRoute(route : Route )
             mapMessage.value = "leaflet: map load error";
             return;
         }
-
+        
         gpx.value = e.target;
 
-        // add direction arrows to GPX polyline
-        L.polylineDecorator(gpx.value .get_coords(), {
+        L.polylineDecorator(routeLine, {
             patterns: [{
                 offset: 50,
                 repeat: 50,
@@ -142,7 +163,6 @@ function showRoute(route : Route )
             }]
         }).addTo(map);
 
-        //var bounds : L.LatLngBounds = gpx.value .getBounds();
         map.fitBounds(gpx.value.getBounds());
 
         const distance = Math.floor(gpx.value .get_distance() / 1000);
@@ -167,7 +187,7 @@ function showRoute(route : Route )
             emit('updateRouteInfo',route);
             if (listedRoute)
                 // also need to update the database
-                await myFetch(apiMethods.updateRoute, route, false);
+                await myFetch(apiMethods.updateRoute, route);
         }
     
     }).addTo(map);
@@ -208,7 +228,8 @@ function showRoute(route : Route )
         </v-col>
         <v-col cols="11" class="pa-0 ma-0">
             <Profile v-if="gpx != undefined && props.showProfile" 
-                :gpx = "gpx"
+                :gpx ="gpx"
+                :latlngs = "latlngs"
                 :tab= "props.tab"
                 :user = "props.user"
                 @latlng = "updateMarker"
