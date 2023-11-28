@@ -1,6 +1,6 @@
 
-import type { Map, LayerGroup } from 'leaflet';
-import { Route } from '../../../ridehub-common'
+import { Route} from '../../../ridehub-server/src/common/route'
+
 export class MapData{
     
     centerLat  = 50.2;   // centre of cornwall?

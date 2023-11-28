@@ -4,12 +4,15 @@ import {  ref, watch,onMounted,onBeforeUnmount, onUpdated, type Ref} from 'vue'
 import type { Map } from 'leaflet';
 import "leaflet/dist/leaflet.css";
 import * as L from 'leaflet';
-import 'leaflet-gpx-coords';
-//import 'leaflet-gpx';
+import 'leaflet-gpx';
 
 import 'leaflet-polylineDecorator';
 import { myFetch } from '@/utils/fetch'
-import { apiMethods, Route, User } from '../../../ridehub-common'
+import { apiMethods } from '../../../ridehub-server/src/common/apimethods'
+import { Ride } from '../../../ridehub-server/src/common/ride'
+import { Route} from '../../../ridehub-server/src/common/route'
+import { TimesDates} from '../../../ridehub-server/src/common/timesdates'
+import { User } from '../../../ridehub-server/src/common/user'
 import Profile from './profile.vue'
 import { Tabs } from '../utils/tabs'
 import bikeMarker from '../assets/bike2.png';
@@ -111,7 +114,10 @@ function LatLngs(gpxData : string) : LatLngExpression[]{
         }
     return latlngs;
 }
+// function routeLineAddHandler(e: Event) {
+//     console.log(e);
 
+// }
 function showRoute(route : Route )
 {
 // listedRoute is true only if the route has already been added to the list of routes
@@ -119,6 +125,7 @@ function showRoute(route : Route )
     const tab = props.tab;
     setupMap();
 
+    
 
     window.dispatchEvent(new Event('resize'));
 
@@ -150,7 +157,7 @@ function showRoute(route : Route )
         }
         
         gpx.value = e.target;
-
+       // addEventListener('addline',routeLineAddHandler);
         L.polylineDecorator(routeLine, {
             patterns: [{
                 offset: 50,

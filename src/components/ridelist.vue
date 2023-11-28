@@ -1,7 +1,11 @@
 <script setup  lang="ts">
 import { ref, onBeforeMount, type Ref } from 'vue'
 import { myFetch } from '@/utils/fetch'
-import { apiMethods, Ride, Route, User } from '../../../ridehub-common'
+import { apiMethods } from '../../../ridehub-server/src/common/apimethods'
+import { Ride } from '../../../ridehub-server/src/common/ride'
+import { Route} from '../../../ridehub-server/src/common/route'
+import { TimesDates} from '../../../ridehub-server/src/common/timesdates'
+import { User } from '../../../ridehub-server/src/common/user'
 import  routeFuncs  from '../utils/routeFuncs'
 import { Already} from '../utils/already'
 import { AlertError, Message } from '../utils/alert'
@@ -9,7 +13,6 @@ import { AlertError, Message } from '../utils/alert'
 import Routes  from '../utils/routes'
 import RideDetails from './rideDetails.vue'
 import rideData from '@/utils/ridedata'
-import TimesDates  from '../utils/timesdates'
 
 const props = defineProps<{
   date : Date
@@ -269,4 +272,3 @@ async function viewRoute(index : number) {
   </v-list>
 </template>
 
-../utils/classes/ride../utils/classes/already

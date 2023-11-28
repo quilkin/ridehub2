@@ -1,5 +1,6 @@
 import { myFetch } from '@/utils/fetch'
-import { apiMethods, Route } from '../../../ridehub-common'
+import { apiMethods } from '../../../ridehub-server/src/common/apimethods'
+import { Route} from '../../../ridehub-server/src/common/route'
 import  routeFuncs  from '../utils/routeFuncs'
 import { Alert, Message} from './alert'
 //import { Route } from './route'

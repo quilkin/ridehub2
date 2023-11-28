@@ -4,7 +4,7 @@
 import { ref } from 'vue'
 import {emailRules} from '../../utils/rules'
 import { myFetch } from '@/utils/fetch'
-import { apiMethods } from '../../../../ridehub-common'
+import { apiMethods } from '../../../../ridehub-server/src/common/apimethods'
 import  { Alert} from '../../utils/alert'
 
 const passDialog = ref(false)

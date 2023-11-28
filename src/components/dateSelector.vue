@@ -1,13 +1,15 @@
 <script setup lang="ts">
   import { ref } from 'vue'
   import { mdiCalendarMonth } from '@mdi/js'
-  import { DatePicker } from 'v-calendar';
-  import 'v-calendar/style.css';
-
+  //import { DatePicker } from 'v-calendar';
+  import DatePicker from '@vuepic/vue-datepicker';
+  import '@vuepic/vue-datepicker/dist/main.css';
+  
   const props = defineProps<{ date : Date, text : string, icon: boolean }>()
   const emit = defineEmits(['newDate']);
   const datePickerActive = ref(false);
   const workingDate = ref(props.date);
+  const flow = ref(['calendar','month', 'year' ]);
 
   function newDate() {
     datePickerActive.value = false;
@@ -31,8 +33,11 @@
         content-class="datepicker-dialog"
       >
         <DatePicker
-          v-model="workingDate"
-           @update:modelValue="newDate"    />
+          inline auto-apply 
+           v-model="workingDate"
+           locale="en-UK"
+           @update:modelValue="newDate" 
+           :six-weeks="true"   />
       </v-dialog>
     </v-btn>
   </div>

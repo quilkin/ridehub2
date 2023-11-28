@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { ref, onBeforeMount, onMounted, onUpdated } from 'vue'
+import { ref, onMounted, onUpdated } from 'vue'
 import signup from './account/Signup.vue'
 import login from './account/login.vue'
 import account from './account/account.vue'
 import reqpass from './account/reqpassword.vue'
-//import { User } from '../utils/user'
 import { myFetch } from '@/utils/fetch'
-import { apiMethods, User } from '../../../ridehub-common'
+import { apiMethods} from '../../../ridehub-server/src/common/apimethods'
+import { User } from '../../../ridehub-server/src/common/user'
 import { Message, AlertError } from '../utils/alert'
 import { Events } from '../utils/events'
 

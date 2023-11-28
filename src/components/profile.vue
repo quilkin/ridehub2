@@ -2,24 +2,19 @@
 import {  ref, onMounted,onBeforeMount, onBeforeUpdate} from 'vue'
 import type { Ref } from 'vue'
 import { Line } from 'vue-chartjs'
-import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale, Filler, type ChartData, type ChartOptions } from 'chart.js'
-import type { Chart} from 'chart.js'
+import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale, Filler,
+     type ChartData, type ChartOptions, type Chart } from 'chart.js'
 import { getRelativePosition } from 'chart.js/helpers';
-
-import "leaflet/dist/leaflet.css";
-import * as L from 'leaflet';
 import type { LatLngExpression } from 'leaflet'
-import 'leaflet-gpx-coords';
-//import 'leaflet-gpx';
+import 'leaflet-gpx';
 import 'leaflet-polylineDecorator';
-//import type { User } from '@/utils/user';
-import { User  } from '../../../ridehub-common'
+import { User  } from '../../../ridehub-server/src/common/user'
 import { Tabs } from '../utils/tabs'
 
 
 const props = defineProps<{
   latlngs : LatLngExpression[]
-  tab : Tabs
+  tab : Tabs    // todo: no longer required?
   user : User
   gpx : L.GPX;
 

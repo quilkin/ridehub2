@@ -11,3 +11,6 @@ SQL error on forgot password
 close route list when one chosen
 tree-shaking?
 viewRoute / showRoute / getGPX timing??
+L.GPX - coords
+shorten long imported route names
+investigate setting time using calendar

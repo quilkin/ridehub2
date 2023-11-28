@@ -1,4 +1,4 @@
-import { Route } from '../../../ridehub-common'
+import { Route } from '../../../ridehub-server/src/common/route'
 
     const routeFuncs = {
   

@@ -5,11 +5,11 @@ import { ref, type Ref, onBeforeMount} from 'vue'
 import { destinationRules, distanceRules, meetingRules, ridersRules, speedRules, gpxRules, descriptionRules} from '../utils/rules'
 
 import { myFetch } from '@/utils/fetch'
-import { apiMethods, Ride, Route, User  } from '../../../ridehub-common'
+import { apiMethods } from '../../../ridehub-server/src/common/apimethods'
+import { Ride } from '../../../ridehub-server/src/common/ride'
+import { Route } from '../../../ridehub-server/src/common/route'
+import { User  } from '../../../ridehub-server/src/common/user'
 import { Alert, Message, YesNo, AlertError } from '../utils/alert'
-//import { User } from '../utils/user'
-//import { } from '../../../ridehub-common'
-//import { Route } from '../utils/route'
 import Routes  from '../utils/routes'
 import RouteList from './routeList.vue'
 import TimesDates  from '../utils/timesdates'
@@ -145,7 +145,7 @@ function cancel() {
     emit('doneRideEdit');
 }
 async function getMembers() {
-  const logins : User[] = await myFetch(apiMethods.getLogins,null);
+  const logins : User[] = await myFetch(apiMethods.getLogins,0);
   if (logins != null) {
     members.value = [];
     logins.forEach((login) => {
@@ -372,7 +372,7 @@ async function readSuccess(event: ProgressEvent<FileReader>) {
   }
   newRoute = new Route();
   //const route = new Route();
-  newRoute.hasGPX = true;
+ newRoute.hasGPX = true;
   newRoute.gpxData = routeXML;
 
   emit('showRoute',newRoute,false);
@@ -460,7 +460,7 @@ function loadGpx() {
                   <v-text-field density="compact" variant="outlined" label="Destination" 
                     v-model="destination"
                     :rules="destinationRules"
-                    :disabled="routeType!=RouteTypes.noGpx" 
+
                     hint='Where are you riding to? Coffee stop?'/>
               </v-col>
               <v-col cols="6"  class="mt-6" >

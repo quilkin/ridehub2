@@ -36,14 +36,12 @@ async function submit() {
         window.localStorage.username = username;
         window.localStorage.password = pass;
       }
-    //let creds = { name: username, pw: pass, email: "", code: 0 };
     let user = new User(username,pass);
-    myFetch('testpost',0)
-      .then((response) => {
-        alert(response);
-      });
+    // myFetch('testpost',0)
+    //   .then((response) => {
+    //     alert(response);
+    //   });
         
-    
     myFetch(apiMethods.login,user)
       .then((response) => {
         
@@ -84,6 +82,10 @@ function forgot() {
   emit("forgotPass");
 
 }
+function crash() {
+  myFetch('crashtest1',null);
+  setTimeout(function() { myFetch('test',null); }, 5000);
+}
 </script>
 
 <template>
@@ -112,7 +114,8 @@ function forgot() {
         <v-btn color="blue" variant="outlined" @click="signup()" block class="mt-2">   No account? Sign up    </v-btn>
         <v-btn color="blue" variant="outlined" @click="guest()" block class="mt-2">      Cancel / Continue as a guest   </v-btn>
         <v-btn color="blue" variant="outlined" @click="forgot()" block class="mt-2">      Forgot password?   </v-btn>
-        
+        <!-- <v-btn color="blue" @click="crash()" block class="mt-2">   Crash test!   </v-btn>
+         -->
       </v-form>
     </v-card-text>
   </v-card>

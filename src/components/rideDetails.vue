@@ -1,7 +1,10 @@
 <script setup lang="ts">
   import { ref , onMounted, onBeforeMount} from 'vue'
   //import { Ride  } from '../../../ridehub-common'
-  import {TimesDates, Ride, Route, User} from '../../../ridehub-common'
+  import { Ride } from '../../../ridehub-server/src/common/ride'
+  import { Route} from '../../../ridehub-server/src/common/route'
+  import { TimesDates} from '../../../ridehub-server/src/common/timesdates'
+  import { User } from '../../../ridehub-server/src/common/user'
   //import { User } from '../utils/user'
   import { Message } from '../utils/alert'
   import { Already} from '../utils/already'

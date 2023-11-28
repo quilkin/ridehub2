@@ -1,7 +1,8 @@
 // non-vue parts extracted to keep 'ridelist.vue' a sensible size
 
 import { myFetch } from '@/utils/fetch'
-import { apiMethods, Participant } from '../../../ridehub-common'
+import { apiMethods } from '../../../ridehub-server/src/common/apimethods'
+import { Participant } from '../../../ridehub-server/src/common/participant'
 import { AlertError, YesNo, Message, chooseFromTwo} from './alert'
 
 const rideData = {
