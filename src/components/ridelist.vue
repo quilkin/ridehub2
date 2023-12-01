@@ -17,10 +17,10 @@ import rideData from '@/utils/ridedata'
 const props = defineProps<{
   date : Date
   user : User
-  rideIndex : number
+ // rideIndex : number
 }>()
 
-const emit = defineEmits(['showRoute','logIn','editRide','participantsUpdated','updateRideIndex']);
+const emit = defineEmits(['showRoute','showRoutes','logIn','editRide','participantsUpdated','updateRideIndex']);
 const showTooltips = ref(true);
 const rides = ref() as Ref<Ride[]>
 
@@ -35,6 +35,9 @@ const rideSpeed = ref() as Ref<string[]>;
 
 // used to check if a rider is 'already' doing doing a ride on a given day
 const already = ref() as Ref<Already[]>;
+// routes whoen on map
+let currentRouteList : Route[] | null = [];
+///highlighted routeFuncs, chosen from list
 let currentRoute : Route = new Route();
 let currentRideIndex = 0;
 
@@ -45,7 +48,7 @@ onBeforeMount(async() => {
   if (rides.value.length == 0)
     return;
   createRideList();
-  viewRoute(props.rideIndex);
+//viewRoute(props.rideIndex);
  
 });
 // onUpdated(async() => {
@@ -78,10 +81,10 @@ async function getData() {
 
   //var intdays = TimesDates.toIntDays(props.date);
   const rideIDs: number[] = [];
+  const routeIDs: number[] = [];
 
   try {
-    const result = await Routes.getRouteSummaries();
-    if (result === null)    throw new Error(`Cannot get routes`);
+
 
     rides.value   = await myFetch(apiMethods.getRides,TimesDates.toIntDays(props.date));
    // rides.value   = await myFetch(apiMethods.getRides,TimesDates.toIntDays(props.date),true);
@@ -95,8 +98,14 @@ async function getData() {
 
     rides.value.forEach((ride) => {
         rideIDs.push(ride.rideID);
+        routeIDs.push(ride.routeID);
     });
-  
+    // to start with, just get routes for displayed rides
+    currentRouteList = await Routes.getRoutesByID(routeIDs);
+    if (currentRouteList === null)    throw new Error(`Cannot get routes`);
+
+    emit('showRoutes',currentRouteList);
+
     const ppts = await myFetch(apiMethods.getPpts, rideIDs);
     //if (ppts === undefined)    throw new Error(`Cannot get participants`);
     if (!ppts )    throw new Error(`Cannot get participants`);
@@ -138,7 +147,7 @@ function createRideList() {
       const route  = Routes.findRoute(ride.routeID);
       if (route.id > 0)
       {
-        console.log('createRideList route id: ' + route.id );
+        // console.log('createRideList route id: ' + route.id );
         destination.value[index] = route?.dest;
         climbingStr.value[index] = routeFuncs.climbingStr(route,props.user.units);
         distanceStr.value[index] = routeFuncs.distanceStr(route,props.user.units);
@@ -193,33 +202,33 @@ function newDateReqd(date : number) {
 }
 
 async function viewRoute(index : number) {
-  const ride : Ride = rides.value[index];
-  if (ride === null || ride==undefined) {
-    AlertError('internal problem','Ride not found');
-    return;
-  }
-  currentRoute = Routes.findRoute(ride.routeID);
- // currentRideIndex = index;
-  if (currentRoute.id == 0) {
-    AlertError('internal problem','Route not found for this ride');
-    return;
-  }
-  emit('updateRideIndex',index);
-  if (currentRoute.hasGPX==false)
-  {
-   //  Message('No map available for this ride');
-
-  }
-  else if (currentRoute.gpxData == null || currentRoute.gpxData.length < 100) {
-    // don't yet have the GPX data
-    let gpxData  = await myFetch(apiMethods.getGpx, currentRoute.id);
-    if (gpxData != null) {
-      currentRoute.gpxData = gpxData.route;
+    const ride : Ride = rides.value[index];
+    if (ride === null || ride==undefined) {
+      AlertError('internal problem','Ride not found');
+      return;
     }
-  }
-  emit('showRoute',currentRoute,true);
-  // no need to show tooltip again?
-  showTooltips.value = false;
+    currentRoute = Routes.findRoute(ride.routeID);
+  // currentRideIndex = index;
+    if (currentRoute.id == 0) {
+      AlertError('internal problem','Route not found for this ride');
+      return;
+    }
+    //emit('updateRideIndex',index);
+    // if (currentRoute.hasGPX==false)
+    // {
+    // //  Message('No map available for this ride');
+
+    // }
+    // else if (currentRoute.route == null || currentRoute.route.length < 100) {
+    //   // don't yet have the GPX data
+    //   let gpxData  = await myFetch(apiMethods.getGpx, currentRoute.id);
+    //   if (gpxData != null) {
+    //     currentRoute.route = gpxData.route;
+    //   }
+    // }
+    emit('showRoute',currentRoute,true);
+    // no need to show tooltip again?
+    showTooltips.value = false;
 }
 
 </script>

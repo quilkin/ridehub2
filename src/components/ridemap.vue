@@ -19,11 +19,13 @@ import bikeMarker from '../assets/bike2.png';
 import Routes  from '@/utils/routes'
 import { mdiRoutes} from '@mdi/js'
 import type { LatLngExpression } from 'leaflet';
+import type { LineString, MultiLineString } from 'geojson';
 
 const props = defineProps<{
-  route : Route
-  showProfile : boolean
-  tab : Tabs
+  routes : Route[]
+  currentRoute : Route
+  // showProfile : boolean
+  //tab : Tabs
   user : User
   map : Map | null
 }>()
@@ -37,18 +39,27 @@ const gpxLink = ref('');
 const downloadName = ref('');
 const gpx = ref() as Ref<L.GPX>;
 let marker : L.Marker;
+let mapTitle: L.Layer | ({ onAdd: () => HTMLDivElement; } & L.Control) | null;
 let mapKey = 0;
-let latlngs = ref() as Ref<LatLngExpression[]>;
+let latlngs = ref() as Ref<L.LatLng[] | L.LatLng[][] | L.LatLng[][][]>;
+let routeLine: L.Polyline<LineString, any>;
+let numOfRoutes = 0;
+let bounds: L.LatLngBounds;
+let mapItems : L.Layer[] = [];
+let showProfile = false;
 
 function setupMap() {
     if (map != null) {
         map.off();
         map.remove();
     }
+    latlngs.value = [];
+
     //console.log('map: ' + (props.route.dest.length>2 ? props.route.dest : 'General' ))
         map = L.map('mapContainer', {
           center: [50.19,-5.05],    // or centre of cornwall?
-          zoom:     9.5
+          zoom:     9.5,
+          zoomControl: false 
         });
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19,
@@ -58,23 +69,28 @@ function setupMap() {
         // add a title to the map, on the map itself.
         // code from here https://stackoverflow.com/questions/33767463/overlaying-a-text-box-on-a-leaflet-js-map
 
-        let textbox   = L.Control.extend({
-            onAdd: function() {
-                var text = L.DomUtil.create('div');
-                text.innerHTML = "<h2>" + mapMessage.value + "</h2>"
-                return text;
-                },
-        });
-        new textbox({ position: 'topleft' }).addTo(map);
+        // let textbox   = L.Control.extend({
+        //     onAdd: function() {
+        //         var text = L.DomUtil.create('div');
+        //         text.innerHTML = "<h2>" + mapMessage.value + "</h2>"
+        //         return text;
+        //         },
+        // });
+        // new textbox({ position: 'topleft' }).addTo(map);
 
-        emit('defineMap',map)
+        emit('defineMap',map);
+    window.dispatchEvent(new Event('resize'));
      
 }
 
 onMounted(() => {
     map = props.map;
+    // if (map === null)
+    // return;
     setupMap();
-    
+
+    // var bounds = [[50.1, -5.4], [50.3, - 4.8]];  // most of Cornwall
+    // map.fitBounds(bounds);
     
 })
 onBeforeUnmount(() => {
@@ -83,94 +99,160 @@ onBeforeUnmount(() => {
         }
 })
 
-watch(() => props.route,  () => {
-//onUpdated(() => {
-  const route = props.route;
-  if (route.dest == undefined) {
-    route.dest = '';
-  }
-  console.log('ridemap watch');
-  mapMessage.value = route.dest;
-  if (route.hasGPX == false)
-    mapMessage.value += ': no route available for this ride'
-  showRoute(route);
-  // force profile to update
-  //++mapKey;
+function updateRoutes() {
+    // if (map) 
+    //       map.remove();
+    //setupMap();
+    if (mapTitle != null) {
+         mapTitle.remove()
+    }
+    mapItems.forEach((item) => {
+        item.remove();
+    });
+    mapItems = [];
+
+    numOfRoutes = props.routes.length;
+   let index = 0;
+    for (const route of  props.routes) {
+        if (route.hasGPX)
+            showRoute(route,numOfRoutes,index++);
+    }
+}
+watch(() => props.routes,  () => {
+  console.log('ridemap: route list changed');
+  updateRoutes();
   }
 )
 
-function LatLngs(gpxData : string) : LatLngExpression[]{
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(gpxData,"text/xml");
-    var trackpoints = xmlDoc.getElementsByTagName("trkpt");
-    var latlngs = [] as LatLngExpression[];
-    for (var key in trackpoints){
-           const trkpt = trackpoints[key];
-           if (trkpt.attributes) {
-            const lat = trkpt.attributes[0].value;
-            const lng = trkpt.attributes[1].value;
-            latlngs.push([+lat,+lng]);
-           }
-        }
-    return latlngs;
+watch(() => props.currentRoute,  () => {
+
+    console.log('ridemap: current route changed');
+    updateRoutes();
+  }
+)
+/**
+ * increase map bounds to accommodate latest track
+ * @param bounds 
+ */
+function adjustBounds(newBounds: L.LatLngBounds) {
+    if (bounds === undefined)
+        bounds = newBounds;
+    else if (newBounds.overlaps(bounds))
+    // don't expand to show routes not starting in Truro
+        bounds.extend(newBounds);
+
 }
-// function routeLineAddHandler(e: Event) {
-//     console.log(e);
-
-// }
-function showRoute(route : Route )
-{
-// listedRoute is true only if the route has already been added to the list of routes
-    const listedRoute  : boolean = (route.id>0)
-    const tab = props.tab;
-    setupMap();
-
+function routeColour(index: number) {
+    // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
+    // Adam Cole, 2011-Sept-14
+    // https://stackoverflow.com/questions/1484506/random-color-generator
     
+    var r=0, g=0, b=0;
+    var h = index / numOfRoutes;
+    var i = ~~(h * 6);
+    var f = h * 6 - i;
+    var q = 1 - f;
+    switch (i % 6) {
+        case 0: r = 1; g = f; b = 0; break;
+        case 1: r = q; g = 1; b = 0; break;
+        case 2: r = 0; g = 1; b = f; break;
+        case 3: r = 0; g = q; b = 1; break;
+        case 4: r = f; g = 0; b = 1; break;
+        case 5: r = 1; g = 0; b = q; break;
+    }
+    var c = "#" + ("00" + (~ ~(r * 200)).toString(16)).slice(-2) + ("00" + (~ ~(g * 200)).toString(16)).slice(-2) + ("00" + (~ ~(b * 200)).toString(16)).slice(-2);
 
-    window.dispatchEvent(new Event('resize'));
+    return c;
+}
 
-    if (route.gpxData === '')
+function showRoute(route : Route , numOfRoutes: number, index: number)
+{
+    if (route.miniroute === '')
         return;
     if (map === null)
     {
-        mapMessage.value = "leaflet: map load error";
+        //mapMessage.value = "leaflet: map load error";
         return;
     }
+// listedRoute is true only if the route has already been added to the list of routes
+    const listedRoute  : boolean = (route.id>0);
+    let colour = routeColour(index);
+    let lineOpacity = 0.4;
 
-    // shouldn't need to do this - how to get routeline direct from L.GPX?
-    latlngs.value = LatLngs(route.gpxData);
-    const routeLine =  L.polyline(latlngs.value);
+    if (props.currentRoute.id > 0) {
+        if (  props.currentRoute.id === route.id) {
+          lineOpacity = 1;
+          colour = '#000000' ; // black
+          mapMessage.value = props.currentRoute.dest;
+        }
+        // else {
+        //    colour = '#808080';  // grey?
+        //    lineOpacity = 0.5;
+        // }
+    }
 
-    new L.GPX(route.gpxData, {
+    mapItems.push(new L.GPX(route.miniroute, {
         async: true,
+        polyline_options: {
+                color: colour,
+                opacity: lineOpacity,
+                weight: 3
+        },
         marker_options: {
             startIconUrl: '',
             endIconUrl: '',
             shadowUrl: ''
         }
-    }).on('loaded', async function (e) {
-
-        if (map === null)
-        {
-            mapMessage.value = "leaflet: map load error";
-            return;
+    }).on('addline', function (e) {
+        if (map === null)    {    return;   }
+        routeLine = e.line;
+        //console.log('add line: ' + route.id)
+        if (lineOpacity == 1) {
+            // add a title to the map, on the map itself.
+            // code from here https://stackoverflow.com/questions/33767463/overlaying-a-text-box-on-a-leaflet-js-map
+            let textbox   = L.Control.extend({
+                onAdd: function() {
+                    var text = L.DomUtil.create('div');
+                    text.innerHTML = "<h2>" + mapMessage.value + "</h2>"
+                    return text;
+                    },
+            });
+            // let gpxButton   = L.Control.extend({
+            //     onAdd: function() {
+            //         var text = L.DomUtil.create('div');
+            //         text.innerHTML = "<button onclick='getGPX()'>" + mapMessage.value + "</button>"
+            //         return text;
+            //         },
+            // });
+            mapTitle = new textbox({ position: 'topleft' }).addTo(map);
+            //let mapButton = new gpxButton({ position: 'topleft' }).addTo(map);
+            mapItems.push( L.polylineDecorator(routeLine, {
+                patterns: [{
+                    offset: 50,
+                    repeat: 50,
+                    symbol: L.Symbol.arrowHead({
+                        pixelSize: 10,
+                        polygon: false,
+                        pathOptions: { stroke: true, color: colour, }
+                    })
+                }]
+            }).addTo(map));
+            latlngs.value = routeLine.getLatLngs();
+            showProfile = true;
+        }
+        else {
+            showProfile = false;
         }
         
-        gpx.value = e.target;
-       // addEventListener('addline',routeLineAddHandler);
-        L.polylineDecorator(routeLine, {
-            patterns: [{
-                offset: 50,
-                repeat: 50,
-                symbol: L.Symbol.arrowHead({
-                    pixelSize: 10,
-                    polygon: false,
-                    pathOptions: { stroke: true, color: 'blue', }
-                })
-            }]
-        }).addTo(map);
 
-        map.fitBounds(gpx.value.getBounds());
+    }).on('loaded', async function (e) {
+
+        if (map === null)    {    return;   }
+
+        gpx.value = e.target;
+        adjustBounds(gpx.value.getBounds());
+        if (index >= numOfRoutes-1)
+            map.fitBounds(bounds);
 
         const distance = Math.floor(gpx.value .get_distance() / 1000);
         const elev_gain = Math.floor(gpx.value .get_elevation_gain());
@@ -197,9 +279,14 @@ function showRoute(route : Route )
                 await myFetch(apiMethods.updateRoute, route);
         }
     
-    }).addTo(map);
+    }).addTo(map)
+    );
   }    
 
+  function getGPX()
+  {
+    console.log('gpx button')
+  }
   const bikeIcon = L.icon({
     iconUrl: bikeMarker,
     iconSize:     [40, 35], 
@@ -231,13 +318,12 @@ function showRoute(route : Route )
             <v-btn stacked variant="outlined" color="blue"
             v-if="gpx != undefined" 
             :prepend-icon="mdiRoutes"
-             @click="Routes.downloadGpx(props.route)" >Get GPX</v-btn>
+             @click="Routes.downloadGpx(props.currentRoute)" >Get GPX</v-btn>
         </v-col>
         <v-col cols="11" class="pa-0 ma-0">
-            <Profile v-if="gpx != undefined && props.showProfile" 
+            <Profile v-if="gpx != undefined && showProfile" 
                 :gpx ="gpx"
                 :latlngs = "latlngs"
-                :tab= "props.tab"
                 :user = "props.user"
                 @latlng = "updateMarker"
             ></Profile>

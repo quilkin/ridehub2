@@ -373,7 +373,7 @@ async function readSuccess(event: ProgressEvent<FileReader>) {
   newRoute = new Route();
   //const route = new Route();
  newRoute.hasGPX = true;
-  newRoute.gpxData = routeXML;
+  newRoute.route = routeXML;
 
   emit('showRoute',newRoute,false);
   watch(() => props.newRoute, (first,second) => {

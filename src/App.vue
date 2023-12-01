@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, type Ref } from 'vue'
 import accountActions from './components/accountActions.vue'
 import RideEdit from './components/editRide.vue'
 import RideMap from './components/ridemap.vue'
@@ -27,16 +27,17 @@ const currentUser = ref(new User('',''));
 const ridesDate = ref(new Date());
 //const ridesDate = ref(new Date('2022-03-01'));
 const currentRoute = ref(new Route());
+const currentRouteList = ref() as Ref<Route[]>
 const currentRideIndex = ref(0);
 const newRoute = ref(new Route());
 const currentRide = ref(new Ride());
-const showProfile = ref(true);
+//const showProfile = ref(true);
 const editing = ref(false);
 //const routes= ref() as Ref<Route[]>
 
 
 var map: Map | null = null;
-
+currentRouteList.value = [];
 
 function switchTab(tab: Tabs) {
   currentTab.value = tab;
@@ -93,7 +94,10 @@ function doneRideEdit() {
 
 function updateCurrentRoute(route : Route, profile : boolean ) {
     currentRoute.value = route;
-    showProfile.value = profile;
+   // showProfile.value = profile;
+}
+function updateCurrentRoutes(routes : Route[] ) {
+    currentRouteList.value = routes;
 }
 const dataChanged = ref(0);
 
@@ -118,9 +122,9 @@ function updateRouteInfo(r : Route) {
   newRoute.value.dest = r.dest;
   newRoute.value.distance = r.distance;
 }
-function updateRideIndex(i : number) {
-  currentRideIndex.value = i;
-}
+// function updateRideIndex(i : number) {
+//   currentRideIndex.value = i;
+// }
 </script>
 
 <template>
@@ -154,12 +158,13 @@ function updateRideIndex(i : number) {
                  :key = "dataChanged"
                  :date = "ridesDate" 
                  :user = "currentUser"
-                 :ride-index="currentRideIndex"
+                 
                  @show-route = "updateCurrentRoute"
+                 @show-routes = "updateCurrentRoutes"
                  @log-in="logIn"
                  @edit-ride="editRide"
                  @participants-updated="++dataChanged"
-                 @update-ride-index="updateRideIndex"
+               
                  >
                 </RideList>
                 
@@ -186,6 +191,8 @@ function updateRideIndex(i : number) {
                 @log-in="logIn"
                 @done-ride-edit="doneRideEdit"
                 @show-route = "updateCurrentRoute"
+                
+
                 >
               </RideEdit>
               <!-- </v-col>
@@ -225,9 +232,8 @@ function updateRideIndex(i : number) {
     <v-col >
       <RideMap
         :map="map"
-        :show-profile="showProfile"
-        :route = "currentRoute"
-        :tab = "currentTab"
+        :routes = "currentRouteList"
+        :current-route="currentRoute"
         :user = "currentUser"
         @define-map="defineMap"
         @update-route-info="updateRouteInfo"

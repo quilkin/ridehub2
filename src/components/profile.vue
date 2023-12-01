@@ -5,7 +5,7 @@ import { Line } from 'vue-chartjs'
 import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale, Filler,
      type ChartData, type ChartOptions, type Chart } from 'chart.js'
 import { getRelativePosition } from 'chart.js/helpers';
-import type { LatLngExpression } from 'leaflet'
+import type { GPX, LatLngExpression } from 'leaflet'
 import 'leaflet-gpx';
 import 'leaflet-polylineDecorator';
 import { User  } from '../../../ridehub-server/src/common/user'
@@ -13,10 +13,9 @@ import { Tabs } from '../utils/tabs'
 
 
 const props = defineProps<{
-  latlngs : LatLngExpression[]
-  tab : Tabs    // todo: no longer required?
+  latlngs : L.LatLng[] | L.LatLng[][] | L.LatLng[][][]
   user : User
-  gpx : L.GPX;
+  gpx : GPX;
 
 }>()
 
@@ -49,7 +48,7 @@ onMounted(() => {
      }
 })
 onBeforeUpdate(() => {
-    console.log('Profile before update')
+  //  console.log('Profile before update')
     //if (props.tab !== Tabs.newRide && props.gpx != null) {
         if ( props.gpx != null) {
          showProfile(props.gpx,props.latlngs);
@@ -57,7 +56,7 @@ onBeforeUpdate(() => {
 })
 
 
-function showProfile(gpx : L.GPX, latlngs : LatLngExpression[]) {
+function showProfile(gpx : GPX, latlngs : L.LatLng[] | L.LatLng[][] | L.LatLng[][][]) {
   
    
     var elev_data;

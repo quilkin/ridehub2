@@ -46,17 +46,52 @@ const Routes = {
         }
         return partRoutes;
     },
+    /**
+     * keep a master list of all routes already downloaded.
+     * @param newRoutes = those to be added from a new fetch
+     */
+    mergeRoutes: function(newRoutes : Route[])  {
 
-    getRouteSummaries: async function()
+        newRoutes.forEach((newRoute) => {
+            if (routes.find((route)=>route.id === newRoute.id ) === undefined)
+            // not already in store
+                routes.push(newRoute);
+        });
+     },
+    /***
+     * get routes from database according to a list of route IDs
+     * ...but don't add routes already in store
+     */
+    getRoutesByID: async function(idList: number[])
     {
-        const response : Route[]  = await myFetch(apiMethods.getRoutes,0);
-        if (response != null) {
-            routes = response;
-            if (routes.length === 0) {
-                Alert( 'Ridehub','No routes found!','','error','OK');
-                return null;
-            }
-            return 'OK';
+        const routeList : Route[]  = await myFetch(apiMethods.getRoutesById,idList);
+        if (routeList != null) {
+           
+            this.mergeRoutes(routeList);
+            return routeList;
+        }
+        else {
+            await Alert('Unsuccessful','Could not contact server','','error','OK');
+            return null;
+        }
+
+    },
+    /***
+     * get routes from database according to distance group
+     * ...but don't add routes already in store
+     */
+    getRoutesByDistance: async function(distances: number[])
+    {
+        const distanceList : Route[]  = await myFetch(apiMethods.getRoutesByDs,distances);
+        if (distanceList  != null) {
+            
+            // if (routes.length === 0) {
+            //     Alert( 'Ridehub','No routes found!','','error','OK');
+            //     return null;
+            // }
+            //routes = response;
+            this.mergeRoutes(distanceList);
+            return distanceList;
         }
         else {
             await Alert('Unsuccessful','Could not contact server','','error','OK');
@@ -75,7 +110,7 @@ const Routes = {
         return new Route();
     },
     downloadGpx: async (route: Route) => {
-        let gpx: string = route.gpxData;
+        let gpx: string = route.route;
     
         if (gpx.length>0) {
             const link = document.createElement('a');

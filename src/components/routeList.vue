@@ -2,7 +2,9 @@
 
 import { ref , onMounted, type Ref } from 'vue'
 import { myFetch } from '@/utils/fetch'
-import { apiMethods, Route, User } from '../../../ridehub-common'
+import { apiMethods} from '../../../ridehub-server/src/common/apimethods'
+import { User } from '../../../ridehub-server/src/common/user'
+import { Route } from '../../../ridehub-server/src/common/route'
 import { AlertError} from '../utils/alert'
 //import { User } from '../utils/user'
 //import { Route } from '../utils/route'
@@ -39,15 +41,19 @@ onMounted(() => {
     climbingStr.value =   [] as string[];
     climbingColour.value =[] as string[];
     climbingRatio.value =[] as number[];
-    routeList.value = Routes.filteredList(minRouteLength.value,maxRouteLength.value,alphaOrder.value);
+    
     updateList();
     
 })
-function updateList()
+async function updateList()
 {
     function DestinationString(dest : string) {
       return (dest.length >= 30) ? dest.slice(0, 29) + '...' : dest;
     }
+    const result = await Routes.getRoutesByDistance([minRouteLength.value,maxRouteLength.value]);
+    if (result === null)    throw new Error(`Cannot get routes`);
+
+    routeList.value = Routes.filteredList(minRouteLength.value,maxRouteLength.value,alphaOrder.value);
     routeList.value.forEach((route,index) => {
       if (route.id > 0)
       {
@@ -70,7 +76,7 @@ async function viewRoute( index : number, chosen : boolean) {
     AlertError('internal problem','Route not found');
     return;
   }
-  if (route.gpxData != null && route.gpxData.length > 100) {
+  if (route.route != null && route.route.length > 100) {
     console.log('route gpx aleady in store');
     emit('showRoute',route,chosen);
   }
@@ -78,7 +84,7 @@ async function viewRoute( index : number, chosen : boolean) {
     const gpxdata  = await myFetch(apiMethods.getGpx, route.id);
     if (gpxdata != null) {
 
-        route.gpxData = gpxdata.route;
+        route.route = gpxdata.route;
         emit('showRoute',route,chosen);
     }
   }
