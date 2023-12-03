@@ -1,7 +1,7 @@
 
 <script setup lang="ts">
 import {  ref, watch,onMounted,onBeforeUnmount, onUpdated, type Ref} from 'vue'
-import type { Map } from 'leaflet';
+import { type Map } from 'leaflet';
 import "leaflet/dist/leaflet.css";
 import * as L from 'leaflet';
 import 'leaflet-gpx';
@@ -22,15 +22,16 @@ import type { LatLngExpression } from 'leaflet';
 import type { LineString, MultiLineString } from 'geojson';
 
 const props = defineProps<{
-  routes : Route[]
-  currentRoute : Route
+  routes : Route[]   // one of which (cuuernt route?) may be highlighted
+  //currentRoute : Route
   // showProfile : boolean
   //tab : Tabs
+  updates : number;
   user : User
   map : Map | null
 }>()
 
-const emit = defineEmits(['defineMap','updateRouteInfo']);
+const emit = defineEmits(['defineMap','updateRouteInfo','setRoute']);
 
 var map: Map | null = null;
 const mapMessage = ref('');
@@ -44,11 +45,12 @@ let mapKey = 0;
 let latlngs = ref() as Ref<L.LatLng[] | L.LatLng[][] | L.LatLng[][][]>;
 let routeLine: L.Polyline<LineString, any>;
 let numOfRoutes = 0;
-let bounds: L.LatLngBounds;
+let bounds: L.LatLngBounds | null;
 let mapItems : L.Layer[] = [];
 let showProfile = false;
 
 function setupMap() {
+    console.log('set up map: routes: ' + props.routes.length)
     if (map != null) {
         map.off();
         map.remove();
@@ -59,7 +61,8 @@ function setupMap() {
         map = L.map('mapContainer', {
           center: [50.19,-5.05],    // or centre of cornwall?
           zoom:     9.5,
-          zoomControl: false 
+          zoomControl: false ,
+          zoomSnap: 0.1
         });
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19,
@@ -85,9 +88,8 @@ function setupMap() {
 
 onMounted(() => {
     map = props.map;
-    // if (map === null)
-    // return;
-    setupMap();
+    if (map === null)
+        setupMap();
 
     // var bounds = [[50.1, -5.4], [50.3, - 4.8]];  // most of Cornwall
     // map.fitBounds(bounds);
@@ -99,6 +101,14 @@ onBeforeUnmount(() => {
         }
 })
 
+// function highlightedRoute(route : Route) : boolean{
+//     if (props.currentRoute.id > 0) {
+//         if (  props.currentRoute.id === route.id) {
+//             return true;
+//         }
+//     }
+//     return false;
+// }
 function updateRoutes() {
     // if (map) 
     //       map.remove();
@@ -111,6 +121,7 @@ function updateRoutes() {
     });
     mapItems = [];
 
+    bounds = null;
     numOfRoutes = props.routes.length;
    let index = 0;
     for (const route of  props.routes) {
@@ -123,19 +134,24 @@ watch(() => props.routes,  () => {
   updateRoutes();
   }
 )
-
-watch(() => props.currentRoute,  () => {
-
-    console.log('ridemap: current route changed');
-    updateRoutes();
+watch(() => props.updates,  () => {
+  console.log('ridemap: updates changed');
+  updateRoutes();
   }
 )
+
+// watch(() => props.currentRoute,  () => {
+
+//     console.log('ridemap: current route changed');
+//     updateRoutes();
+//   }
+// )
 /**
  * increase map bounds to accommodate latest track
  * @param bounds 
  */
 function adjustBounds(newBounds: L.LatLngBounds) {
-    if (bounds === undefined)
+    if (bounds === null)
         bounds = newBounds;
     else if (newBounds.overlaps(bounds))
     // don't expand to show routes not starting in Truro
@@ -167,29 +183,33 @@ function routeColour(index: number) {
 
 function showRoute(route : Route , numOfRoutes: number, index: number)
 {
-    if (route.miniroute === '')
-        return;
-    if (map === null)
-    {
-        //mapMessage.value = "leaflet: map load error";
-        return;
+    if (route.miniroute === '') {
+        if (route.route === '')
+         return;
+        else {
+            // new route just loaded; miniroute not yet produced 
+            route.miniroute = route.route;
+            route.highlighted = true;
+        }
     }
+    if (map === null)
+        return;
+
 // listedRoute is true only if the route has already been added to the list of routes
     const listedRoute  : boolean = (route.id>0);
     let colour = routeColour(index);
-    let lineOpacity = 0.4;
+    let lineOpacity = 0.5;
 
-    if (props.currentRoute.id > 0) {
-        if (  props.currentRoute.id === route.id) {
-          lineOpacity = 1;
-          colour = '#000000' ; // black
-          mapMessage.value = props.currentRoute.dest;
-        }
-        // else {
-        //    colour = '#808080';  // grey?
-        //    lineOpacity = 0.5;
-        // }
+    // if (props.currentRoute.id > 0) {
+    //     if (  props.currentRoute.id === route.id)
+    // (highlightedRoute(route))
+    if (route.highlighted)
+    {
+        lineOpacity = 1;
+        colour = '#000000' ; // black
+        mapMessage.value = route.dest;
     }
+    
 
     mapItems.push(new L.GPX(route.miniroute, {
         async: true,
@@ -206,8 +226,9 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
     }).on('addline', function (e) {
         if (map === null)    {    return;   }
         routeLine = e.line;
-        //console.log('add line: ' + route.id)
-        if (lineOpacity == 1) {
+        let popup : L.Popup;
+
+        if (route.highlighted) {  
             // add a title to the map, on the map itself.
             // code from here https://stackoverflow.com/questions/33767463/overlaying-a-text-box-on-a-leaflet-js-map
             let textbox   = L.Control.extend({
@@ -217,15 +238,8 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
                     return text;
                     },
             });
-            // let gpxButton   = L.Control.extend({
-            //     onAdd: function() {
-            //         var text = L.DomUtil.create('div');
-            //         text.innerHTML = "<button onclick='getGPX()'>" + mapMessage.value + "</button>"
-            //         return text;
-            //         },
-            // });
+ 
             mapTitle = new textbox({ position: 'topleft' }).addTo(map);
-            //let mapButton = new gpxButton({ position: 'topleft' }).addTo(map);
             mapItems.push( L.polylineDecorator(routeLine, {
                 patterns: [{
                     offset: 50,
@@ -238,12 +252,40 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
                 }]
             }).addTo(map));
             latlngs.value = routeLine.getLatLngs();
+            console.log('showing profile');
             showProfile = true;
         }
         else {
+            console.log('not showing profile');
             showProfile = false;
         }
-        
+        e.line.on('mouseover', function (e: { target: any; latlng: L.LatLngExpression; }) {
+                var layer = e.target;
+                layer.setStyle({
+                    opacity: 1,
+                    weight: 5
+                });
+                popup  = L.popup(
+                    {
+                        className: 'custompopup2',
+                        closeButton: false
+                    }
+                )   .setLatLng(e.latlng)
+                    .setContent(route.dest + ": " + route.distance + " km<p></p>Click to select")
+                    .openOn(map);
+            });
+            e.line.on('mouseout', function (e: { target: any; }) {
+                var layer = e.target;
+                layer.setStyle({
+                    opacity: 0.5,
+                    weight: 3
+                });
+                if (L.popup != undefined)
+                    popup.remove();
+            });
+            e.line.on('click', function (e) {
+                emit('setRoute',route);
+            });
 
     }).on('loaded', async function (e) {
 
@@ -251,8 +293,8 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
 
         gpx.value = e.target;
         adjustBounds(gpx.value.getBounds());
-        if (index >= numOfRoutes-1)
-            map.fitBounds(bounds);
+        if (index >= numOfRoutes-1 && bounds != null)
+            map.fitBounds(bounds,{ padding: [20, 20] });
 
         const distance = Math.floor(gpx.value .get_distance() / 1000);
         const elev_gain = Math.floor(gpx.value .get_elevation_gain());
@@ -267,12 +309,13 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
         }
 
 
-        // get some details from the GPX to hand back to the app
+        // if this is a new route, get some details from the GPX to hand back to the app
 
         if (route.distance === 0 || isNaN(route.distance) || route.dest === '' || (route.climbing === 0 && elev_gain > 0)) {
             route.distance = distance;
             route.dest = name;
             route.climbing = elev_gain;
+            
             emit('updateRouteInfo',route);
             if (listedRoute)
                 // also need to update the database
@@ -283,10 +326,7 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
     );
   }    
 
-  function getGPX()
-  {
-    console.log('gpx button')
-  }
+
   const bikeIcon = L.icon({
     iconUrl: bikeMarker,
     iconSize:     [40, 35], 
@@ -318,7 +358,7 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
             <v-btn stacked variant="outlined" color="blue"
             v-if="gpx != undefined" 
             :prepend-icon="mdiRoutes"
-             @click="Routes.downloadGpx(props.currentRoute)" >Get GPX</v-btn>
+             @click="Routes.downloadGpx(props.routes[0])" >Get GPX</v-btn>
         </v-col>
         <v-col cols="11" class="pa-0 ma-0">
             <Profile v-if="gpx != undefined && showProfile" 

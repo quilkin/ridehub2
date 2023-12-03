@@ -308,14 +308,14 @@ function showRoute(route : Route, chosen: boolean) {
   else
     console.log(`show route: ${route.dest}`);
 
-    
-    setTimeout(()=> {
+    route.highlighted = true;
+    setTimeout(()=> {   // todo: why a timeout????
       emit('showRoute',route,true);
     },500)
     destination.value = route.dest;
-      distance.value = route.distance;
-      selectedRoute.value = route;
-     showRouteList.value = !chosen;
+    distance.value = route.distance;
+    selectedRoute.value = route;
+    showRouteList.value = !chosen;
     thisRide.routeID = route.id;
 
 }
@@ -378,7 +378,6 @@ async function readSuccess(event: ProgressEvent<FileReader>) {
   emit('showRoute',newRoute,false);
   watch(() => props.newRoute, (first,second) => {
     // wait for emit to finish (map will update and find data from gpx) then update the distance etc
-    //console.log( "Watch props function called with args:", first.dest,  second.dest  );
     if (first.id == 0) {
       // ony change if this is a new route just uploaded
        destination.value = first.dest;
@@ -394,6 +393,9 @@ function loadGpx() {
   reader.onload = readSuccess;
   reader.readAsText(file);
   showFileUpload.value = false;
+  // put route into map
+
+  
 }
 
 

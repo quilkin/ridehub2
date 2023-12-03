@@ -13,6 +13,8 @@ import { AlertError, Message } from '../utils/alert'
 import Routes  from '../utils/routes'
 import RideDetails from './rideDetails.vue'
 import rideData from '@/utils/ridedata'
+import DatePicker from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css';
 
 const props = defineProps<{
   date : Date
@@ -20,8 +22,9 @@ const props = defineProps<{
  // rideIndex : number
 }>()
 
-const emit = defineEmits(['showRoute','showRoutes','logIn','editRide','participantsUpdated','updateRideIndex']);
+const emit = defineEmits(['showRoute','showRoutes','logIn','editRide','participantsUpdated','updateRideIndex','newDate']);
 const showTooltips = ref(true);
+const changeDate = ref(false);
 const rides = ref() as Ref<Ride[]>
 
 // data to be shown for each ride
@@ -192,7 +195,7 @@ function createRideList() {
 
 var prevDate = 'x';
 var thisDate = '';
-function newDateReqd(date : number) {
+function dateTitleReqd(date : number) {
   thisDate = TimesDates.StrFromIntDays(date);
   if (thisDate != prevDate) {
     prevDate = thisDate;
@@ -201,6 +204,11 @@ function newDateReqd(date : number) {
   return false;
 }
 
+const workingDate = ref(props.date);
+function newDate() {
+    changeDate.value = false;
+    emit("newDate",workingDate.value);
+  }
 async function viewRoute(index : number) {
     const ride : Ride = rides.value[index];
     if (ride === null || ride==undefined) {
@@ -234,9 +242,17 @@ async function viewRoute(index : number) {
 </script>
 
 <template>
+    <!-- <DatePicker v-if="changeDate"
+          inline auto-apply 
+           v-model="workingDate"
+           locale="en-UK"
+           @update:modelValue="newDate" 
+           :six-weeks="true"   /> -->
 <v-list lines="three"  density="compact">
     <v-list-item v-for="(ride, i) in rides" :key="i"  @click="viewRoute(i)">
-      <v-list-item-title v-if="newDateReqd(ride.date)" style="background-color:rgb(164, 189, 197);" >{{TimesDates.StrFromIntDays(ride.date)}}</v-list-item-title>
+      <v-list-item-title v-if="dateTitleReqd(ride.date)" style="background-color:rgb(164, 189, 197);" @click="changeDate=true">
+        {{TimesDates.StrFromIntDays(ride.date)}}
+      </v-list-item-title>
       <v-row  no-gutters>
         <v-col cols="2" sm="1">
           <v-chip size="small" color="blue" variant="outlined">{{ TimesDates.fromIntTime( ride.time) }}</v-chip>
@@ -279,5 +295,6 @@ async function viewRoute(index : number) {
       
     </v-list-item>
   </v-list>
+
 </template>
 

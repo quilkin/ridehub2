@@ -6,27 +6,19 @@ import RideMap from './components/ridemap.vue'
 import RideList from './components/ridelist.vue'
 import DateSelector  from './components/dateSelector.vue'
 import Help from './components/help.vue'
-//import { User } from './utils/user'
 import { Route } from '../../ridehub-server/src/common/route'
 import { Ride} from '../../ridehub-server/src/common/ride'
 import { User} from '../../ridehub-server/src/common/user'
 import { Message } from './utils/alert'
 import { Tabs } from './utils/tabs'
 import type { Map } from 'leaflet';
-import { mdiMap } from '@mdi/js'
-import { mdiCalendarMonth } from '@mdi/js'
-import { mdiBookOpenPageVariant } from '@mdi/js'
-import { mdiAccountEdit } from '@mdi/js'
-import { mdiBike } from '@mdi/js'
-import { mdiCoffee } from '@mdi/js'
-import { mdiHelp } from '@mdi/js'
-
+import { mdiCalendarMonth, mdiBookOpenPageVariant,mdiAccountEdit ,mdiBike,mdiCoffee, mdiHelp, mdiMap } from '@mdi/js'
 
 const currentTab = ref(Tabs.account);
 const currentUser = ref(new User('',''));
 const ridesDate = ref(new Date());
 //const ridesDate = ref(new Date('2022-03-01'));
-const currentRoute = ref(new Route());
+//const currentRoute = ref(new Route());
 const currentRouteList = ref() as Ref<Route[]>
 const currentRideIndex = ref(0);
 const newRoute = ref(new Route());
@@ -34,7 +26,8 @@ const currentRide = ref(new Ride());
 //const showProfile = ref(true);
 const editing = ref(false);
 //const routes= ref() as Ref<Route[]>
-
+const dataChanged = ref(0);
+const routelistChanged = ref(0);
 
 var map: Map | null = null;
 currentRouteList.value = [];
@@ -92,14 +85,52 @@ function doneRideEdit() {
   switchTab(Tabs.calendar);
 }
 
-function updateCurrentRoute(route : Route, profile : boolean ) {
-    currentRoute.value = route;
-   // showProfile.value = profile;
+/**
+ * called from ridemap when different route chosen
+ */
+function highlightRoute(r : Route ) {
+  // find this route in the list and mark it as highlighted
+  // also place it at end of list so that profile will be shown by ridemap
+  function compare(a:Route,b:Route) {
+    if (a.highlighted) return 1;
+    if (b.highlighted) return -1;
+    return 0;
+  }
+   currentRouteList.value.forEach((route,index) => {
+    if (route.id === r.id)
+      route.highlighted = true;
+    else
+      route.highlighted = false;
+  });
+  currentRouteList.value.sort(compare);
+  // let findRoute : Route | undefined =  currentRouteList.value.find((route) => {r.id === route.id});
+  // if (findRoute === undefined)
+  //   return;
+  
+  // let index = currentRouteList.value.indexOf(findRoute);
+  // currentRouteList.value.splice(index,1);
+  // // put it back at end
+  // findRoute.highlighted = true;
+  // currentRouteList.value.push(findRoute);
+  
+
+  // force update of ride list
+  ++routelistChanged.value;
+
+}
+
+/**
+ * Called from edit ride when route is chosen
+ */
+function showRoute(r : Route) {
+  // only show the new route chosen
+  currentRouteList.value = [];
+  currentRouteList.value.push(r);
 }
 function updateCurrentRoutes(routes : Route[] ) {
     currentRouteList.value = routes;
 }
-const dataChanged = ref(0);
+
 
 function newDate(date : Date) {
   ridesDate.value = date;
@@ -109,7 +140,10 @@ function tabChanged() {
   console.log('tab: '+ currentTab.value);
   if (currentTab.value === Tabs.newRide) {
     currentRide.value = new Ride();
-    currentRoute.value = new Route();
+    // force just one (empty) route into ridemap
+    // currentRoute.value = new Route();
+    currentRouteList.value = [];
+    currentRouteList.value.push(new Route());
     editing.value = true;
   }
     
@@ -117,8 +151,11 @@ function tabChanged() {
 function defineMap(newmap : Map) {
   map = newmap;
 }
+/**
+ * this route has just had destination and distanceinfo extracted from its GPX file, via ridemap
+ */
 function updateRouteInfo(r : Route) {
-  newRoute.value = currentRoute.value;
+  newRoute.value = currentRouteList.value[0];
   newRoute.value.dest = r.dest;
   newRoute.value.distance = r.distance;
 }
@@ -159,12 +196,12 @@ function updateRouteInfo(r : Route) {
                  :date = "ridesDate" 
                  :user = "currentUser"
                  
-                 @show-route = "updateCurrentRoute"
+                 @show-route = "highlightRoute"
                  @show-routes = "updateCurrentRoutes"
                  @log-in="logIn"
                  @edit-ride="editRide"
                  @participants-updated="++dataChanged"
-               
+                 @new-date="newDate"
                  >
                 </RideList>
                 
@@ -190,7 +227,7 @@ function updateRouteInfo(r : Route) {
                 :newRoute="newRoute"
                 @log-in="logIn"
                 @done-ride-edit="doneRideEdit"
-                @show-route = "updateCurrentRoute"
+                @show-route = "showRoute"
                 
 
                 >
@@ -232,12 +269,12 @@ function updateRouteInfo(r : Route) {
     <v-col >
       <RideMap
         :map="map"
+        :updates = "routelistChanged"
         :routes = "currentRouteList"
-        :current-route="currentRoute"
         :user = "currentUser"
         @define-map="defineMap"
         @update-route-info="updateRouteInfo"
-
+        @set-route= "highlightRoute"
       ></RideMap>
 
     </v-col>

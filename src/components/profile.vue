@@ -1,16 +1,15 @@
 <script setup lang="ts">
-import {  ref, onMounted,onBeforeMount, onBeforeUpdate} from 'vue'
-import type { Ref } from 'vue'
-import { Line } from 'vue-chartjs'
+import {  ref, onMounted,onBeforeMount, onBeforeUpdate, type Ref} from 'vue'
+
 import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale, Filler,
      type ChartData, type ChartOptions, type Chart } from 'chart.js'
 import { getRelativePosition } from 'chart.js/helpers';
-import type { GPX, LatLngExpression } from 'leaflet'
-import 'leaflet-gpx';
-import 'leaflet-polylineDecorator';
-import { User  } from '../../../ridehub-server/src/common/user'
-import { Tabs } from '../utils/tabs'
+import { Line } from 'vue-chartjs'
 
+import type { GPX } from 'leaflet'
+//import 'leaflet-gpx';
+//import 'leaflet-polylineDecorator';
+import { User  } from '../../../ridehub-server/src/common/user'
 
 const props = defineProps<{
   latlngs : L.LatLng[] | L.LatLng[][] | L.LatLng[][][]
@@ -21,35 +20,32 @@ const props = defineProps<{
 
 const emit = defineEmits(['latlng'])
 
-const chart = ref() as Ref<Chart>;
-const datapoints = 200;
-
-const chartData   = ref({
+const profile = ref() as Ref<Chart>;
+    
+const profileData   = ref({
         // dummy distance/height data 
         labels: [ { data: [10,20,39] } ],
         datasets: [ { data: [50, 150, 100] } ]
     }) as Ref<ChartData>;
 
 
-const chartOptions  = ref( {
+const profileOptions  = ref( {
           responsive: true,
           maintainAspectRatio: true
     }) as Ref<ChartOptions>;
 
-onBeforeMount(() => {
-     ChartJS.register(Title, Tooltip, Legend, PointElement,LineElement, CategoryScale, LinearScale, Filler);
-})
+
+
+ChartJS.register(Title, Tooltip, Legend, PointElement, LineElement, CategoryScale, LinearScale, Filler);
 
 onMounted(() => {
     console.log('Profile mounted')
-    //if (props.tab !== Tabs.newRide && props.gpx != null) {
     if ( props.gpx != null) {
          showProfile(props.gpx,props.latlngs);
      }
 })
 onBeforeUpdate(() => {
-  //  console.log('Profile before update')
-    //if (props.tab !== Tabs.newRide && props.gpx != null) {
+    console.log('Profile updated')
         if ( props.gpx != null) {
          showProfile(props.gpx,props.latlngs);
      }
@@ -58,12 +54,11 @@ onBeforeUpdate(() => {
 
 function showProfile(gpx : GPX, latlngs : L.LatLng[] | L.LatLng[][] | L.LatLng[][][]) {
   
-   
     var elev_data;
-    var latlng_data;
     var maxDistance = Math.floor(gpx.get_distance() / 1000);
     var elev_gain = Math.floor(gpx.get_elevation_gain());
     var elev_loss = Math.floor(gpx.get_elevation_loss());
+    var name = gpx.get_name();
 
     var distanceUnits =' km';
     var heightUnits = ' m';
@@ -86,36 +81,31 @@ function showProfile(gpx : GPX, latlngs : L.LatLng[] | L.LatLng[][] | L.LatLng[]
     elevGainText= elev_gain.toString() + heightUnits;
     elevLossText = elev_loss.toString() + heightUnits;
 
-//latlng_data = gpx.get_coords();
-
     if (gpx.get_elevation_gain() < 1 ||  gpx.get_elevation_loss() < 1 )
     {
         console.log('Insufficient or no elevation data');
         return;
     } 
 
-    var maxheight = 0;
+    //var maxheight = 0;
     if (metric) {
         elev_data = gpx.get_elevation_data();
-        maxheight = gpx.get_elevation_max();
+        //maxheight = gpx.get_elevation_max();
     }
     else {
         elev_data = gpx.get_elevation_data_imp();
-        maxheight = gpx.get_elevation_max_imp();
+        //maxheight = gpx.get_elevation_max_imp();
     }
     // convert array to json for profile 
-    var i, n = elev_data.length;
-    // 200 points should be enough to show trend
-   const spacing = Math.round(n / datapoints);
-   //const spacing = 1;
+//
     let json_elev : { Distance : number, Height : number} [] = []
     let json_latlng: any[]  = []
-    for (i = 0; i < n; i+=spacing) {
+    for (let i = 0; i < elev_data.length; i++) {
         json_elev.push({Distance: elev_data[i][0], Height: Math.round(elev_data[i][1])});
         json_latlng.push(latlngs[i]);
     }
 
-    chartData.value =      {
+    profileData.value =      {
 
            labels: json_elev.map(row => row.Distance),
            
@@ -129,15 +119,10 @@ function showProfile(gpx : GPX, latlngs : L.LatLng[] | L.LatLng[][] | L.LatLng[]
             }
             ]
         };
-    chartOptions.value = {
+    profileOptions.value = {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-            // decimation: {
-            //     enabled: true,
-            //     algorithm: 'min-max'
-            //     //samples: datapoints
-            // },
             legend: {
     	        display: false
             },
@@ -164,9 +149,9 @@ function showProfile(gpx : GPX, latlngs : L.LatLng[] | L.LatLng[][] | L.LatLng[]
             }
         },
         onHover: (e) => {
-            if (chart.value === null)
+            if (profile.value === null)
                 return;
-            const thisChart = chart.value.chart;
+            const thisChart = profile.value.chart;
             const canvasPosition = getRelativePosition(e, thisChart);
 
             // Substitute the appropriate scale IDs
@@ -189,11 +174,12 @@ function showProfile(gpx : GPX, latlngs : L.LatLng[] | L.LatLng[][] | L.LatLng[]
 
 <template>
     <v-container class="chart-container">
-    <Line
-        ref="chart"
-        :data = "chartData"
-        :options = "chartOptions"
-    />
+      <Line
+        ref="profile"
+        :data = "profileData"
+        :options = "profileOptions"
+      />
+
 </v-container>
 </template>
 
