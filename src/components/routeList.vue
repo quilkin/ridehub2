@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import { ref , onMounted, type Ref } from 'vue'
+import { ref ,onMounted, type Ref } from 'vue'
 import { myFetch } from '@/utils/fetch'
 import { apiMethods} from '../../../ridehub-server/src/common/apimethods'
 import { User } from '../../../ridehub-server/src/common/user'
@@ -15,7 +15,6 @@ import { mdiBike } from '@mdi/js'
 const minRouteLength = ref(0);
 const alphaOrder = ref(1);
 const maxRouteLength = ref(50);
-const emit = defineEmits(['showRoute']);
 const routeList= ref() as Ref<Route[]>;
 const chosenRoute = ref() as Ref<Route>;
 //const menuOpen = ref(true);
@@ -34,6 +33,8 @@ let climbingReverse = false;
 const props = defineProps<{
   user : User
 }>()
+
+const emit = defineEmits(['showRoute','newRouteList']);
 
 onMounted(() => {
     destinationStr.value =[] as string[];
@@ -64,6 +65,7 @@ async function updateList()
         climbingRatio.value[index] = routeFuncs.climbingRatio(route);
       }
     });
+    emit('newRouteList',routeList.value);
 }
 
 
@@ -81,14 +83,16 @@ async function viewRoute( index : number, chosen : boolean) {
     emit('showRoute',route,chosen);
   }
   else {
-    const gpxdata  = await myFetch(apiMethods.getGpx, route.id);
-    if (gpxdata != null) {
+    emit('showRoute',route,chosen);
 
-        route.route = gpxdata.route;
-        emit('showRoute',route,chosen);
-    }
+    // const gpxdata  = await myFetch(apiMethods.getGpx, route.id);
+    // if (gpxdata != null) {
+
+    //     route.route = gpxdata.route;
+    //     emit('showRoute',route,chosen);
+    // }
   }
-    chosenRoute.value = route;
+  chosenRoute.value = route;
 }
 
 // async function routeChosen(index : number)

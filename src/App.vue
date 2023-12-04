@@ -6,6 +6,7 @@ import RideMap from './components/ridemap.vue'
 import RideList from './components/ridelist.vue'
 import DateSelector  from './components/dateSelector.vue'
 import Help from './components/help.vue'
+import RouteList from './components/routeList.vue'
 import { Route } from '../../ridehub-server/src/common/route'
 import { Ride} from '../../ridehub-server/src/common/ride'
 import { User} from '../../ridehub-server/src/common/user'
@@ -17,15 +18,11 @@ import { mdiCalendarMonth, mdiBookOpenPageVariant,mdiAccountEdit ,mdiBike,mdiCof
 const currentTab = ref(Tabs.account);
 const currentUser = ref(new User('',''));
 const ridesDate = ref(new Date());
-//const ridesDate = ref(new Date('2022-03-01'));
-//const currentRoute = ref(new Route());
 const currentRouteList = ref() as Ref<Route[]>
 const currentRideIndex = ref(0);
 const newRoute = ref(new Route());
 const currentRide = ref(new Ride());
-//const showProfile = ref(true);
 const editing = ref(false);
-//const routes= ref() as Ref<Route[]>
 const dataChanged = ref(0);
 const routelistChanged = ref(0);
 
@@ -61,16 +58,12 @@ function doneLogin(user : User) {
   if (user===null || user==undefined)
     return;
 
-
-
   if (user.role==0)
   {
     console.log("guest user");
-
   }
   else {
     console.log("login by " + user.name);
-    
   }
   currentUser.value = user;
   switchTab(Tabs.calendar);
@@ -102,30 +95,28 @@ function highlightRoute(r : Route ) {
     else
       route.highlighted = false;
   });
-  currentRouteList.value.sort(compare);
-  // let findRoute : Route | undefined =  currentRouteList.value.find((route) => {r.id === route.id});
-  // if (findRoute === undefined)
-  //   return;
-  
-  // let index = currentRouteList.value.indexOf(findRoute);
-  // currentRouteList.value.splice(index,1);
-  // // put it back at end
-  // findRoute.highlighted = true;
-  // currentRouteList.value.push(findRoute);
-  
-
-  // force update of ride list
+  //currentRouteList.value.sort(compare);
+ 
+  // force update of ride map
   ++routelistChanged.value;
-
 }
 
+function newRouteList(routes : Route[]) {
+  currentRouteList.value = routes;
+  ++routelistChanged.value;
+}
 /**
  * Called from edit ride when route is chosen
  */
-function showRoute(r : Route) {
+function showRoute(r : Route, chosen : boolean) {
+  if (chosen) {
   // only show the new route chosen
-  currentRouteList.value = [];
-  currentRouteList.value.push(r);
+    currentRouteList.value = [];
+    currentRouteList.value.push(r);
+  }
+  else {
+    highlightRoute(r);
+  }
 }
 function updateCurrentRoutes(routes : Route[] ) {
     currentRouteList.value = routes;
@@ -141,12 +132,15 @@ function tabChanged() {
   if (currentTab.value === Tabs.newRide) {
     currentRide.value = new Ride();
     // force just one (empty) route into ridemap
-    // currentRoute.value = new Route();
-    currentRouteList.value = [];
+     currentRouteList.value = [];
     currentRouteList.value.push(new Route());
     editing.value = true;
   }
-    
+  // if (currentTab.value === Tabs.routes) {
+  //    currentRouteList.value = routes;
+  // }
+   
+  
 }
 function defineMap(newmap : Map) {
   map = newmap;
@@ -159,9 +153,7 @@ function updateRouteInfo(r : Route) {
   newRoute.value.dest = r.dest;
   newRoute.value.distance = r.distance;
 }
-// function updateRideIndex(i : number) {
-//   currentRideIndex.value = i;
-// }
+
 </script>
 
 <template>
@@ -177,8 +169,8 @@ function updateRouteInfo(r : Route) {
       @update:model-value="tabChanged"
       >
       <v-tab :value=Tabs.calendar>  <v-icon :icon="mdiCalendarMonth"/>      Rides</v-tab>
-      <!-- <v-tab :value=Tabs.routes>    <v-icon :icon="mdiMap"/>                All routes</v-tab> -->
       <v-tab :value=Tabs.newRide>   <v-icon :icon="mdiBike"/>               New</v-tab>
+      <v-tab :value=Tabs.routes>    <v-icon :icon="mdiMap"/>                All routes</v-tab>
       <v-tab :value=Tabs.coffee>    <v-icon :icon="mdiCoffee"/>             Coffee</v-tab>
       <v-tab :value=Tabs.library>   <v-icon :icon="mdiBookOpenPageVariant"/>Library</v-tab>
       <v-tab :value=Tabs.account>   <v-icon :icon="mdiAccountEdit"/>        Account</v-tab>
@@ -188,9 +180,6 @@ function updateRouteInfo(r : Route) {
       <v-window v-model="currentTab">
         <v-window-item :value=Tabs.calendar>
           <v-container   class="tab-item-wrapper">
-            <!-- <v-row no-gutters>
-              <v-col>  -->
-                
                 <RideList
                  :key = "dataChanged"
                  :date = "ridesDate" 
@@ -205,22 +194,20 @@ function updateRouteInfo(r : Route) {
                  >
                 </RideList>
                 
-                <DateSelector  :icon='true' text="Select other dates" :date="ridesDate"    @new-date="newDate"   />
-              <!-- </v-col>
-            </v-row> -->
+                <!-- <DateSelector  :icon='true' text="Select other dates" :date="ridesDate"    @new-date="newDate"   /> -->
           </v-container>
 
         </v-window-item>
 
-        <!-- <v-window-item :value=Tabs.routes>
-          Routes
-        </v-window-item> -->
+        <v-window-item :value=Tabs.routes>
+          <v-container   class="tab-item-wrapper">
+            <RouteList  :user="currentUser" @show-route="showRoute" @new-route-list="newRouteList"></RouteList>
+          </v-container>
+        </v-window-item>
 
 
         <v-window-item :value=Tabs.newRide>
           <v-container  class="tab-item-wrapper scrollable">
-            <!-- <v-row no-gutters>
-              <v-col>  -->
                 <RideEdit v-if="checkLogIn() && editing"
                 :ride="currentRide"
                 :user="currentUser"
@@ -228,12 +215,9 @@ function updateRouteInfo(r : Route) {
                 @log-in="logIn"
                 @done-ride-edit="doneRideEdit"
                 @show-route = "showRoute"
-                
-
+                @new-route-list="newRouteList"
                 >
               </RideEdit>
-              <!-- </v-col>
-            </v-row> -->
           </v-container>
         </v-window-item>
         

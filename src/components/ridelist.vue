@@ -15,6 +15,7 @@ import RideDetails from './rideDetails.vue'
 import rideData from '@/utils/ridedata'
 import DatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
+import { mdiCalendarMonth } from '@mdi/js'
 
 const props = defineProps<{
   date : Date
@@ -96,6 +97,7 @@ async function getData() {
     if (rides.value.length == 0)
     {
       await Message('No rides found for these dates; please try another date');
+      changeDate.value = true;
       return;
     }
 
@@ -242,16 +244,26 @@ async function viewRoute(index : number) {
 </script>
 
 <template>
-    <!-- <DatePicker v-if="changeDate"
-          inline auto-apply 
-           v-model="workingDate"
-           locale="en-UK"
-           @update:modelValue="newDate" 
-           :six-weeks="true"   /> -->
-<v-list lines="three"  density="compact">
+  <DatePicker v-if="changeDate"
+      inline auto-apply 
+      :teleport="true"
+        v-model="workingDate"
+        locale="en-UK"
+        @update:modelValue="newDate" 
+        six-weeks="center"   />
+
+  <v-list lines="two"  density="compact">
     <v-list-item v-for="(ride, i) in rides" :key="i"  @click="viewRoute(i)">
-      <v-list-item-title v-if="dateTitleReqd(ride.date)" style="background-color:rgb(164, 189, 197);" @click="changeDate=true">
-        {{TimesDates.StrFromIntDays(ride.date)}}
+      <v-list-item-title v-if="dateTitleReqd(ride.date)" style="background-color:rgb(164, 189, 197);" @click.stop>
+        <v-row>
+          <v-col cols="9">
+            {{TimesDates.StrFromIntDays(ride.date)}}
+          </v-col>
+          <v-col v-if="i==0" cols="3"  @click.stop="changeDate=true">
+            <v-icon start :icon="mdiCalendarMonth">  </v-icon> <small>change</small>
+            </v-col>
+        </v-row>
+
       </v-list-item-title>
       <v-row  no-gutters>
         <v-col cols="2" sm="1">
@@ -291,7 +303,7 @@ async function viewRoute(index : number) {
 
         </v-col>
       </v-row>
-      <v-list-item-subtitle v-text="ride.description"></v-list-item-subtitle>
+      <!-- <v-list-item-subtitle v-text="ride.description"></v-list-item-subtitle> -->
       
     </v-list-item>
   </v-list>

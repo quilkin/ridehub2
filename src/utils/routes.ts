@@ -109,12 +109,16 @@ const Routes = {
         }
         return new Route();
     },
-    downloadGpx: async (route: Route) => {
-        let gpx: string = route.route;
-    
-        if (gpx.length>0) {
+    downloadGpx: async (route: Route | undefined) => {
+        //let gpx: string = route.route;
+        if (route == undefined) {
+            await Message('Sorry, route not found for download');
+            return;
+        }
+        const gpx  = await myFetch(apiMethods.getGpx, route.id);
+        if (gpx.route.length>0) {
             const link = document.createElement('a');
-            link.href = 'data:application/gpx+xml;base64,' + Buffer.from(gpx).toString('base64');
+            link.href = 'data:application/gpx+xml;base64,' + Buffer.from(gpx.route).toString('base64');
             link.download = route.dest + '.gpx';
             link.click();
             URL.revokeObjectURL(link.href);

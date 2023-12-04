@@ -62,7 +62,7 @@ const members= ref() as Ref<string[]>;
 //const routeListShown = ref(false);
 
 
-const emit = defineEmits(['doneRideEdit','showRoute','logIn'])
+const emit = defineEmits(['doneRideEdit','showRoute','logIn','newRouteList']);
 
 const props = defineProps<{
   ride : Ride
@@ -89,7 +89,7 @@ onBeforeMount(async() => {
     thisRide = props.ride;
     date.value = TimesDates.fromIntDays(thisRide.date);
     if (thisRide.rideID > 0) {
-      // existing ride being edited
+      // editing ride
       const route  = Routes.findRoute(thisRide.routeID);
       if (route.id > 0) {
         if (route.hasGPX==false)
@@ -101,6 +101,7 @@ onBeforeMount(async() => {
         distance.value = route.distance;
         showRoute(route, false);
       }
+      showRouteList.value = false;
       
     }
     else {
@@ -110,6 +111,7 @@ onBeforeMount(async() => {
       const day = date.value.getDay();
       const daysToAdd = 7-day;
       date.value.setDate(date.value.getDate() + daysToAdd);
+      showRouteList.value = true;
     }
     units.value = props.user.units;
     userName.value = props.user.name;
@@ -310,7 +312,7 @@ function showRoute(route : Route, chosen: boolean) {
 
     route.highlighted = true;
     setTimeout(()=> {   // todo: why a timeout????
-      emit('showRoute',route,true);
+      emit('showRoute',route,chosen);
     },500)
     destination.value = route.dest;
     distance.value = route.distance;
@@ -340,6 +342,9 @@ function newDate(newDate : Date) {
   date.value = newDate;
 }
 
+function newRouteList(routes : Route[]) {
+  emit('newRouteList',routes);
+}
 
 async function readSuccess(event: ProgressEvent<FileReader>) {
   if (event.target === null) {
@@ -418,7 +423,7 @@ function loadGpx() {
                 @click="changeRouteType(RouteTypes.oldGpx)"
                 :variant="buttonType(RouteTypes.oldGpx)">
               Use an existing route from the RideHub list (there's over 100 of them!)</v-btn>
-            <RouteList  v-if="showRouteList" :user="props.user" @show-route="showRoute" ></RouteList>
+            <RouteList  v-if="showRouteList" :user="props.user" @show-route="showRoute" @new-route-list="newRouteList"></RouteList>
 
             <v-btn block class="pa-2 ma-1" color="blue"
                 :variant="buttonType(RouteTypes.newGpx)"

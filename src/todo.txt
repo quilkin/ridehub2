@@ -6,10 +6,8 @@ clear profile when route has no climbing
 show existing ride dates on calendar?
 add comments for anything non-obvious
 SQL error on forgot password
-close route list when one chosen
+
 tree-shaking?
-viewRoute / showRoute / getGPX timing??
 shorten long imported route names
 investigate setting time using calendar
-date line should not be part of ride details
-profiles only work for some routes
+shift map if chosen route not in cornwall

@@ -11,21 +11,15 @@ import { myFetch } from '@/utils/fetch'
 import { apiMethods } from '../../../ridehub-server/src/common/apimethods'
 import { Ride } from '../../../ridehub-server/src/common/ride'
 import { Route} from '../../../ridehub-server/src/common/route'
-import { TimesDates} from '../../../ridehub-server/src/common/timesdates'
 import { User } from '../../../ridehub-server/src/common/user'
 import Profile from './profile.vue'
-import { Tabs } from '../utils/tabs'
 import bikeMarker from '../assets/bike2.png';
 import Routes  from '@/utils/routes'
 import { mdiRoutes} from '@mdi/js'
-import type { LatLngExpression } from 'leaflet';
-import type { LineString, MultiLineString } from 'geojson';
+import type { LineString } from 'geojson';
 
 const props = defineProps<{
-  routes : Route[]   // one of which (cuuernt route?) may be highlighted
-  //currentRoute : Route
-  // showProfile : boolean
-  //tab : Tabs
+  routes : Route[]   // one of which (current route?) may be highlighted
   updates : number;
   user : User
   map : Map | null
@@ -35,19 +29,20 @@ const emit = defineEmits(['defineMap','updateRouteInfo','setRoute']);
 
 var map: Map | null = null;
 const mapMessage = ref('');
-const gpxLinkText = ref('no link available');
-const gpxLink = ref('');
-const downloadName = ref('');
 const gpx = ref() as Ref<L.GPX>;
+const chosenGPX = ref() as Ref<L.GPX>;
 let marker : L.Marker;
 let mapTitle: L.Layer | ({ onAdd: () => HTMLDivElement; } & L.Control) | null;
 let mapKey = 0;
-let latlngs = ref() as Ref<L.LatLng[] | L.LatLng[][] | L.LatLng[][][]>;
+const latlngs = ref() as Ref<L.LatLng[] | L.LatLng[][] | L.LatLng[][][]>;
+const chosenLatLngs = ref() as Ref<L.LatLng[] | L.LatLng[][] | L.LatLng[][][]>;
 let routeLine: L.Polyline<LineString, any>;
 let numOfRoutes = 0;
 let bounds: L.LatLngBounds | null;
 let mapItems : L.Layer[] = [];
-let showProfile = false;
+//let showProfile = false;
+
+
 
 function setupMap() {
     console.log('set up map: routes: ' + props.routes.length)
@@ -57,31 +52,18 @@ function setupMap() {
     }
     latlngs.value = [];
 
-    //console.log('map: ' + (props.route.dest.length>2 ? props.route.dest : 'General' ))
-        map = L.map('mapContainer', {
-          center: [50.19,-5.05],    // or centre of cornwall?
-          zoom:     9.5,
-          zoomControl: false ,
-          zoomSnap: 0.1
-        });
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19,
-          attribution: '© OpenStreetMap'
-        }).addTo(map);
+    map = L.map('mapContainer', {
+        center: [50.19,-5.05],    // or centre of cornwall?
+        zoom:     9.5,
+        zoomControl: false ,
+        zoomSnap: 0.1
+    });
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '© OpenStreetMap'
+    }).addTo(map);
 
-        // add a title to the map, on the map itself.
-        // code from here https://stackoverflow.com/questions/33767463/overlaying-a-text-box-on-a-leaflet-js-map
-
-        // let textbox   = L.Control.extend({
-        //     onAdd: function() {
-        //         var text = L.DomUtil.create('div');
-        //         text.innerHTML = "<h2>" + mapMessage.value + "</h2>"
-        //         return text;
-        //         },
-        // });
-        // new textbox({ position: 'topleft' }).addTo(map);
-
-        emit('defineMap',map);
+    emit('defineMap',map);
     window.dispatchEvent(new Event('resize'));
      
 }
@@ -90,9 +72,6 @@ onMounted(() => {
     map = props.map;
     if (map === null)
         setupMap();
-
-    // var bounds = [[50.1, -5.4], [50.3, - 4.8]];  // most of Cornwall
-    // map.fitBounds(bounds);
     
 })
 onBeforeUnmount(() => {
@@ -101,18 +80,8 @@ onBeforeUnmount(() => {
         }
 })
 
-// function highlightedRoute(route : Route) : boolean{
-//     if (props.currentRoute.id > 0) {
-//         if (  props.currentRoute.id === route.id) {
-//             return true;
-//         }
-//     }
-//     return false;
-// }
 function updateRoutes() {
-    // if (map) 
-    //       map.remove();
-    //setupMap();
+
     if (mapTitle != null) {
          mapTitle.remove()
     }
@@ -129,23 +98,19 @@ function updateRoutes() {
             showRoute(route,numOfRoutes,index++);
     }
 }
+
 watch(() => props.routes,  () => {
   console.log('ridemap: route list changed');
   updateRoutes();
   }
 )
+
 watch(() => props.updates,  () => {
   console.log('ridemap: updates changed');
   updateRoutes();
   }
 )
 
-// watch(() => props.currentRoute,  () => {
-
-//     console.log('ridemap: current route changed');
-//     updateRoutes();
-//   }
-// )
 /**
  * increase map bounds to accommodate latest track
  * @param bounds 
@@ -200,9 +165,6 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
     let colour = routeColour(index);
     let lineOpacity = 0.5;
 
-    // if (props.currentRoute.id > 0) {
-    //     if (  props.currentRoute.id === route.id)
-    // (highlightedRoute(route))
     if (route.highlighted)
     {
         lineOpacity = 1;
@@ -210,7 +172,6 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
         mapMessage.value = route.dest;
     }
     
-
     mapItems.push(new L.GPX(route.miniroute, {
         async: true,
         polyline_options: {
@@ -252,12 +213,13 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
                 }]
             }).addTo(map));
             latlngs.value = routeLine.getLatLngs();
-            console.log('showing profile');
-            showProfile = true;
+            //console.log('showing profile');
+            //showProfile = true;
+            chosenLatLngs.value = latlngs.value;
         }
         else {
-            console.log('not showing profile');
-            showProfile = false;
+            //console.log('not showing profile');
+            //showProfile = false;
         }
         e.line.on('mouseover', function (e: { target: any; latlng: L.LatLngExpression; }) {
                 var layer = e.target;
@@ -292,6 +254,9 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
         if (map === null)    {    return;   }
 
         gpx.value = e.target;
+        if (route.highlighted) { 
+            chosenGPX.value = gpx.value;
+        }
         adjustBounds(gpx.value.getBounds());
         if (index >= numOfRoutes-1 && bounds != null)
             map.fitBounds(bounds,{ padding: [20, 20] });
@@ -358,12 +323,12 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
             <v-btn stacked variant="outlined" color="blue"
             v-if="gpx != undefined" 
             :prepend-icon="mdiRoutes"
-             @click="Routes.downloadGpx(props.routes[0])" >Get GPX</v-btn>
+             @click="Routes.downloadGpx(props.routes.find(r => r.highlighted))" >Get GPX</v-btn>
         </v-col>
         <v-col cols="11" class="pa-0 ma-0">
-            <Profile v-if="gpx != undefined && showProfile" 
-                :gpx ="gpx"
-                :latlngs = "latlngs"
+            <Profile v-if="chosenGPX != undefined " 
+                :gpx ="chosenGPX"
+                :latlngs = "chosenLatLngs"
                 :user = "props.user"
                 @latlng = "updateMarker"
             ></Profile>
