@@ -102,16 +102,18 @@ onBeforeMount(async() => {
         showRoute(route, false);
       }
       showRouteList.value = false;
+      date.value.setHours(thisRide.time / 60);
+      date.value.setMinutes(thisRide.time % 60);
       
     }
     else {
       routeType.value = RouteTypes.none;
       newRide = true;
-        // default to have ride on a Sunday
+        // default to have ride on a Sunday at 9am
       const day = date.value.getDay();
       const daysToAdd = 7-day;
       date.value.setDate(date.value.getDate() + daysToAdd);
-      showRouteList.value = true;
+      date.value.setHours(9);
     }
     units.value = props.user.units;
     userName.value = props.user.name;
@@ -244,7 +246,8 @@ async function submit() {
     
     thisRide.leaderName = props.user.name;
     thisRide.date = TimesDates.toIntDays(date.value);
-    thisRide.time = parseInt(hour) * 60 + parseInt(minute);
+   // thisRide.time = parseInt(hour) * 60 + parseInt(minute);
+    thisRide.time = date.value.getHours() * 60 + date.value.getMinutes();
     thisRide.description = description.value;
     thisRide.groupSize = maxRiders.value;
     thisRide.meetingAt = meetingAt.value;
@@ -335,10 +338,10 @@ function buttonType(t : RouteTypes) {
 
 
 function newDate(newDate : Date) {
-  if (newDate.getTime() < new Date().getTime()) {
-    AlertError('Do you have a time machine?!','Please reset the date');
-          return;
-  }
+  // if (newDate.getTime() < new Date().getTime()) {
+  //   AlertError('Do you have a time machine?!','Please reset the date');
+  //         return;
+  // }
   date.value = newDate;
 }
 
@@ -463,14 +466,14 @@ function loadGpx() {
               </v-col>
             </v-row>
             <v-row >
-              <v-col cols="6"  class="mt-6" >
+              <v-col cols="6"  class="mt-n6" >
                   <v-text-field density="compact" variant="outlined" label="Destination" 
                     v-model="destination"
                     :rules="destinationRules"
 
                     hint='Where are you riding to? Coffee stop?'/>
               </v-col>
-              <v-col cols="6"  class="mt-6" >
+              <v-col cols="6"  class="mt-n6" >
                   <v-text-field density="compact"   variant="outlined" label="Approx Distance" 
                    v-model="distance"
                    :suffix="props.user.units==='k'?'km':'miles'"
@@ -487,40 +490,46 @@ function loadGpx() {
                   hint="Help others to know if they would like to ride this route. e.g. mention 'Gravel' if it's off-road"/>
               </v-col>
             </v-row>
-            <v-row  > <v-col class="mt-n8">   <v-icon :icon="mdiCalendarMonth"/>Ride date and time</v-col> </v-row>
-            <v-row no-gutters>
-              <v-col cols="6" >
+            <!-- <v-row  > <v-col class="mt-n8">   </v-col> </v-row> -->
+            <v-row >
+              <v-col cols ="3" class="mt-n6" >
+              </v-col>
+              <v-col cols ="3" class="mt-n6" >
+                Ride date and time:
+                <!-- <v-icon :icon="mdiCalendarMonth"/>Ride date and time -->
+              </v-col>
+              <v-col cols="6" class="mt-n6" >
                     <DateSelector :icon="false"
                       :text="TimesDates.dateString(date)"
                       :date="date"
                       @new-date="newDate"   />
               </v-col>
 
-              <v-col cols="3" >
+              <!-- <v-col cols="3" >
                   <v-combobox density="compact" variant="underlined" v-model="hour"
-                    label="Hour"
+                      label="Hour"
                     :items="['6', '7', '8', '9', '10', '11','12', '13','14', '15','16','17', '18']"
                   ></v-combobox>
-              </v-col>
+            </v-col>
               <v-col cols="3" >
                   <v-combobox  density="compact" variant="underlined" v-model="minute"
                     label="Minute"
                     :items="['00', '15', '30', '45']"
                   ></v-combobox>
-              </v-col>
+              </v-col> -->
 
             </v-row>
         
             <v-row   no-gutters>
-              <v-col cols="6" >
+              <v-col cols="6"  class="mt-6" >
                   <v-text-field variant="outlined" density="compact" v-model="meetingAt"  :rules="meetingRules"  label="Starting At" 
                       hint="Please be precise if ride is not starting at the usual place" />
               </v-col>
-              <v-col cols="3" >
+              <v-col cols="3"  class="mt-6" >
                   <v-text-field variant="outlined" density="compact" v-model="maxRiders"  :rules="ridersRules"  label="Max riders" 
                    hint="Limit rider numbers if you don't want a big group" />
               </v-col>
-              <v-col cols="3" >
+              <v-col cols="3"  class="mt-6" >
                   <v-text-field variant="outlined" density="compact" v-model="speedStr"
                       :rules="speedRules"
                     :label="props.user.units==='k'?'km/hr':'mph'" 
@@ -533,13 +542,13 @@ function loadGpx() {
   
           <v-row >
             <v-col  v-if="!newRide">
-              <v-btn block color="blue"  class="mt-2"  @click="deleteRide()">Delete Ride</v-btn>
+              <v-btn block color="blue"    @click="deleteRide()">Delete Ride</v-btn>
             </v-col>
             <v-col>
-              <v-btn block color="blue"  variant="outlined" @click="cancel()" class="mt-2">Cancel Edit</v-btn>
+              <v-btn block color="blue"  variant="outlined" @click="cancel()" >Cancel Edit</v-btn>
             </v-col>
             <v-col  v-if="routeType!=RouteTypes.none && showRouteList==false">
-              <v-btn block color="blue" type="submit"  class="mt-2">{{newRide? 'Save ride':'Save edits'}}</v-btn>
+              <v-btn block color="blue" type="submit"  >{{newRide? 'Save ride':'Save edits'}}</v-btn>
             </v-col>
           </v-row>
         </v-form>

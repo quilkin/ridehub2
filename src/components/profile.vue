@@ -27,8 +27,7 @@ const profileData   = ref({
         labels: [ { data: [10,20,39] } ],
         datasets: [ { data: [50, 150, 100] } ]
     }) as Ref<ChartData>;
-
-
+      
 const profileOptions  = ref( {
           responsive: true,
           maintainAspectRatio: true

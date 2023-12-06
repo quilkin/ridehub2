@@ -51,16 +51,16 @@ onMounted(async() => {
   onUpdated(() => {
         if (updated) 
                 return;
-        if (props.user != undefined)
+        if (props.user != undefined && props.user.id>0)
         {
                 currentUser = props.user;
                 if (status.value != Status.reqPassword && status.value != Status.signingUp)
-                        status.value =  props.user.role>0 ? Status.loggedIn : Status.loggingIn;
+                        status.value =  props.user.role>0. ? Status.loggedIn : Status.loggingIn;
         }
         updated = true;
   })
   
-const emit = defineEmits(['doneLogin','doneAccount'])
+const emit = defineEmits(['doneLogin','doneAccount','logout'])
 
 function loggedIn(user : User) {
   emit('doneLogin',user);
@@ -77,7 +77,12 @@ async function completeRegistration(user: string,regcode: string) {
         else if (res.substring(0, 9) === "Thank you")           //"Thank you, you have now registered"
         {
                 await Message("Thank you, you can now log in");
-                status.value = Status.loggingIn;
+                //status.value = Status.loggingIn;
+                          // close current page and re-open, in normal fashion (i.e.no attributes)
+                let thisWindow = window.location.href;
+                let qmark = thisWindow.indexOf('?');
+                thisWindow = thisWindow.substring(0,qmark-1);
+                window.open(thisWindow,"_self")
         } else {
                 await AlertError("Credentials",res);
         }
@@ -87,21 +92,21 @@ async function resetAccount(lostPWuser : string) {
         // get user's details
         // server will check that timeout hasn't expired
         var success = false;
-        const result : string = await myFetch(apiMethods.findUser,  lostPWuser);
-        if (result.substring(0, 2) === "OK") {
+        const user : User = await myFetch(apiMethods.findUser,  lostPWuser);
+        if (user != null) {
 
                 success = true;
                 //passwordReset = true;
                 // remainder of res has login id
-                const userID = result.substring(2);
-                const id = parseInt(userID);
-                await Message("OK, now please set new password");
-                currentUser = new User(lostPWuser,'');
+                // const userID = result.substring(2);
+                // const id = parseInt(userID);
+                await Message(`OK ${user.name}, now please set new password`);
+                currentUser = user;
                 status.value = Status.acccountPage;
         }
 
         else {
-                await AlertError("Credentials",result);
+                await AlertError("Credentials",'email or username problem');
         }
 }
 </script>
@@ -122,6 +127,7 @@ async function resetAccount(lostPWuser : string) {
     <account v-else
             :user="currentUser"
             @done-account="doneAccount"
+            @logout="emit('logout')"
     ></account>
 </template>
 

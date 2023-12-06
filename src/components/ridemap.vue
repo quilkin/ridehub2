@@ -75,6 +75,9 @@ onMounted(() => {
     
 })
 onBeforeUnmount(() => {
+    if (mapTitle != null) {
+         mapTitle.remove()
+    }
         if (map) {
           map.remove();
         }

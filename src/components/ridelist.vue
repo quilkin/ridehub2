@@ -76,7 +76,7 @@ function initialiseArrays() {
 }
 
 function allDataLoaded(i : number) {
-  if (participants.value[i] && reserves.value[i] && destination.value[i])
+  if (participants.value[i] && reserves.value[i] && destination.value[i] )
     return true;
   return false;
 }
@@ -247,6 +247,7 @@ async function viewRoute(index : number) {
   <DatePicker v-if="changeDate"
       inline auto-apply 
       :teleport="true"
+      :enable-time-picker="false"
         v-model="workingDate"
         locale="en-UK"
         @update:modelValue="newDate" 
@@ -294,7 +295,7 @@ async function viewRoute(index : number) {
             :user="props.user"
             :dest="destination[i]"
             :already="already"
-            :route="currentRoute"
+            :route="Routes.findRoute(ride.routeID)"
             @log-in="$emit('logIn')"
             @participants-updated="$emit('participantsUpdated')"
             @edit-ride="emit('editRide',ride)"

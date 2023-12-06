@@ -5,9 +5,6 @@ tidy / expand help page
 clear profile when route has no climbing
 show existing ride dates on calendar?
 add comments for anything non-obvious
-SQL error on forgot password
-
 tree-shaking?
 shorten long imported route names
-investigate setting time using calendar
 shift map if chosen route not in cornwall

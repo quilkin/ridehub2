@@ -54,6 +54,7 @@ function checkLogIn()
     }
     return true;
 }
+
 function doneLogin(user : User) {
   if (user===null || user==undefined)
     return;
@@ -68,9 +69,18 @@ function doneLogin(user : User) {
   currentUser.value = user;
   switchTab(Tabs.calendar);
 }
+
 function doneAccount(user : User) {
   currentUser.value = user;
      switchTab(Tabs.calendar);
+}
+/**
+ * called after password has been reset
+ */
+function logout()
+{
+  currentUser.value = new User('','');
+  switchTab(Tabs.calendar);
 }
 function doneRideEdit() {
   editing.value = false;
@@ -84,11 +94,12 @@ function doneRideEdit() {
 function highlightRoute(r : Route ) {
   // find this route in the list and mark it as highlighted
   // also place it at end of list so that profile will be shown by ridemap
-  function compare(a:Route,b:Route) {
-    if (a.highlighted) return 1;
-    if (b.highlighted) return -1;
-    return 0;
-  }
+
+  // function compare(a:Route,b:Route) {
+  //   if (a.highlighted) return 1;
+  //   if (b.highlighted) return -1;
+  //   return 0;
+  // }
    currentRouteList.value.forEach((route,index) => {
     if (route.id === r.id)
       route.highlighted = true;
@@ -103,7 +114,7 @@ function highlightRoute(r : Route ) {
 
 function newRouteList(routes : Route[]) {
   currentRouteList.value = routes;
-  ++routelistChanged.value;
+  //++routelistChanged.value;
 }
 /**
  * Called from edit ride when route is chosen
@@ -240,7 +251,8 @@ function updateRouteInfo(r : Route) {
               :user="currentUser"
               @done-login="doneLogin"
               @done-account="doneAccount"
-            ></account-actions>
+              @logout="logout"
+             ></account-actions>
         </v-container>
         </v-window-item>
         <v-window-item :value=Tabs.help>

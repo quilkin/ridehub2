@@ -5,15 +5,11 @@ import { ref, onBeforeMount, onUpdated } from 'vue'
 import {nameRules, emailRules} from '../../utils/rules'
 import { myFetch } from '@/utils/fetch'
 import { apiMethods } from '../../../../ridehub-server/src/common/apimethods'
-import { Ride } from '../../../../ridehub-server/src/common/ride'
-import { Route} from '../../../../ridehub-server/src/common/route'
-import { TimesDates} from '../../../../ridehub-server/src/common/timesdates'
 import { User } from '../../../../ridehub-server/src/common/user'
 import { Alert, AlertError } from '../../utils/alert'
-//import { User } from '../../utils/user'
 import { mdiEye } from '@mdi/js'
 import { mdiEyeOff } from '@mdi/js'
-import { Events } from '../../utils/events'
+
 
 const userName = ref('');
 const email = ref('');
@@ -26,10 +22,6 @@ const units = ref('k')
 const climbing = ref('y')
 const notify = ref('y')
 const emit = defineEmits(['doneAccount'])
-
-// const emit = defineEmits<{
-//   (e: Events.doneAccount): void
-// }>()
 
 const props = defineProps<{
   user : User
@@ -69,7 +61,11 @@ async function submit() {
       if (response != null) {
         if (response == 'OK') {
           await Alert('Registration', "Your details have been saved",'','info','OK');
-          emit('doneAccount');
+          // close current page and re-open, in normal fashion (i.e.no attributes)
+          let thisWindow = window.location.href;
+          let qmark = thisWindow.indexOf('?');
+          thisWindow = thisWindow.substring(0,qmark-1);
+          window.open(thisWindow,"_self")
         }
         else {
           await AlertError('Registration',response);
