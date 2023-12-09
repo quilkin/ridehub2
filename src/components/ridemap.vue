@@ -13,7 +13,7 @@ import { Ride } from '../../../ridehub-server/src/common/ride'
 import { Route} from '../../../ridehub-server/src/common/route'
 import { User } from '../../../ridehub-server/src/common/user'
 import Profile from './profile.vue'
-import bikeMarker from '../assets/bike2.png';
+import bike from '../assets/bike2.png';
 import Routes  from '@/utils/routes'
 import { mdiRoutes} from '@mdi/js'
 import type { LineString } from 'geojson';
@@ -30,8 +30,8 @@ const emit = defineEmits(['defineMap','updateRouteInfo','setRoute']);
 var map: Map | null = null;
 const mapMessage = ref('');
 const gpx = ref() as Ref<L.GPX>;
-const chosenGPX = ref() as Ref<L.GPX>;
-let marker : L.Marker;
+const chosenGPX = ref() as Ref<L.GPX | null>;
+let bikeMarker : L.Marker;
 let mapTitle: L.Layer | ({ onAdd: () => HTMLDivElement; } & L.Control) | null;
 let mapKey = 0;
 const latlngs = ref() as Ref<L.LatLng[] | L.LatLng[][] | L.LatLng[][][]>;
@@ -41,6 +41,7 @@ let numOfRoutes = 0;
 let bounds: L.LatLngBounds | null;
 let mapItems : L.Layer[] = [];
 //let showProfile = false;
+let newBounds = ref(0);
 
 
 
@@ -72,6 +73,7 @@ onMounted(() => {
     map = props.map;
     if (map === null)
         setupMap();
+    newBounds.value = 0;
     
 })
 onBeforeUnmount(() => {
@@ -85,22 +87,34 @@ onBeforeUnmount(() => {
 
 function updateRoutes() {
 
-    if (mapTitle != null) {
-         mapTitle.remove()
-    }
     mapItems.forEach((item) => {
         item.remove();
     });
+    if (mapTitle != null) {
+         mapTitle.remove()
+    }
+    if (bikeMarker)
+        bikeMarker.remove();
+    
     mapItems = [];
 
     bounds = null;
     numOfRoutes = props.routes.length;
-   let index = 0;
+    for (const route of  props.routes) {
+        if (route.hasGPX == false)
+            --numOfRoutes;
+        }
+
+    let index = 0;
     for (const route of  props.routes) {
         if (route.hasGPX)
             showRoute(route,numOfRoutes,index++);
+        else {
+            chosenGPX.value = null;
+
+        }
     }
-}
+ }
 
 watch(() => props.routes,  () => {
   console.log('ridemap: route list changed');
@@ -113,6 +127,7 @@ watch(() => props.updates,  () => {
   updateRoutes();
   }
 )
+
 
 /**
  * increase map bounds to accommodate latest track
@@ -216,14 +231,9 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
                 }]
             }).addTo(map));
             latlngs.value = routeLine.getLatLngs();
-            //console.log('showing profile');
-            //showProfile = true;
             chosenLatLngs.value = latlngs.value;
         }
-        else {
-            //console.log('not showing profile');
-            //showProfile = false;
-        }
+
         e.line.on('mouseover', function (e: { target: any; latlng: L.LatLngExpression; }) {
                 var layer = e.target;
                 layer.setStyle({
@@ -264,6 +274,7 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
         if (index >= numOfRoutes-1 && bounds != null)
             map.fitBounds(bounds,{ padding: [20, 20] });
 
+
         const distance = Math.floor(gpx.value .get_distance() / 1000);
         const elev_gain = Math.floor(gpx.value .get_elevation_gain());
         //var elev_loss = Math.floor(gpx.value .get_elevation_loss());
@@ -296,7 +307,7 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
 
 
   const bikeIcon = L.icon({
-    iconUrl: bikeMarker,
+    iconUrl:        bike,
     iconSize:     [40, 35], 
     shadowSize:   [50, 40], 
     iconAnchor:   [20, 17], 
@@ -307,13 +318,10 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
   function updateMarker(latlng: L.LatLngExpression ) {
     if (map === null)
         return;
-    if (marker != null) {
-        map.removeLayer(marker);
-        
+    if (bikeMarker != null) {
+        map.removeLayer(bikeMarker);
     }
-
-    marker = new L.Marker(latlng, {icon: bikeIcon}).addTo(map);
-
+    bikeMarker = new L.Marker(latlng, {icon: bikeIcon}).addTo(map);
   }
 
 
@@ -329,7 +337,7 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
              @click="Routes.downloadGpx(props.routes.find(r => r.highlighted))" >Get GPX</v-btn>
         </v-col>
         <v-col cols="11" class="pa-0 ma-0">
-            <Profile v-if="chosenGPX != undefined " 
+            <Profile v-if="chosenGPX" 
                 :gpx ="chosenGPX"
                 :latlngs = "chosenLatLngs"
                 :user = "props.user"

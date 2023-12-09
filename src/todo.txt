@@ -1,10 +1,7 @@
 sort out missing ts definitions
-check promises / errors in account / login
-check route name hasn't been used already
+check route name hasn't been used already?
 tidy / expand help page
-clear profile when route has no climbing
-show existing ride dates on calendar?
 add comments for anything non-obvious
 tree-shaking?
-shorten long imported route names
 shift map if chosen route not in cornwall
+ maybe add a special secret button to allow change of leader?

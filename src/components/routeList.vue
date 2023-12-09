@@ -32,6 +32,8 @@ let climbingReverse = false;
 
 const props = defineProps<{
   user : User
+  // called from the 'all routes' page , not from ride edit
+  allRoutes : boolean
 }>()
 
 const emit = defineEmits(['showRoute','newRouteList']);
@@ -78,12 +80,12 @@ async function viewRoute( index : number, chosen : boolean) {
     AlertError('internal problem','Route not found');
     return;
   }
-  if (route.route != null && route.route.length > 100) {
-    console.log('route gpx aleady in store');
-    emit('showRoute',route,chosen);
-  }
-  else {
-    emit('showRoute',route,chosen);
+  // if (route.route != null && route.route.length > 100) {
+  //   console.log('route gpx aleady in store');
+  //   emit('showRoute',route,chosen);
+  // }
+  // else {
+    emit('showRoute',route,chosen,props.allRoutes);
 
     // const gpxdata  = await myFetch(apiMethods.getGpx, route.id);
     // if (gpxdata != null) {
@@ -91,7 +93,7 @@ async function viewRoute( index : number, chosen : boolean) {
     //     route.route = gpxdata.route;
     //     emit('showRoute',route,chosen);
     // }
-  }
+//}
   chosenRoute.value = route;
 }
 

@@ -21,6 +21,7 @@ const ridesDate = ref(new Date());
 const currentRouteList = ref() as Ref<Route[]>
 const currentRideIndex = ref(0);
 const newRoute = ref(new Route());
+const routeFromList = ref(new Route() );
 const currentRide = ref(new Ride());
 const editing = ref(false);
 const dataChanged = ref(0);
@@ -28,9 +29,12 @@ const routelistChanged = ref(0);
 
 var map: Map | null = null;
 currentRouteList.value = [];
+let rideDates : number[]  = [];
 
 function switchTab(tab: Tabs) {
   currentTab.value = tab;
+
+
 }
 function logIn()
 {
@@ -111,26 +115,42 @@ function highlightRoute(r : Route ) {
   // force update of ride map
   ++routelistChanged.value;
 }
+function chooseRouteFromList()
+{
+  switchTab(Tabs.routes);
+}
 
 function newRouteList(routes : Route[]) {
   currentRouteList.value = routes;
   //++routelistChanged.value;
 }
+
+function showUploadedRoute(r : Route) {
+  currentRouteList.value = [];
+  currentRouteList.value.push(r);
+  highlightRoute(r);
+}
 /**
  * Called from edit ride when route is chosen
  */
-function showRoute(r : Route, chosen : boolean) {
+function showRouteFromList(r : Route, chosen : boolean) {
+  routeFromList.value = new Route();
   if (chosen) {
-  // only show the new route chosen
-    currentRouteList.value = [];
-    currentRouteList.value.push(r);
-  }
-  else {
+
+      if (checkLogIn()) {
+      // go straight to editing ride
+        editing.value = true;
+        routeFromList.value = r;
+        switchTab(Tabs.newRide);
+      }
+    }
+  //else {
     highlightRoute(r);
-  }
+  //}
 }
-function updateCurrentRoutes(routes : Route[] ) {
+function gotRides(routes : Route[], dates : number[] ) {
     currentRouteList.value = routes;
+    rideDates = dates;
 }
 
 
@@ -141,12 +161,14 @@ function newDate(date : Date) {
 function tabChanged() {
   console.log('tab: '+ currentTab.value);
   if (currentTab.value === Tabs.newRide) {
+    routeFromList.value = new Route();
     currentRide.value = new Ride();
     // force just one (empty) route into ridemap
      currentRouteList.value = [];
     currentRouteList.value.push(new Route());
     editing.value = true;
   }
+    
   // if (currentTab.value === Tabs.routes) {
   //    currentRouteList.value = routes;
   // }
@@ -182,8 +204,8 @@ function updateRouteInfo(r : Route) {
       <v-tab :value=Tabs.calendar>  <v-icon :icon="mdiCalendarMonth"/>      Rides</v-tab>
       <v-tab :value=Tabs.newRide>   <v-icon :icon="mdiBike"/>               New</v-tab>
       <v-tab :value=Tabs.routes>    <v-icon :icon="mdiMap"/>                All routes</v-tab>
-      <v-tab :value=Tabs.coffee>    <v-icon :icon="mdiCoffee"/>             Coffee</v-tab>
-      <v-tab :value=Tabs.library>   <v-icon :icon="mdiBookOpenPageVariant"/>Library</v-tab>
+      <!-- <v-tab :value=Tabs.coffee>    <v-icon :icon="mdiCoffee"/>             Coffee</v-tab>
+      <v-tab :value=Tabs.library>   <v-icon :icon="mdiBookOpenPageVariant"/>Library</v-tab> -->
       <v-tab :value=Tabs.account>   <v-icon :icon="mdiAccountEdit"/>        Account</v-tab>
       <v-tab :value=Tabs.help>      <v-icon :icon="mdiHelp"/>               Help</v-tab>
     </v-tabs>
@@ -197,7 +219,7 @@ function updateRouteInfo(r : Route) {
                  :user = "currentUser"
                  
                  @show-route = "highlightRoute"
-                 @show-routes = "updateCurrentRoutes"
+                 @got-rides = "gotRides"
                  @log-in="logIn"
                  @edit-ride="editRide"
                  @participants-updated="++dataChanged"
@@ -212,7 +234,7 @@ function updateRouteInfo(r : Route) {
 
         <v-window-item :value=Tabs.routes>
           <v-container   class="tab-item-wrapper">
-            <RouteList  :user="currentUser" @show-route="showRoute" @new-route-list="newRouteList"></RouteList>
+            <RouteList  :user="currentUser" :allRoutes = "true" @show-route="showRouteFromList" @new-route-list="newRouteList"></RouteList>
           </v-container>
         </v-window-item>
 
@@ -223,16 +245,20 @@ function updateRouteInfo(r : Route) {
                 :ride="currentRide"
                 :user="currentUser"
                 :newRoute="newRoute"
+                :routeFromList = "routeFromList"
+                :ridedates = "rideDates"
                 @log-in="logIn"
                 @done-ride-edit="doneRideEdit"
-                @show-route = "showRoute"
+                @show-route = "showRouteFromList"
                 @new-route-list="newRouteList"
+                @choose-route-from-list="chooseRouteFromList"
+                @show-uploaded-route="showUploadedRoute"
                 >
               </RideEdit>
           </v-container>
         </v-window-item>
         
-        <v-window-item :value=Tabs.coffee>
+        <!-- <v-window-item :value=Tabs.coffee>
           <v-container   class="tab-item-wrapper">
           Coffee  stops - not yet implemented in this version
           </v-container>
@@ -243,7 +269,7 @@ function updateRouteInfo(r : Route) {
           <v-container class="tab-item-wrapper">
           library - not yet implemented in this version
           </v-container>
-        </v-window-item>
+        </v-window-item> -->
 
         <v-window-item :value=Tabs.account>
           <v-container  class="tab-item-wrapper  scrollable">

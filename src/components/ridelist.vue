@@ -23,7 +23,7 @@ const props = defineProps<{
  // rideIndex : number
 }>()
 
-const emit = defineEmits(['showRoute','showRoutes','logIn','editRide','participantsUpdated','updateRideIndex','newDate']);
+const emit = defineEmits(['showRoute','gotRides','logIn','editRide','participantsUpdated','updateRideIndex','newDate']);
 const showTooltips = ref(true);
 const changeDate = ref(false);
 const rides = ref() as Ref<Ride[]>
@@ -44,6 +44,7 @@ let currentRouteList : Route[] | null = [];
 ///highlighted routeFuncs, chosen from list
 let currentRoute : Route = new Route();
 let currentRideIndex = 0;
+let rideDates : number[]  = [];
 
 onBeforeMount(async() => {
 
@@ -89,7 +90,7 @@ async function getData() {
 
   try {
 
-
+    rideDates = [];
     rides.value   = await myFetch(apiMethods.getRides,TimesDates.toIntDays(props.date));
    // rides.value   = await myFetch(apiMethods.getRides,TimesDates.toIntDays(props.date),true);
     if (!rides.value  )  throw new Error(`Cannot get rides`);
@@ -104,12 +105,14 @@ async function getData() {
     rides.value.forEach((ride) => {
         rideIDs.push(ride.rideID);
         routeIDs.push(ride.routeID);
+        rideDates.push(ride.date);
     });
+   // emit('newRideDates');
     // to start with, just get routes for displayed rides
     currentRouteList = await Routes.getRoutesByID(routeIDs);
     if (currentRouteList === null)    throw new Error(`Cannot get routes`);
 
-    emit('showRoutes',currentRouteList);
+    emit('gotRides',currentRouteList, rideDates);
 
     const ppts = await myFetch(apiMethods.getPpts, rideIDs);
     //if (ppts === undefined)    throw new Error(`Cannot get participants`);
@@ -257,11 +260,11 @@ async function viewRoute(index : number) {
     <v-list-item v-for="(ride, i) in rides" :key="i"  @click="viewRoute(i)">
       <v-list-item-title v-if="dateTitleReqd(ride.date)" style="background-color:rgb(164, 189, 197);" @click.stop>
         <v-row>
-          <v-col cols="9">
+          <v-col cols="10">
             {{TimesDates.StrFromIntDays(ride.date)}}
           </v-col>
-          <v-col v-if="i==0" cols="3"  @click.stop="changeDate=true">
-            <v-icon start :icon="mdiCalendarMonth">  </v-icon> <small>change</small>
+          <v-col v-if="i==0" cols="2"  @click.stop="changeDate=true">
+            <small>change</small><v-icon start :icon="mdiCalendarMonth">  </v-icon> 
             </v-col>
         </v-row>
 

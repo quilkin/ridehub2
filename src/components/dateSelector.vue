@@ -1,24 +1,30 @@
 <script setup lang="ts">
-  import { ref } from 'vue'
+  import { ref, type Ref } from 'vue'
   import { mdiCalendarMonth } from '@mdi/js'
    import DatePicker from '@vuepic/vue-datepicker';
   import '@vuepic/vue-datepicker/dist/main.css';
+import TimesDates from '@/utils/timesdates';
   
-  const props = defineProps<{ date : Date, text : string, icon: boolean }>()
+  const props = defineProps<{
+    date : Date,
+    text : string,
+    icon: boolean ,
+    dates : number[]
+    }>()
   const emit = defineEmits(['newDate']);
-  //const datePickerActive = ref(false);
   const workingDate = ref(props.date);
  
   function newDate() {
-    //datePickerActive.value = false;
-    emit("newDate",workingDate.value);
+      emit("newDate",workingDate.value);
   }
-  // function cancel() {
-  //   datePickerActive.value = false;
-  // }
-  const startTime = ref({ hours: 9, minutes: 0 });
 
-  //const date = ref(new Date());
+ // const startTime = ref({ hours: 9, minutes: 0 });
+  const highlightedDates = ref() as Ref<Date[]>;
+  highlightedDates.value = [];
+  props.dates.forEach((intDate)=> {
+    highlightedDates.value.push(TimesDates.fromIntDays(intDate))
+  });
+
   const format = (date : Date) => {
     const day = date.getDate();
     const month = date.toLocaleString('default', { month: 'short' });
@@ -28,6 +34,8 @@
 
     return `${day} ${month} ${year} at ${hrs}:${mins}`;
 }
+
+
 </script>
 
 <template>
@@ -49,10 +57,10 @@
            minutes-increment="15"
            no-hours-overlay
            no-minutes-overlay
-           :highlight-week-days="[0]"
            :clearable="false"
            @update:modelValue="newDate" 
            :min-date="new Date()"
+           :highlight="highlightedDates"
            :six-weeks="true"   />
       <!-- </v-dialog>
     </v-btn> -->

@@ -1,7 +1,7 @@
 
 <script setup lang="ts">
 
-import { ref, type Ref, onBeforeMount} from 'vue'
+import { ref, type Ref, onBeforeMount, onBeforeUpdate} from 'vue'
 import { destinationRules, distanceRules, meetingRules, ridersRules, speedRules, gpxRules, descriptionRules} from '../utils/rules'
 
 import { myFetch } from '@/utils/fetch'
@@ -14,18 +14,11 @@ import Routes  from '../utils/routes'
 import RouteList from './routeList.vue'
 import TimesDates  from '../utils/timesdates'
 import DateSelector  from './dateSelector.vue'
+import ChooseRoute from './chooseRoute.vue'
 import { watch } from 'vue'
 import rideData from '@/utils/ridedata'
 import { mdiRoutes} from '@mdi/js'
 import { mdiCalendarMonth } from '@mdi/js'
-
-enum RouteTypes {
-  none,
-  oldGpx,
-  newGpx,
-  noGpx
-}
-//const loggedIn = ref(true);
 
 const userName = ref('');
 const destination = ref('');
@@ -34,12 +27,9 @@ const gpxfiles= ref() as Ref<File[]>;
 const distance = ref(0);
 const rideDialog = ref(false);
 const rideForm = ref();
-const routeType = ref(RouteTypes.none);
-//const newRoute = ref() as Ref<Route>;
-let newRoute : Route ;
-let thisRide : Ride;
-const selectedRoute = ref(new Route);
-//const oldGPX = ref(false);
+
+const currentRoute = ref() as Ref<Route >;
+const routeHasBeenChosen = ref(false);
 const units = ref('k');
 
 const meetingAt = ref ('Lemon Quay, Truro');
@@ -47,67 +37,91 @@ const description = ref ('');
 const date = ref(new Date());
 const startTime = ref(540);  // default start at 9 am
 const maxRiders = ref(10);
-const minSpeed = ref(18);
-const maxSpeed = ref(20);
+const minSpeed = ref();
+const maxSpeed = ref();
 const speedStr = ref('');
-const showFileUpload = ref(false);
-const showRouteList = ref(false);
+
+// showRouteList = ref(false);
 
 let newRide = false;
+let newRoute : Route ;
+//let currentRoute : Route;
+let thisRide : Ride;
 
 let hour='';
 let minute='';
-let routeXML='' ;
 const members= ref() as Ref<string[]>;
 //const routeListShown = ref(false);
 
 
-const emit = defineEmits(['doneRideEdit','showRoute','logIn','newRouteList']);
+const emit = defineEmits(['doneRideEdit','showRoute','logIn','newRouteList','chooseRouteFromList','showUploadedRoute']);
 
 const props = defineProps<{
   ride : Ride
   user : User
   newRoute : Route
+  routeFromList : Route
+  ridedates : number[]
 }>()
 
-// watch(() => members, (first,second) => {
-//     // wait for member list to load
-//     if (second.length > 0 && first.length==0) {
-
-
-//     }
-//   })
-
-
 onBeforeMount(async() => {
+  console.log('edit - before mount');
+currentRoute.value = new Route();
+routeHasBeenChosen.value = false;
+
+})
+
+onBeforeUpdate(async() => {
+  console.log('edit - before update');
+  routeHasBeenChosen.value = false;
+  update();
+})
+
+watch(() => routeHasBeenChosen.value, (first,second) => {
+  console.log('routeHasBeenChosen: ' + routeHasBeenChosen.value + ' ' + currentRoute.value.id);
+ // update();
+})
+
+function update() {
     if (props.user === undefined || props.ride === undefined)
     {
         AlertError('Internal error','invalid user or ride data');
         return;
     } 
-    
+    currentRoute.value = new Route();
+
     thisRide = props.ride;
     date.value = TimesDates.fromIntDays(thisRide.date);
     if (thisRide.rideID > 0) {
       // editing ride
-      const route  = Routes.findRoute(thisRide.routeID);
-      if (route.id > 0) {
-        if (route.hasGPX==false)
-          routeType.value = RouteTypes.noGpx;
-        else
-          routeType.value = RouteTypes.oldGpx;
-
-        destination.value = route.dest;
-        distance.value = route.distance;
-        showRoute(route, false);
+      currentRoute.value  = Routes.findRoute(thisRide.routeID);
+      if (currentRoute.value.id > 0) {
+        destination.value = currentRoute.value.dest;
+        distance.value = currentRoute.value.distance;
+        showRoute(currentRoute.value, false);
       }
-      showRouteList.value = false;
+      //showRouteList.value = false;
       date.value.setHours(thisRide.time / 60);
       date.value.setMinutes(thisRide.time % 60);
       
     }
     else {
-      routeType.value = RouteTypes.none;
+      if (props.routeFromList.id > 0) {
+        routeHasBeenChosen.value = true;
+        currentRoute.value = props.routeFromList;
+        destination.value = currentRoute.value.dest;
+        distance.value = currentRoute.value.distance;
+        showRoute(currentRoute.value, true);
+      }
+      else if (props.newRoute.hasGPX) {
+        routeHasBeenChosen.value = true;
+        currentRoute.value = props.newRoute;
+        destination.value = currentRoute.value.dest;
+        distance.value = currentRoute.value.distance;
+      }
+      else {
+        currentRoute.value.id = 0;
+      }
       newRide = true;
         // default to have ride on a Sunday at 9am
       const day = date.value.getDay();
@@ -143,7 +157,7 @@ onBeforeMount(async() => {
     if (props.user.role > 1)
        getMembers();
    
-  })
+}
 function cancel() {
     rideDialog.value = false;
     emit('doneRideEdit');
@@ -232,8 +246,8 @@ async function submit() {
               await Message(res);
       }
     }
-    if (newRide == false && selectedRoute.value.id != thisRide.routeID) {
-      routeID = selectedRoute.value.id;
+    if (newRide == false && currentRoute.value.id != thisRide.routeID) {
+      routeID = currentRoute.value.id;
       // todo: need to warn riders that route has changed
       
       await Alert('Route has changed','Please inform any riders that have signed up','using the WhatsApp RideInfo group','info','OK');
@@ -246,7 +260,6 @@ async function submit() {
     
     thisRide.leaderName = props.user.name;
     thisRide.date = TimesDates.toIntDays(date.value);
-   // thisRide.time = parseInt(hour) * 60 + parseInt(minute);
     thisRide.time = date.value.getHours() * 60 + date.value.getMinutes();
     thisRide.description = description.value;
     thisRide.groupSize = maxRiders.value;
@@ -285,28 +298,6 @@ async function submit() {
 
 }
 
-function changeRouteType(t : RouteTypes)
-{
-  routeType.value = t;
-  if (t===RouteTypes.noGpx) {
-    // clear old route from map by showing plain Cornwall
-    emit('showRoute',new Route(),false);
-    showRouteList.value = false;
-    showFileUpload.value = false;
-
-  }
-  else if (t===RouteTypes.newGpx) {
-    showFileUpload.value = !showFileUpload.value;
-    showRouteList.value = false;
-    // prompt for file to upload....
-  }
- else if (t === RouteTypes.oldGpx)  {
-     showRouteList.value = !showRouteList.value;
-     showFileUpload.value = false;
-  }
-  
-}
-
 function showRoute(route : Route, chosen: boolean) {
   if (chosen)
     console.log(`chosen route: ${route.dest}`);
@@ -319,145 +310,52 @@ function showRoute(route : Route, chosen: boolean) {
     },500)
     destination.value = route.dest;
     distance.value = route.distance;
-    selectedRoute.value = route;
-    showRouteList.value = !chosen;
-    thisRide.routeID = route.id;
+    currentRoute.value = route;
+    //showRouteList.value = !chosen;
+    if (thisRide)
+      thisRide.routeID = route.id;
 
 }
-// function routeChosen(route : Route) {
-//   console.log(`route chosen: ${route.dest}`);
-//   showRouteList.value = false;
-//   showRoute(route);
-
-// }
-function buttonType(t : RouteTypes) {
-  if (routeType.value === t)
-    return "tonal";
-  return "outlined";
-}
-
 
 function newDate(newDate : Date) {
-  // if (newDate.getTime() < new Date().getTime()) {
-  //   AlertError('Do you have a time machine?!','Please reset the date');
-  //         return;
-  // }
   date.value = newDate;
 }
 
 function newRouteList(routes : Route[]) {
   emit('newRouteList',routes);
 }
-
-async function readSuccess(event: ProgressEvent<FileReader>) {
-  if (event.target === null) {
-    AlertError('File error','Cannot read file');
-          return;
-  }
-  if (typeof event.target.result !== "string") {
-    AlertError('File error','File contents have incorrect type');
-          return;
-  }
-  routeXML = event.target.result;
-
-  var oParser = new DOMParser();
-  var oDOM = oParser.parseFromString(routeXML, "text/xml");
-  if (oDOM.documentElement.nodeName === "parsererror") {
-          AlertError('File error','File does not appear to be valid GPX or TCX');
-          return;
-  }
-  if (routeXML.includes("TrainingCenterDatabase")) {
-    // tcx needs converting to gpx
-    const res = await myFetch(apiMethods.tcx2gpx,routeXML);
-    if (res === null) 
-        return;
-    if (res.length > 0) {
-      routeXML = res;
-    }
-    else {
-      AlertError('File error','Error converting from TCX to GPX');
-    }
-  }
-  newRoute = new Route();
-  //const route = new Route();
- newRoute.hasGPX = true;
-  newRoute.route = routeXML;
-
-  emit('showRoute',newRoute,false);
-  watch(() => props.newRoute, (first,second) => {
-    // wait for emit to finish (map will update and find data from gpx) then update the distance etc
-    if (first.id == 0) {
-      // ony change if this is a new route just uploaded
-       destination.value = first.dest;
-       distance.value = first.distance;
-    }
-  })
-
+function routeChosen(route : Route) {
+  routeHasBeenChosen.value = true;
+  currentRoute.value = route;
 }
-
-function loadGpx() {
-  const file = gpxfiles.value[0];
-  var reader = new FileReader();
-  reader.onload = readSuccess;
-  reader.readAsText(file);
-  showFileUpload.value = false;
-  // put route into map
-
-  
+function showUploadedRoute(r : Route) {
+  emit('showUploadedRoute',r)
 }
-
-
-
 </script>
 
 <template>
-    
-  <!-- <div class="d-flex align-center flex-column"> -->
-   <v-card  >
+    <v-card  >
       <v-card-title class="headline black" primary-title>
         {{newRide? 'Plan to lead a ride':'Edit your ride'}}
       </v-card-title>
+      <ChooseRoute v-if="routeHasBeenChosen==false"
+        :existing-route="currentRoute"
+        @route-chosen="routeChosen"
+        @show-route="showRoute"
+        @choose-route-from-list="emit('chooseRouteFromList')"
+        @show-uploaded-route="showUploadedRoute"
+      
+      >
+      </ChooseRoute>
       <v-card-text class="pa-3">
         <v-form @submit.prevent="submit"  ref="rideForm">
-          <v-row >
-            <div v-if="newRide"> A ride could do with a route of some sort. So, please choose one of the following:</div>
-
-            <v-btn block  class="pa-2 ma-1" color="blue" 
-                @click="changeRouteType(RouteTypes.oldGpx)"
-                :variant="buttonType(RouteTypes.oldGpx)">
-              Use an existing route from the RideHub list (there's over 100 of them!)</v-btn>
-            <RouteList  v-if="showRouteList" :user="props.user" @show-route="showRoute" @new-route-list="newRouteList"></RouteList>
-
-            <v-btn block class="pa-2 ma-1" color="blue"
-                :variant="buttonType(RouteTypes.newGpx)"
-                 @click="changeRouteType(RouteTypes.newGpx)">
-              Upload a new GPX route that you have created or found elsewhere</v-btn>
-            <v-row v-if="showFileUpload">
-              <v-col cols="8" class="mt-6" >
-                <v-file-input v-model="gpxfiles"  density="compact" variant="outlined"
-                    accept=".gpx,.tcx"
-                    label="Find GPX or TCX file"
-                    :prepend-icon="mdiRoutes"
-                    :rules="gpxRules"
-                  ></v-file-input> 
-                  
-              </v-col>
-              <v-col cols = "4" class="mt-6" >
-                <v-btn color="blue" class="ma-2"  variant="outlined" @click="loadGpx">Load into RideHub</v-btn>
-              </v-col>
-            </v-row>
-            <v-btn block class="pa-2 ma-1" color="blue"
-                :variant="buttonType(RouteTypes.noGpx)"
-                @click="changeRouteType(RouteTypes.noGpx)">
-              Have a simple ride to somewhere, with no defined route</v-btn>
-          </v-row>
-          <!-- <v-spacer></v-spacer> -->
-          <div  v-if="routeType!=RouteTypes.none && showRouteList==false &&  showFileUpload==false" >
+      
+          <div  v-if="routeHasBeenChosen" >
           <!-- <v-container  class="pa-0"> -->
             <v-row v-if="props.user.role>1" >
               <!-- only for admin users, to change ride leader -->
               <!-- todo: maybe add a special secret button to override this? -->
-              <v-col cols="6"  class="mt-6" >
+              <v-col cols="6"  >
                 <v-autocomplete
                   v-model = "leader"
                   label="Leader"
@@ -466,19 +364,19 @@ function loadGpx() {
               </v-col>
             </v-row>
             <v-row >
-              <v-col cols="6"  class="mt-n6" >
+              <v-col cols="6"   >
                   <v-text-field density="compact" variant="outlined" label="Destination" 
                     v-model="destination"
                     :rules="destinationRules"
 
                     hint='Where are you riding to? Coffee stop?'/>
               </v-col>
-              <v-col cols="6"  class="mt-n6" >
+              <v-col cols="6"   >
                   <v-text-field density="compact"   variant="outlined" label="Approx Distance" 
                    v-model="distance"
                    :suffix="props.user.units==='k'?'km':'miles'"
                    :rules="distanceRules"
-                   :disabled="routeType!=RouteTypes.noGpx" 
+                   :disabled="currentRoute.distance>0" 
                    hint="A rough indication, need not be exact"/>
               </v-col>
             </v-row>
@@ -496,10 +394,9 @@ function loadGpx() {
               </v-col>
               <v-col cols ="3" class="mt-n6" >
                 Ride date and time:
-                <!-- <v-icon :icon="mdiCalendarMonth"/>Ride date and time -->
               </v-col>
               <v-col cols="6" class="mt-n6" >
-                    <DateSelector :icon="false"
+                    <DateSelector :icon="false" :dates="ridedates"
                       :text="TimesDates.dateString(date)"
                       :date="date"
                       @new-date="newDate"   />
@@ -547,7 +444,7 @@ function loadGpx() {
             <v-col>
               <v-btn block color="blue"  variant="outlined" @click="cancel()" >Cancel Edit</v-btn>
             </v-col>
-            <v-col  v-if="routeType!=RouteTypes.none && showRouteList==false">
+            <v-col  v-if="routeHasBeenChosen">
               <v-btn block color="blue" type="submit"  >{{newRide? 'Save ride':'Save edits'}}</v-btn>
             </v-col>
           </v-row>
