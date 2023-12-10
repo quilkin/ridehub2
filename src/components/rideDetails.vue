@@ -162,8 +162,8 @@
 //         await Message('Sorry, no GPX available for this route');
 //   }
 function speedStr() {
-    let speeds = rideData.speedsToString(ride.minSpeed,ride.maxSpeed);
-    if (speeds =='0') return ''
+    let speeds = rideData.speedsToString(ride.minSpeed,ride.maxSpeed,props.user.units);
+    if (speeds =='') return ''
     return speeds + (props.user.units=='k'?' kph':' mph');
 }
 

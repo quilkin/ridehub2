@@ -53,6 +53,7 @@ import TimesDates from '@/utils/timesdates';
            locale="en-UK"
            :format="format"
            time-picker-inline
+           :teleport="true"
            v-model="workingDate"
            minutes-increment="15"
            no-hours-overlay

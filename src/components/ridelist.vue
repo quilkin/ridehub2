@@ -144,8 +144,8 @@ async function getData() {
   }
 }   
 function speedStr(ride : Ride) {
-    let speeds = rideData.speedsToString(ride.minSpeed,ride.maxSpeed);
-    if (speeds =='0') return ''
+    let speeds = rideData.speedsToString(ride.minSpeed,ride.maxSpeed,props.user.units);
+    if (speeds =='') return ''
     return speeds + (props.user.units=='k'?' kph':' mph');
 }
 
@@ -200,7 +200,9 @@ function createRideList() {
 
 var prevDate = 'x';
 var thisDate = '';
-function dateTitleReqd(date : number) {
+function dateTitleReqd(date : number, index: number) {
+  if (index==0)
+   return true;
   thisDate = TimesDates.StrFromIntDays(date);
   if (thisDate != prevDate) {
     prevDate = thisDate;
@@ -258,7 +260,7 @@ async function viewRoute(index : number) {
 
   <v-list lines="two"  density="compact">
     <v-list-item v-for="(ride, i) in rides" :key="i"  @click="viewRoute(i)">
-      <v-list-item-title v-if="dateTitleReqd(ride.date)" style="background-color:rgb(164, 189, 197);" @click.stop>
+      <v-list-item-title v-if="dateTitleReqd(ride.date,i)" style="background-color:rgb(164, 189, 197);" @click.stop>
         <v-row>
           <v-col cols="10">
             {{TimesDates.StrFromIntDays(ride.date)}}

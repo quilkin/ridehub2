@@ -7,17 +7,22 @@ import { AlertError, YesNo, Message, chooseFromTwo} from './alert'
 
 const rideData = {
 
-    speedsToString: function(min:number,max:number) {
+    speedsToString: function(min:number,max:number,units:string) {
 
         // make a 'from-to' text for max and min average speeds, e.g. 18-20 kph
+        if (units!='k') {
+            // stored in database as kph
+            min = Math.round(min / 1.6);
+            max =Math.round( max / 1.6);
+        }
         let speedStr = '';
         if (min == max)
             speedStr= min.toString();
         else if (min == 0)
-            speedStr= '0';
+            return '';
         else
             speedStr=  min.toString() + '-' + max.toString();
-        return speedStr;
+        return speedStr ;
 
     },
     stringToSpeeds: function(str : string) : number[]{

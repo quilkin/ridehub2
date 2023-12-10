@@ -1,7 +1,7 @@
 
 <script setup lang="ts">
 
-import { ref, type Ref, onBeforeMount, onBeforeUpdate} from 'vue'
+import { ref, type Ref, onBeforeMount, onMounted, onBeforeUpdate} from 'vue'
 import { destinationRules, distanceRules, meetingRules, ridersRules, speedRules, gpxRules, descriptionRules} from '../utils/rules'
 
 import { myFetch } from '@/utils/fetch'
@@ -70,17 +70,20 @@ currentRoute.value = new Route();
 routeHasBeenChosen.value = false;
 
 })
-
+// onMounted(async() => {
+//   console.log('edit -  mounted');
+//   console.log(props.ride);
+// })
 onBeforeUpdate(async() => {
   console.log('edit - before update');
   routeHasBeenChosen.value = false;
   update();
 })
 
-watch(() => routeHasBeenChosen.value, (first,second) => {
-  console.log('routeHasBeenChosen: ' + routeHasBeenChosen.value + ' ' + currentRoute.value.id);
- // update();
-})
+// watch(() => routeHasBeenChosen.value, (first,second) => {
+//   console.log('routeHasBeenChosen: ' + routeHasBeenChosen.value + ' ' + currentRoute.value.id);
+//  // update();
+// })
 
 function update() {
     if (props.user === undefined || props.ride === undefined)
@@ -98,7 +101,7 @@ function update() {
       if (currentRoute.value.id > 0) {
         destination.value = currentRoute.value.dest;
         distance.value = currentRoute.value.distance;
-        showRoute(currentRoute.value, false);
+    //    showRoute(currentRoute.value, false);
       }
       //showRouteList.value = false;
       date.value.setHours(thisRide.time / 60);
@@ -141,11 +144,11 @@ function update() {
     leader.value = thisRide.leaderName;
     if (props.user.units=='m') {
       // stored as km, not miles, so adjust
-      if (minSpeed.value != undefined) minSpeed.value = Math.round(minSpeed.value/1.6);
-      if (maxSpeed.value != undefined) maxSpeed.value = Math.round(maxSpeed.value/1.6);
+     // if (minSpeed.value != undefined) minSpeed.value = Math.round(minSpeed.value/1.6);
+     // if (maxSpeed.value != undefined) maxSpeed.value = Math.round(maxSpeed.value/1.6);
       distance.value = Math.round(distance.value/1.6);
     }
-    speedStr.value = rideData.speedsToString(minSpeed.value,maxSpeed.value);
+    speedStr.value = rideData.speedsToString(minSpeed.value,maxSpeed.value,props.user.units);
     meetingAt.value = thisRide.meetingAt;
 
       // starttime is stored as total number of minutes
@@ -215,7 +218,7 @@ async function submit() {
     }
     if (props.user.units=='m' && props.user.role < 2) {
        // store as km, not miles, so adjust
-      // but if admin is asjuting someoen else's ride, leave this alone
+      // but if admin is adjusting someoen else's ride, leave this alone
       thisRide.minSpeed = Math.round(thisRide.minSpeed*1.6);
       thisRide.maxSpeed = Math.round(thisRide.maxSpeed*1.6);
       distance.value = Math.round(distance.value*1.6);
@@ -304,16 +307,17 @@ function showRoute(route : Route, chosen: boolean) {
   else
     console.log(`show route: ${route.dest}`);
 
-    route.highlighted = true;
-    setTimeout(()=> {   // todo: why a timeout????
-      emit('showRoute',route,chosen);
-    },500)
-    destination.value = route.dest;
-    distance.value = route.distance;
-    currentRoute.value = route;
-    //showRouteList.value = !chosen;
-    if (thisRide)
-      thisRide.routeID = route.id;
+  route.highlighted = true;
+  // setTimeout(()=> {   // todo: why a timeout????
+  //   emit('showRoute',route,chosen);
+  // },500)
+  emit('showRoute',route,chosen);
+  destination.value = route.dest;
+  distance.value = route.distance;
+  currentRoute.value = route;
+  //showRouteList.value = !chosen;
+  if (thisRide)
+    thisRide.routeID = route.id;
 
 }
 
@@ -327,6 +331,7 @@ function newRouteList(routes : Route[]) {
 function routeChosen(route : Route) {
   routeHasBeenChosen.value = true;
   currentRoute.value = route;
+  update();
 }
 function showUploadedRoute(r : Route) {
   emit('showUploadedRoute',r)
