@@ -13,13 +13,13 @@ const rideData = {
         if (units!='k') {
             // stored in database as kph
             min = Math.round(min / 1.6);
-            max =Math.round( max / 1.6);
+            max = Math.round( max / 1.6);
         }
         let speedStr = '';
-        if (min == max)
-            speedStr= min.toString();
-        else if (min == 0)
+        if (min == 0)
             return '';
+        else if (min == max)
+            speedStr= min.toString();
         else
             speedStr=  min.toString() + '-' + max.toString();
         return speedStr ;

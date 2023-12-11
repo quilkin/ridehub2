@@ -17,6 +17,7 @@ import bike from '../assets/bike2.png';
 import Routes  from '@/utils/routes'
 import { mdiRoutes} from '@mdi/js'
 import type { LineString } from 'geojson';
+import { Bounds } from 'leaflet';
 
 const props = defineProps<{
   routes : Route[]   // one of which (current route?) may be highlighted
@@ -41,7 +42,8 @@ let numOfRoutes = 0;
 let bounds: L.LatLngBounds | null;
 let mapItems : L.Layer[] = [];
 //let showProfile = false;
-let newBounds = ref(0);
+let newBounds = ref(0)
+let cornwallBounds : L.LatLngBounds;
 
 
 
@@ -53,9 +55,13 @@ function setupMap() {
     }
     latlngs.value = [];
 
+    let topLeft = L.latLng(50.6, -5.7);
+    let bottomright = L.latLng(50.0, -4.6);
+
+    cornwallBounds = L.latLngBounds(topLeft,bottomright);
     map = L.map('mapContainer', {
-        center: [50.19,-5.05],    // or centre of cornwall?
-        zoom:     9.5,
+       // center: [50.19,-5.05],    // or centre of cornwall?
+       // zoom:     9.5,
         zoomControl: false ,
         zoomSnap: 0.1
     });
@@ -63,7 +69,7 @@ function setupMap() {
         maxZoom: 19,
         attribution: '© OpenStreetMap'
     }).addTo(map);
-
+    map.fitBounds(cornwallBounds);
     emit('defineMap',map);
     window.dispatchEvent(new Event('resize'));
      
@@ -133,12 +139,20 @@ watch(() => props.updates,  () => {
  * increase map bounds to accommodate latest track
  * @param bounds 
  */
-function adjustBounds(newBounds: L.LatLngBounds) {
-    if (bounds === null)
+function adjustBounds(newBounds: L.LatLngBounds, hightlighted : boolean) {
+
+    if (hightlighted == undefined) {
+        // show all routes and set bounds to fit all, if they are in Cornwall
+        if (bounds === null)
+            bounds = newBounds;
+        else if (newBounds.overlaps(cornwallBounds) )
+        // don't expand to show routes not starting in Cornwall
+            bounds.extend(newBounds);
+    }
+    else if (hightlighted) {
+        // set bounds to fit the highlighted route only
         bounds = newBounds;
-    else if (newBounds.overlaps(bounds))
-    // don't expand to show routes not starting in Truro
-        bounds.extend(newBounds);
+    }
 
 }
 function routeColour(index: number) {
@@ -181,7 +195,7 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
 // listedRoute is true only if the route has already been added to the list of routes
     const listedRoute  : boolean = (route.id>0);
     let colour = routeColour(index);
-    let lineOpacity = 0.5;
+    let lineOpacity = 0.75;
 
     if (route.highlighted)
     {
@@ -270,7 +284,7 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
         if (route.highlighted) { 
             chosenGPX.value = gpx.value;
         }
-        adjustBounds(gpx.value.getBounds());
+        adjustBounds(gpx.value.getBounds(),route.highlighted);
         if (index >= numOfRoutes-1 && bounds != null)
             map.fitBounds(bounds,{ padding: [20, 20] });
 

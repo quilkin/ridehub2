@@ -41,19 +41,12 @@ const minSpeed = ref();
 const maxSpeed = ref();
 const speedStr = ref('');
 
-// showRouteList = ref(false);
-
-let newRide = false;
-let newRoute : Route ;
-//let currentRoute : Route;
+let newRide = true;
+//let newRoute : Route ;
 let thisRide : Ride;
-
 let hour='';
 let minute='';
 const members= ref() as Ref<string[]>;
-//const routeListShown = ref(false);
-
-
 const emit = defineEmits(['doneRideEdit','showRoute','logIn','newRouteList','chooseRouteFromList','showUploadedRoute']);
 
 const props = defineProps<{
@@ -66,24 +59,21 @@ const props = defineProps<{
 
 onBeforeMount(async() => {
   console.log('edit - before mount');
-currentRoute.value = new Route();
-routeHasBeenChosen.value = false;
-
+  currentRoute.value = new Route();
+  if (props.ride.rideID> 0) {
+    // editing existing ride
+    currentRoute.value.id = props.ride.routeID;
+    newRide = false;
+  }
+  routeHasBeenChosen.value = false;
+  thisRide = props.ride;
 })
-// onMounted(async() => {
-//   console.log('edit -  mounted');
-//   console.log(props.ride);
-// })
+
 onBeforeUpdate(async() => {
   console.log('edit - before update');
   routeHasBeenChosen.value = false;
   update();
 })
-
-// watch(() => routeHasBeenChosen.value, (first,second) => {
-//   console.log('routeHasBeenChosen: ' + routeHasBeenChosen.value + ' ' + currentRoute.value.id);
-//  // update();
-// })
 
 function update() {
     if (props.user === undefined || props.ride === undefined)
@@ -101,9 +91,8 @@ function update() {
       if (currentRoute.value.id > 0) {
         destination.value = currentRoute.value.dest;
         distance.value = currentRoute.value.distance;
-    //    showRoute(currentRoute.value, false);
+
       }
-      //showRouteList.value = false;
       date.value.setHours(thisRide.time / 60);
       date.value.setMinutes(thisRide.time % 60);
       
@@ -125,7 +114,7 @@ function update() {
       else {
         currentRoute.value.id = 0;
       }
-      newRide = true;
+   //   newRide = true;
         // default to have ride on a Sunday at 9am
       const day = date.value.getDay();
       const daysToAdd = 7-day;
@@ -218,13 +207,14 @@ async function submit() {
     }
     if (props.user.units=='m' && props.user.role < 2) {
        // store as km, not miles, so adjust
-      // but if admin is adjusting someoen else's ride, leave this alone
+      // but if admin is adjusting someone else's ride, leave this alone
       thisRide.minSpeed = Math.round(thisRide.minSpeed*1.6);
       thisRide.maxSpeed = Math.round(thisRide.maxSpeed*1.6);
       distance.value = Math.round(distance.value*1.6);
     }
     if (thisRide.routeID == 0 /* && newRoute != null  && newRoute.hasGPX */) {
       //  need to save the route first
+      let newRoute : Route | null = currentRoute.value;
       if (newRoute == null) {
         // new ride without a route
         newRoute = new Route();
@@ -334,7 +324,9 @@ function routeChosen(route : Route) {
   update();
 }
 function showUploadedRoute(r : Route) {
-  emit('showUploadedRoute',r)
+  emit('showUploadedRoute',r);
+  //if (thisRide)
+   // thisRide.routeID = r.id;
 }
 </script>
 

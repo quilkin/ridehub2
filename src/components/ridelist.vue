@@ -145,7 +145,7 @@ async function getData() {
 }   
 function speedStr(ride : Ride) {
     let speeds = rideData.speedsToString(ride.minSpeed,ride.maxSpeed,props.user.units);
-    if (speeds =='') return ''
+    if (speeds =='') return '';
     return speeds + (props.user.units=='k'?' kph':' mph');
 }
 
