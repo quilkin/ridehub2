@@ -13,7 +13,7 @@
   //import { Route } from '@/utils/route'
   import Routes  from '@/utils/routes'
   import { mdiBike } from '@mdi/js'
- 
+
   const props = defineProps<{ 
     ride : Ride ,
     participants : string[],
@@ -39,11 +39,13 @@
   const editRideText = 'Edit/Cancel';
   let buttonText = joinText;
   let spacesLeft = 0;
+  let numberOfRiders = 0;
 
   onMounted(() => {
 
-    let numberOfRiders = participants.length;
-    spacesLeft = ride.groupSize - numberOfRiders - 1; // allow for ride leader!
+    numberOfRiders = participants.length;
+    participants.push('Leader: ' + ride.leaderName);
+   // spacesLeft = ride.groupSize - numberOfRiders - 1; // allow for ride leader!
     if (props.reserves.length > 0) {
         participants.push(" (full): Reserves: ");
         for (const reserve of props.reserves)
@@ -52,9 +54,9 @@
     else if (numberOfRiders ==0 ) {
         participants.push('No riders (yet)');
     }
-    else {
-        participants.push(spacesLeft.toString() + ' spaces left')
-    }
+    // else {
+    //     participants.push(spacesLeft.toString() + ' spaces left')
+    // }
 
     // now decide wether to show 'Join' or 'leave' etc
     if (participants.includes(rider)) {
@@ -148,34 +150,28 @@
 
 }
 
-// async function downloadGpx (route: Route) {
-//     let gpx: string = route.url;
 
-//     if (gpx.length>0) {
-//         const link = document.createElement('a');
-//         link.href = 'data:application/gpx+xml;base64,' + Buffer.from(gpx).toString('base64');
-//         link.download = route.dest + '.gpx';
-//         link.click();
-//         URL.revokeObjectURL(link.href);
-//     }
-//     else
-//         await Message('Sorry, no GPX available for this route');
-//   }
 function speedStr() {
     let speeds = rideData.speedsToString(ride.minSpeed,ride.maxSpeed,props.user.units);
     if (speeds =='') return '';
     return speeds + (props.user.units=='k'?' kph':' mph');
+}
+function joinStr() {
+    if (props.user.name === ride.leaderName)
+        return "Edit + more";
+    return "Join + more"
 }
 
 </script>
 
 <template>
   <div class="text-center">
-    <v-btn size="small" variant='outlined'  color="blue" :prepend-icon="mdiBike" width="100" @click="checkLogin()">
-        More...
+    <v-btn size="small"  variant='outlined'  color="blue" :prepend-icon="mdiBike" width="110" @click="checkLogin()">
+        {{ joinStr()}}
     </v-btn>
     
       <v-dialog 
+        
         v-if="detailsActive"
         activator="parent"
         
@@ -200,6 +196,11 @@ function speedStr() {
             <v-col cols="3" class="mt-n4"><v-chip class="mt-3">Meeting at</v-chip></v-col>
             <v-col cols="9" class="mt-n4"><v-card-text> {{ ride.meetingAt + ' @ ' + TimesDates.fromIntTime(ride.time)}}   </v-card-text></v-col>
         </v-row>
+        <v-row no-gutters>
+            <v-col cols="3" class="mt-n4"><v-chip class="mt-3">Group Size</v-chip></v-col>
+            <v-col cols="9" class="mt-n4"><v-card-text> {{ ride.groupSize + ' riders: (' + (ride.groupSize - numberOfRiders - 1) + ' spaces left)'}}   </v-card-text></v-col>
+        </v-row>
+
         <v-menu activator="#rider-list">
             <v-list>
                 <v-list-item

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, type Ref } from 'vue'
+import { ref, computed, type Ref } from 'vue'
 import accountActions from './components/accountActions.vue'
 import RideEdit from './components/editRide.vue'
 import RideMap from './components/ridemap.vue'
@@ -13,7 +13,7 @@ import { User} from '../../ridehub-server/src/common/user'
 import { Message } from './utils/alert'
 import { Tabs } from './utils/tabs'
 import type { Map } from 'leaflet';
-import { mdiCalendarMonth, mdiBookOpenPageVariant,mdiAccountEdit ,mdiBike,mdiCoffee, mdiHelp, mdiMap } from '@mdi/js'
+import { mdiCalendarMonth, mdiAccountEdit ,mdiBike,mdiCoffee, mdiHelp, mdiMap , mdiDoorOpen} from '@mdi/js'
 
 const currentTab = ref(Tabs.account);
 const currentUser = ref(new User('',''));
@@ -24,8 +24,12 @@ const newRoute = ref(new Route());
 const routeFromList = ref(new Route() );
 const currentRide = ref(new Ride());
 const editing = ref(false);
-const dataChanged = ref(0);
-const routelistChanged = ref(0);
+const rideListChanged = ref(0);
+const routeListChanged = ref(0);
+const highlightChanged = ref(0);
+
+import { useDisplay } from 'vuetify'
+const { mobile } = useDisplay();
 
 var map: Map | null = null;
 currentRouteList.value = [];
@@ -72,7 +76,20 @@ function doneLogin(user : User) {
   }
   currentUser.value = user;
   switchTab(Tabs.calendar);
+  ++routeListChanged.value;
+  // if (mobile.value) {
+  //   var elem = document.documentElement;
+  //   if (elem.requestFullscreen) {
+  //   elem.requestFullscreen();
+  //   } 
+  // }
+  // else if (elem.webkitRequestFullscreen) { /* Safari */
+  //   elem.webkitRequestFullscreen();
+  // } else if (elem.msRequestFullscreen) { /* IE11 */
+  //   elem.msRequestFullscreen();
+  // }
 }
+
 
 function doneAccount(user : User) {
   currentUser.value = user;
@@ -88,7 +105,7 @@ function logout()
 }
 function doneRideEdit() {
   editing.value = false;
-  ++dataChanged.value;
+  ++rideListChanged.value;
   switchTab(Tabs.calendar);
 }
 
@@ -99,21 +116,15 @@ function highlightRoute(r : Route ) {
   // find this route in the list and mark it as highlighted
   // also place it at end of list so that profile will be shown by ridemap
 
-  // function compare(a:Route,b:Route) {
-  //   if (a.highlighted) return 1;
-  //   if (b.highlighted) return -1;
-  //   return 0;
-  // }
    currentRouteList.value.forEach((route,index) => {
     if (route.id === r.id)
       route.highlighted = true;
     else
       route.highlighted = false;
   });
-  //currentRouteList.value.sort(compare);
  
   // force update of ride map
-  ++routelistChanged.value;
+  ++highlightChanged.value;
 }
 function chooseRouteFromList()
 {
@@ -122,7 +133,7 @@ function chooseRouteFromList()
 
 function newRouteList(routes : Route[]) {
   currentRouteList.value = routes;
-  //++routelistChanged.value;
+ // ++routelistChanged.value;
 }
 
 function showUploadedRoute(r : Route) {
@@ -156,10 +167,17 @@ function gotRides(routes : Route[], dates : number[] ) {
 
 function newDate(date : Date) {
   ridesDate.value = date;
-  ++dataChanged.value;
+  ++rideListChanged.value;
 }
 function tabChanged() {
   console.log('tab: '+ currentTab.value);
+  if (currentTab.value === Tabs.exit) {
+    //window.close();
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+    
+  }
   if (currentTab.value === Tabs.newRide) {
     routeFromList.value = new Route();
     currentRide.value = new Ride();
@@ -169,10 +187,14 @@ function tabChanged() {
     editing.value = true;
   }
     
-  // if (currentTab.value === Tabs.routes) {
-  //    currentRouteList.value = routes;
-  // }
-   
+  if (currentTab.value === Tabs.calendar) {
+    // force reload of data
+    ++rideListChanged.value;
+  }
+  if (currentTab.value === Tabs.routes) {
+    // force reload of data
+    ++routeListChanged.value;
+  }
   
 }
 function defineMap(newmap : Map) {
@@ -186,35 +208,48 @@ function updateRouteInfo(r : Route) {
   newRoute.value.dest = r.dest;
   newRoute.value.distance = r.distance;
 }
+function calendarClicked() {
+  ++rideListChanged.value;
+}
+function routesClicked() {
+  ++routeListChanged.value;
+}
+const tabWidth= computed(() => {
+    return mobile.value? {'min-width': '20vw'} : {'min-width': '70px'} 
+})
 
 </script>
 
 <template>
-    <v-sheet >
+  <v-sheet >
     <v-row no-gutters>
     <v-col > 
-      <v-tabs
+      <v-tabs 
       v-model="currentTab"
-      bg-color="transparent"
+      bg-color="blue-lighten-4"
+      center-active
       color="blue"
       show-arrows
       stacked
+      height="60px"
+      :grow="mobile===false"
       @update:model-value="tabChanged"
       >
-      <v-tab :value=Tabs.calendar>  <v-icon :icon="mdiCalendarMonth"/>      Rides</v-tab>
-      <v-tab :value=Tabs.newRide>   <v-icon :icon="mdiBike"/>               New</v-tab>
-      <v-tab :value=Tabs.routes>    <v-icon :icon="mdiMap"/>                All routes</v-tab>
+      <v-tab :value=Tabs.calendar :style="{...tabWidth}" @click="calendarClicked">  <v-icon :icon="mdiCalendarMonth"/>      Rides</v-tab>
+      <v-tab :value=Tabs.newRide :style="{...tabWidth}">   <v-icon :icon="mdiBike"/>               New</v-tab>
+      <v-tab :value=Tabs.routes :style="{...tabWidth}" @click="routesClicked">    <v-icon :icon="mdiMap"/>                Routes</v-tab>
       <!-- <v-tab :value=Tabs.coffee>    <v-icon :icon="mdiCoffee"/>             Coffee</v-tab>
       <v-tab :value=Tabs.library>   <v-icon :icon="mdiBookOpenPageVariant"/>Library</v-tab> -->
-      <v-tab :value=Tabs.account>   <v-icon :icon="mdiAccountEdit"/>        Account</v-tab>
-      <v-tab :value=Tabs.help>      <v-icon :icon="mdiHelp"/>               Help</v-tab>
+      <v-tab :value=Tabs.account :style="{...tabWidth}">    <v-icon :icon="mdiAccountEdit"/>        Account</v-tab>
+      <v-tab :value=Tabs.help :style="{...tabWidth}">      <v-icon :icon="mdiHelp"/>               Help</v-tab>
+      <!-- <v-tab v-if="mobile" :value=Tabs.exit>      <v-icon :icon="mdiDoorOpen"/> Exit</v-tab> -->
     </v-tabs>
 
       <v-window v-model="currentTab">
         <v-window-item :value=Tabs.calendar>
-          <v-container   class="tab-item-wrapper">
+          <v-container >
                 <RideList
-                 :key = "dataChanged"
+                 :key = "rideListChanged"
                  :date = "ridesDate" 
                  :user = "currentUser"
                  
@@ -222,25 +257,30 @@ function updateRouteInfo(r : Route) {
                  @got-rides = "gotRides"
                  @log-in="logIn"
                  @edit-ride="editRide"
-                 @participants-updated="++dataChanged"
+                 @participants-updated="++rideListChanged"
                  @new-date="newDate"
                  >
                 </RideList>
                 
-                <!-- <DateSelector  :icon='true' text="Select other dates" :date="ridesDate"    @new-date="newDate"   /> -->
-          </v-container>
+            </v-container>
 
         </v-window-item>
 
         <v-window-item :value=Tabs.routes>
-          <v-container   class="tab-item-wrapper">
-            <RouteList  :user="currentUser" :allRoutes = "true" @show-route="showRouteFromList" @new-route-list="newRouteList"></RouteList>
+          <v-container  >
+            <RouteList
+              :key = "routeListChanged"
+              :user="currentUser"
+              :allRoutes = "true"
+              @show-route="showRouteFromList"
+              @new-route-list="newRouteList">
+            </RouteList>
           </v-container>
         </v-window-item>
 
 
         <v-window-item :value=Tabs.newRide>
-          <v-container  class="tab-item-wrapper scrollable">
+          <v-container  class=" scrollable">
                 <RideEdit v-if="checkLogIn() && editing"
                 :ride="currentRide"
                 :user="currentUser"
@@ -272,7 +312,7 @@ function updateRouteInfo(r : Route) {
         </v-window-item> -->
 
         <v-window-item :value=Tabs.account>
-          <v-container  class="tab-item-wrapper  scrollable">
+          <v-container  class=" scrollable">
             <account-actions 
               :user="currentUser"
               @done-login="doneLogin"
@@ -282,7 +322,7 @@ function updateRouteInfo(r : Route) {
         </v-container>
         </v-window-item>
         <v-window-item :value=Tabs.help>
-          <v-container  class="tab-item-wrapper">
+          <v-container  class="">
             <Help></Help>
           </v-container>
         </v-window-item>
@@ -291,7 +331,7 @@ function updateRouteInfo(r : Route) {
     <v-col >
       <RideMap
         :map="map"
-        :updates = "routelistChanged"
+        :updates = "highlightChanged"
         :routes = "currentRouteList"
         :user = "currentUser"
         @define-map="defineMap"
@@ -308,14 +348,13 @@ function updateRouteInfo(r : Route) {
   .scrollable {
    overflow-y: auto;
 }
-.tab-item-wrapper {
-  /* vuetify sets the v-tabs__container height to 48px */
-  height: calc(100vh - 48px);
-
-}
+.v-btn--stacked.v-tab.v-btn {
+    padding: 0 4px;
+    /* min-width: 70px; */
+    /* min-width: 20vw; */
+  }
 .v-btn {
   text-transform: none;
   padding: 0;
 }
 </style>
-./utils/classes/ride./utils/routeFuncs

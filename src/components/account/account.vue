@@ -96,7 +96,7 @@ function cancel() {
         <v-form @submit.prevent="submit" ref="accountForm">
           <v-row no-gutters>
             <v-col   class="pa-1" >
-              <v-text-field v-model="userName"  :rules="nameRules"  label="Username"
+              <v-text-field v-model="userName"   autocapitalize="off" :rules="nameRules"  label="Username"
                :placeholder=userName >
               </v-text-field>
             </v-col>

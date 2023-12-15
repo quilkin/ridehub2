@@ -1,9 +1,7 @@
-sort out missing ts definitions
 check route name hasn't been used already?
 tidy / expand help page
 add comments for anything non-obvious
 tree-shaking?
-shift map if chosen route not in cornwall
 clear map if no route for selected ride
  maybe add a special secret button to allow change of leader?
- add number of riers to ride details
+ miles/km still not correct when saving ride in miles - only with admin login

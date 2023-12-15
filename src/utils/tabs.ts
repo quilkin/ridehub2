@@ -5,5 +5,6 @@ export enum Tabs {
     routes = 'routes',
     coffee = 'coffee',
     library = 'library',
-    help = 'help'
+    help = 'help',
+    exit = 'exit'
   }

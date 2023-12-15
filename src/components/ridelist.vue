@@ -1,5 +1,5 @@
 <script setup  lang="ts">
-import { ref, onBeforeMount, type Ref } from 'vue'
+import { ref, onBeforeMount, computed, type Ref } from 'vue'
 import { myFetch } from '@/utils/fetch'
 import { apiMethods } from '../../../ridehub-server/src/common/apimethods'
 import { Ride } from '../../../ridehub-server/src/common/ride'
@@ -16,6 +16,8 @@ import rideData from '@/utils/ridedata'
 import DatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import { mdiCalendarMonth } from '@mdi/js'
+import { useDisplay } from 'vuetify'
+const { mobile } = useDisplay();
 
 const props = defineProps<{
   date : Date
@@ -45,6 +47,7 @@ let currentRouteList : Route[] | null = [];
 let currentRoute : Route = new Route();
 let currentRideIndex = 0;
 let rideDates : number[]  = [];
+
 
 onBeforeMount(async() => {
 
@@ -161,6 +164,9 @@ function createRideList() {
         distanceStr.value[index] = routeFuncs.distanceStr(route,props.user.units);
         climbingColour.value[index] = routeFuncs.climbingColour(route);
         rideSpeed.value[index] = speedStr(ride);
+                // not alowed by Typescript but this gives three states without defining an enum!
+        // @ts-ignore
+        route.highlighted = undefined;
       }
     });
 
@@ -195,6 +201,8 @@ function createRideList() {
         
         });
     }
+    if (rides.value.length>0)
+      viewRoute(0);
  }
 
 
@@ -245,7 +253,12 @@ async function viewRoute(index : number) {
     // no need to show tooltip again?
     showTooltips.value = false;
 }
-
+const listHeight= computed(() => {
+  return mobile.value ? '38vh':'80vh';
+})
+const listItemLines= computed(() => {
+  return mobile.value ? 'two':'three';
+})
 </script>
 
 <template>
@@ -257,15 +270,15 @@ async function viewRoute(index : number) {
         locale="en-UK"
         @update:modelValue="newDate" 
         six-weeks="center"   />
-
-  <v-list lines="two"  density="compact">
-    <v-list-item v-for="(ride, i) in rides" :key="i"  @click="viewRoute(i)">
+  <v-container  class="pa-0" >
+  <v-list :lines="listItemLines"  density="compact" class="pa-0" :height="listHeight">
+    <v-list-item v-for="(ride, i) in rides" :key="i" class="pl-0 pr-0 mt-n1 mb-n3"  @click="viewRoute(i)">
       <v-list-item-title v-if="dateTitleReqd(ride.date,i)" style="background-color:rgb(164, 189, 197);" @click.stop>
         <v-row>
-          <v-col cols="10">
+          <v-col cols="4"  >
             {{TimesDates.StrFromIntDays(ride.date)}}
           </v-col>
-          <v-col v-if="i==0" cols="2"  @click.stop="changeDate=true">
+          <v-col v-if="i==0" cols="8"   @click.stop="changeDate=true">
             <small>change</small><v-icon start :icon="mdiCalendarMonth">  </v-icon> 
             </v-col>
         </v-row>
@@ -289,10 +302,10 @@ async function viewRoute(index : number) {
         <v-col cols="3" sm="2" title="amount of climbing">
           <small v-bind:style="{'color': climbingColour[i]}"><b>&uarr;&darr;</b>{{ climbingStr[i] }}</small>
         </v-col>
-        <v-col cols="3" sm="1"  title="average speed suggested">
+        <v-col cols="2" sm="1"  title="average speed suggested">
           <small style="color:blue"> {{ rideSpeed[i] }}</small>
         </v-col>
-        <v-col  cols="3" sm="2">
+        <v-col  cols="4" sm="2">
           <RideDetails v-if="allDataLoaded(i)"
             :ride="ride" 
             :participants="participants[i]" 
@@ -309,10 +322,10 @@ async function viewRoute(index : number) {
 
         </v-col>
       </v-row>
-      <!-- <v-list-item-subtitle v-text="ride.description"></v-list-item-subtitle> -->
+      <v-list-item-subtitle v-if="mobile==false" v-text="ride.description" ></v-list-item-subtitle>
       
     </v-list-item>
   </v-list>
-
+  </v-container>
 </template>
 

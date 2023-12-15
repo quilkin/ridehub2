@@ -60,14 +60,14 @@ function cancel() {
 </script>
 
 <template>
-  <v-dialog v-model="signupDialog" activator="parent" >
+  <v-dialog  v-model="signupDialog" activator="parent" width="300">
   <v-card>
     <v-card-title class="headline black" primary-title>
       Sign Up to RideHub
     </v-card-title>
     <v-card-text class="pa-5">
       <v-form @submit.prevent ref="signupForm">
-        <v-text-field v-model="userName"  :rules="nameRules"  label="User name"></v-text-field>
+        <v-text-field v-model="userName"  autocapitalize="off" :rules="nameRules"  label="User name"></v-text-field>
         <v-text-field v-model="eMail"     :rules="emailRules" label="Email"></v-text-field>
         <v-text-field v-model="password1" :append-inner-icon="showPass ? mdiEye : mdiEyeOff"
           @click:append-inner="showPass = !showPass"   :type="showPass ? 'text' : 'password'" 

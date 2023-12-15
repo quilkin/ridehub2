@@ -20,6 +20,9 @@ import rideData from '@/utils/ridedata'
 import { mdiRoutes} from '@mdi/js'
 import { mdiCalendarMonth } from '@mdi/js'
 
+import { useDisplay } from 'vuetify'
+const { mobile } = useDisplay();
+
 const userName = ref('');
 const destination = ref('');
 const leader = ref('');
@@ -39,13 +42,13 @@ const startTime = ref(540);  // default start at 9 am
 const maxRiders = ref(10);
 const minSpeed = ref();
 const maxSpeed = ref();
-const speedStr = ref('');
+const speedStr = ref(' ');
 
 let newRide = true;
 //let newRoute : Route ;
 let thisRide : Ride;
-let hour='';
-let minute='';
+const hour=ref('');
+const minute=ref('');
 const members= ref() as Ref<string[]>;
 const emit = defineEmits(['doneRideEdit','showRoute','logIn','newRouteList','chooseRouteFromList','showUploadedRoute']);
 
@@ -141,10 +144,10 @@ function update() {
     meetingAt.value = thisRide.meetingAt;
 
       // starttime is stored as total number of minutes
-    hour = (startTime.value / 60).toString();
-    if (hour.length == 1) hour = '0' + hour;
-    minute = (startTime.value % 15).toString();
-    if (minute.length == 1) minute = '0' + minute;
+    hour.value = (startTime.value / 60).toString();
+    if (hour.value.length == 1) hour.value = '0' + hour.value;
+    minute.value = (startTime.value % 15).toString();
+    if (minute.value.length == 1) minute.value = '0' + minute.value;
 
     if (props.user.role > 1)
        getMembers();
@@ -214,12 +217,13 @@ async function submit() {
     }
     if (thisRide.routeID == 0 /* && newRoute != null  && newRoute.hasGPX */) {
       //  need to save the route first
-      let newRoute : Route | null = currentRoute.value;
-      if (newRoute == null) {
+      let newRoute : Route = currentRoute.value;
+      if (newRoute.id === 0 && newRoute.hasGPX===false) {
         // new ride without a route
-        newRoute = new Route();
+        // newRoute = new Route();
         newRoute.dest = destination.value;
         newRoute.distance = distance.value;
+
       }
       newRoute.owner = props.user.name;
       const res = await myFetch(apiMethods.saveRoute,newRoute);
@@ -253,7 +257,8 @@ async function submit() {
     
     thisRide.leaderName = props.user.name;
     thisRide.date = TimesDates.toIntDays(date.value);
-    thisRide.time = date.value.getHours() * 60 + date.value.getMinutes();
+    //thisRide.time = date.value.getHours() * 60 + date.value.getMinutes();
+    thisRide.time = parseInt(hour.value)* 60 + parseInt(minute.value);
     thisRide.description = description.value;
     thisRide.groupSize = maxRiders.value;
     thisRide.meetingAt = meetingAt.value;
@@ -328,10 +333,15 @@ function showUploadedRoute(r : Route) {
   //if (thisRide)
    // thisRide.routeID = r.id;
 }
+function speedLabel() {
+  return props.user.units==='k'?'km/hr':'mph';
+}
 </script>
 
 <template>
-    <v-card  >
+    
+    <v-card class="pa-3" >
+    
       <v-card-title class="headline black" primary-title>
         {{newRide? 'Plan to lead a ride':'Edit your ride'}}
       </v-card-title>
@@ -387,30 +397,31 @@ function showUploadedRoute(r : Route) {
             </v-row>
             <!-- <v-row  > <v-col class="mt-n8">   </v-col> </v-row> -->
             <v-row >
-              <v-col cols ="3" class="mt-n6" >
-              </v-col>
-              <v-col cols ="3" class="mt-n6" >
+              <!-- <v-col cols ="3" class="mt-n6" >
+              </v-col> -->
+              <!-- <v-col cols ="3" class="mt-n6" >
                 Ride date and time:
-              </v-col>
+              </v-col> -->
               <v-col cols="6" class="mt-n6" >
-                    <DateSelector :icon="false" :dates="ridedates"
+                    <DateSelector :icon="false" 
+                      :dates="ridedates"
                       :text="TimesDates.dateString(date)"
                       :date="date"
                       @new-date="newDate"   />
               </v-col>
 
-              <!-- <v-col cols="3" >
-                  <v-combobox density="compact" variant="underlined" v-model="hour"
+              <v-col cols="3" class="mt-n6"  >
+                  <v-select density="compact" variant="underlined" v-model="hour"
                       label="Hour"
-                    :items="['6', '7', '8', '9', '10', '11','12', '13','14', '15','16','17', '18']"
-                  ></v-combobox>
+                    :items="['06', '07', '08', '09', '10', '11','12', '13','14', '15','16','17', '18']"
+                  ></v-select>
             </v-col>
-              <v-col cols="3" >
-                  <v-combobox  density="compact" variant="underlined" v-model="minute"
+              <v-col cols="3" class="mt-n6" >
+                  <v-select  density="compact" variant="underlined" v-model="minute"
                     label="Minute"
                     :items="['00', '15', '30', '45']"
-                  ></v-combobox>
-              </v-col> -->
+                  ></v-select>
+              </v-col>
 
             </v-row>
         
@@ -424,9 +435,7 @@ function showUploadedRoute(r : Route) {
                    hint="Limit rider numbers if you don't want a big group" />
               </v-col>
               <v-col cols="3"  class="mt-6" >
-                  <v-text-field variant="outlined" density="compact" v-model="speedStr"
-                      :rules="speedRules"
-                    :label="props.user.units==='k'?'km/hr':'mph'" 
+                  <v-text-field variant="outlined" density="compact" v-model="speedStr"  :rules="speedRules"  :label="speedLabel()" 
                   hint="Suggested speed. May depend on riders present"  />
               </v-col>
 
@@ -447,9 +456,10 @@ function showUploadedRoute(r : Route) {
           </v-row>
         </v-form>
       </v-card-text>
+  
     </v-card>
   <!-- </div> -->
-
+  
   </template>
 <style>
   .scrollable {

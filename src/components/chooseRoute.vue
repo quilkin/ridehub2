@@ -85,10 +85,12 @@ async function readSuccess(event: ProgressEvent<FileReader>) {
 </script>
 
 <template>
-    <v-card  >
-      <v-card-text class="pa-3">
+    <v-card  class="pa-3">
+
         <v-row >
-            <div v-if="props.existingRoute.id===0"> A ride could do with a route of some sort. So, please choose one of the following:</div>
+            <v-card-text v-if="props.existingRoute.id===0">
+               A ride could do with a route of some sort. So, please choose one of the following:
+            </v-card-text>
 
             <v-btn v-else block  class="pa-2 ma-1" color="blue" 
                 @click="emit('routeChosen',props.existingRoute)"  
@@ -126,6 +128,5 @@ async function readSuccess(event: ProgressEvent<FileReader>) {
 
             
           </v-row>
-        </v-card-text >
     </v-card>
 </template>

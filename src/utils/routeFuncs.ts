@@ -51,6 +51,10 @@ import { Route } from '../../../ridehub-server/src/common/route'
 
         const climbRatio = route.climbing / route.distance;
         return Math.round(climbRatio);
+    },
+    climbingRatioStr: function(route: Route)
+    {
+        return this.climbingRatio(route).toString();
     }
 }
 export default routeFuncs;

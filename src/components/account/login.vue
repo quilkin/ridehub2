@@ -76,6 +76,7 @@ function signup() {
 
 }
 function guest() {
+  console.log('guest visit')
   emit('guestVisit');
 
 }
@@ -97,7 +98,8 @@ function crash() {
     </v-card-title>
     <v-card-text class="pa-2">
       <v-form @submit.prevent="submit" ref="loginForm">
-        <v-text-field v-model="userOrEmail"  :rules="nameRules"  label="User name or email" hint="Username will be 3 to 10 characters">
+        <v-text-field v-model="userOrEmail"  :rules="nameRules" autocapitalize="off"
+         label="User name or email" hint="Username will be 3 to 10 characters">
         </v-text-field>
         <v-text-field v-model="password" :append-inner-icon="showPass ? mdiEye : mdiEyeOff"
           @click:append-inner="showPass = !showPass"   :type="showPass ? 'text' : 'password'" 
@@ -113,7 +115,7 @@ function crash() {
         <v-btn color="blue" type="submit" block class="mt-2">    Sign in     </v-btn>
 
         <v-btn color="blue" variant="outlined" @click="signup()" block class="mt-2">   No account? Sign up    </v-btn>
-        <v-btn color="blue" variant="outlined" @click="guest()" block class="mt-2">      Cancel / Continue as a guest   </v-btn>
+        <v-btn color="blue" variant="outlined" @click="guest()" block class="mt-2">      Continue as a guest   </v-btn>
         <v-btn color="blue" variant="outlined" @click="forgot()" block class="mt-2">      Forgot password?   </v-btn>
         <!-- <v-btn color="blue" @click="crash()" block class="mt-2">   Crash test!   </v-btn>
          -->

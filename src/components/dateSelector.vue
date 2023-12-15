@@ -29,10 +29,11 @@ import TimesDates from '@/utils/timesdates';
     const day = date.getDate();
     const month = date.toLocaleString('default', { month: 'short' });
     const year = date.getFullYear();
-    const hrs = date.getHours().toString().padStart(2,'0');
-    const mins = date.getMinutes().toString().padStart(2,'0');
+    // const hrs = date.getHours().toString().padStart(2,'0');
+   // const mins = date.getMinutes().toString().padStart(2,'0');
 
-    return `${day} ${month} ${year} at ${hrs}:${mins}`;
+   // return `${day} ${month} ${year} at ${hrs}:${mins}`;
+    return `${day} ${month} ${year}`;
 }
 
 
@@ -51,11 +52,11 @@ import TimesDates from '@/utils/timesdates';
       > -->
         <DatePicker
            locale="en-UK"
+           auto-apply
+           :enable-time-picker="false"
            :format="format"
-           time-picker-inline
            :teleport="true"
            v-model="workingDate"
-           minutes-increment="15"
            no-hours-overlay
            no-minutes-overlay
            :clearable="false"

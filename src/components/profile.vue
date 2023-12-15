@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import {  ref, onMounted,onBeforeMount, onBeforeUpdate, type Ref} from 'vue'
+import {  ref, onMounted,computed, onBeforeUpdate, type Ref} from 'vue'
 
 import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale, Filler,
      type ChartData, type ChartOptions, type Chart } from 'chart.js'
@@ -7,15 +7,18 @@ import { getRelativePosition } from 'chart.js/helpers';
 import { Line } from 'vue-chartjs'
 
 import type { GPX } from 'leaflet'
-//import 'leaflet-gpx';
-//import 'leaflet-polylineDecorator';
 import { User  } from '../../../ridehub-server/src/common/user'
+
+import { useDisplay } from 'vuetify'
+import type { StyleValue } from 'vue';
+const { mobile } = useDisplay();
+
 
 const props = defineProps<{
   latlngs : L.LatLng[] | L.LatLng[][] | L.LatLng[][][]
   user : User
   gpx : GPX;
-
+    height: StyleValue;
 }>()
 
 const emit = defineEmits(['latlng'])
@@ -38,13 +41,13 @@ const profileOptions  = ref( {
 ChartJS.register(Title, Tooltip, Legend, PointElement, LineElement, CategoryScale, LinearScale, Filler);
 
 onMounted(() => {
-    console.log('Profile mounted')
+    //console.log('Profile mounted')
     if ( props.gpx != null) {
          showProfile(props.gpx,props.latlngs);
      }
 })
 onBeforeUpdate(() => {
-    console.log('Profile updated')
+    //console.log('Profile updated')
         if ( props.gpx != null) {
          showProfile(props.gpx,props.latlngs);
      }
@@ -150,6 +153,8 @@ function showProfile(gpx : GPX, latlngs : L.LatLng[] | L.LatLng[][] | L.LatLng[]
         onHover: (e) => {
             if (profile.value === null)
                 return;
+            // @ts-ignore Type 'ChartData<keyof ChartTypeRegistry, (number | [number, number] | Point | BubbleDataPoint | null)[], unknown>' is not assignable to type 'ChartData<"line", (number | Point | null)[], unknown>'.
+
             const thisChart = profile.value.chart;
             const canvasPosition = getRelativePosition(e, thisChart);
 
@@ -169,22 +174,27 @@ function showProfile(gpx : GPX, latlngs : L.LatLng[] | L.LatLng[][] | L.LatLng[]
     }
 
 };
+
+// const profileHeight= computed(() => {
+//   return mobile.value ? '8vh':'40vh';
+// })
 </script>
 
 <template>
-    <v-container class="chart-container">
+    <!-- <v-container class="chart-container"> -->
+    <v-container :style="props.height">
       <Line
         ref="profile"
         :data = "profileData"
         :options = "profileOptions"
       />
 
-</v-container>
+    </v-container>
 </template>
 
-<style>
+<!-- <style>
 .chart-container {
     height: 25vh;
 
 }
-</style>
+</style> -->

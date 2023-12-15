@@ -27,7 +27,7 @@ const Routes = {
         }
         if (reverse) {
             if (alphaOrder == 1)
-                partRoutes.sort((a,b) => (b.dest < a.dest ? -1:1));
+                partRoutes.sort((a,b) => (b.dest.toLowerCase() < a.dest.toLowerCase() ? -1:1));
             else if (alphaOrder == 2)
                 partRoutes.sort((a,b) => b.distance - a.distance);
             else {
@@ -36,7 +36,7 @@ const Routes = {
         }
         else {
             if (alphaOrder == 1)
-                partRoutes.sort((a,b) => (a.dest < b.dest ? -1:1));
+                partRoutes.sort((a,b) => (a.dest.toLowerCase() < b.dest.toLowerCase() ? -1:1));
             else if (alphaOrder == 2)
                 partRoutes.sort((a,b) => a.distance - b.distance);
             else {
@@ -67,6 +67,10 @@ const Routes = {
         const routeList : Route[]  = await myFetch(apiMethods.getRoutesById,idList);
         if (routeList != null) {
            
+            routeList.forEach((route)=> {
+                // get rid of silly characters
+                    route.dest = route.dest.replace(/[^0-9a-z ]/gi, '');
+            })
             this.mergeRoutes(routeList);
             return routeList;
         }
@@ -90,6 +94,10 @@ const Routes = {
             //     return null;
             // }
             //routes = response;
+            distanceList.forEach((route)=> {
+                // get rid of silly characters
+                    route.dest = route.dest.replace(/[^0-9a-z ]/gi, '');
+            })
             this.mergeRoutes(distanceList);
             return distanceList;
         }

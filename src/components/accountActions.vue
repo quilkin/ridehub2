@@ -109,6 +109,10 @@ async function resetAccount(lostPWuser : string) {
                 await AlertError("Credentials",'email or username problem');
         }
 }
+function guest() {
+        console.log('guest visit emit donelogin')
+        emit('doneLogin',new User('',''));
+}
 </script>
 
 <template>
@@ -116,7 +120,7 @@ async function resetAccount(lostPWuser : string) {
             @logged-in="loggedIn"
             @sign-up="status=Status.signingUp"
             @forgot-pass="status=Status.reqPassword"
-            @guest-visit="emit('doneLogin',new User('',''))"
+            @guest-visit="guest"
             ></login>
     <reqpass v-else-if="status===Status.reqPassword"
             @done-pass="status=Status.loggingIn"

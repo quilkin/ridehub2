@@ -34,7 +34,8 @@ function cancel() {
 </script>
 
 <template>
-  <v-dialog v-model="passDialog" activator="parent" width="300">
+  <v-dialog 
+    v-model="passDialog" activator="parent" width="300">
   <v-card>
     <v-card-title class="headline black" primary-title>
       Forgotten login details?

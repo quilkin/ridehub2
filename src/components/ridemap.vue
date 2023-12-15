@@ -1,6 +1,6 @@
 
 <script setup lang="ts">
-import {  ref, watch,onMounted,onBeforeUnmount, onUpdated, type Ref} from 'vue'
+import {  ref, watch,onMounted,onBeforeUnmount, computed, type Ref} from 'vue'
 import { type Map } from 'leaflet';
 import "leaflet/dist/leaflet.css";
 import * as L from 'leaflet';
@@ -17,11 +17,13 @@ import bike from '../assets/bike2.png';
 import Routes  from '@/utils/routes'
 import { mdiRoutes} from '@mdi/js'
 import type { LineString } from 'geojson';
-import { Bounds } from 'leaflet';
+import { useDisplay } from 'vuetify'
+const { mobile } = useDisplay();
+
 
 const props = defineProps<{
   routes : Route[]   // one of which (current route?) may be highlighted
-  updates : number;
+updates : number;
   user : User
   map : Map | null
 }>()
@@ -55,23 +57,26 @@ function setupMap() {
     }
     latlngs.value = [];
 
-    let topLeft = L.latLng(50.6, -5.7);
-    let bottomright = L.latLng(50.0, -4.6);
-
+    // showing Cornwall
+    let topLeft = L.latLng(50.55, -5.65);
+    let bottomright = L.latLng(49.95, -4.55);
     cornwallBounds = L.latLngBounds(topLeft,bottomright);
+
     map = L.map('mapContainer', {
-       // center: [50.19,-5.05],    // or centre of cornwall?
-       // zoom:     9.5,
         zoomControl: false ,
-        zoomSnap: 0.1
+        zoomSnap: 0.1,
+        zoom: 9
     });
+
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19,
+        maxZoom: 15,
+        minZoom: 8,
         attribution: '© OpenStreetMap'
     }).addTo(map);
-    map.fitBounds(cornwallBounds);
+    map.fitBounds(cornwallBounds).setZoom(9);
+
     emit('defineMap',map);
-    window.dispatchEvent(new Event('resize'));
+    //window.dispatchEvent(new Event('resize'));
      
 }
 
@@ -96,7 +101,7 @@ function updateRoutes() {
     mapItems.forEach((item) => {
         item.remove();
     });
-    if (mapTitle != null) {
+    if (mapTitle) {
          mapTitle.remove()
     }
     if (bikeMarker)
@@ -120,6 +125,7 @@ function updateRoutes() {
 
         }
     }
+    window.dispatchEvent(new Event('resize'));
  }
 
 watch(() => props.routes,  () => {
@@ -131,7 +137,7 @@ watch(() => props.routes,  () => {
 watch(() => props.updates,  () => {
   console.log('ridemap: updates changed');
   updateRoutes();
-  }
+}
 )
 
 
@@ -141,7 +147,9 @@ watch(() => props.updates,  () => {
  */
 function adjustBounds(newBounds: L.LatLngBounds, hightlighted : boolean) {
 
-    if (hightlighted == undefined) {
+    if (hightlighted === false)
+            return;
+    if (hightlighted ===undefined ) {
         // show all routes and set bounds to fit all, if they are in Cornwall
         if (bounds === null)
             bounds = newBounds;
@@ -195,7 +203,7 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
 // listedRoute is true only if the route has already been added to the list of routes
     const listedRoute  : boolean = (route.id>0);
     let colour = routeColour(index);
-    let lineOpacity = 0.75;
+    let lineOpacity = 0.6;
 
     if (route.highlighted)
     {
@@ -218,9 +226,10 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
         }
     }).on('addline', function (e) {
         if (map === null)    {    return;   }
+        // @ts-ignore Property 'line' does not exist on type 'LeafletEvent'.
         routeLine = e.line;
         let popup : L.Popup;
-
+        
         if (route.highlighted) {  
             // add a title to the map, on the map itself.
             // code from here https://stackoverflow.com/questions/33767463/overlaying-a-text-box-on-a-leaflet-js-map
@@ -231,7 +240,8 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
                     return text;
                     },
             });
- 
+            if (mapTitle)
+                mapTitle.remove();
             mapTitle = new textbox({ position: 'topleft' }).addTo(map);
             mapItems.push( L.polylineDecorator(routeLine, {
                 patterns: [{
@@ -247,7 +257,7 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
             latlngs.value = routeLine.getLatLngs();
             chosenLatLngs.value = latlngs.value;
         }
-
+        // @ts-ignore Property 'line' does not exist on type 'LeafletEvent'.
         e.line.on('mouseover', function (e: { target: any; latlng: L.LatLngExpression; }) {
                 var layer = e.target;
                 layer.setStyle({
@@ -261,17 +271,20 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
                     }
                 )   .setLatLng(e.latlng)
                     .setContent(route.dest + ": " + route.distance + " km<p></p>Click to select")
+                    // @ts-ignore of type 'Map | null' is not assignable to parameter of type 'Map'.
                     .openOn(map);
             });
+            // @ts-ignore Property 'line' does not exist on type 'LeafletEvent'.
             e.line.on('mouseout', function (e: { target: any; }) {
                 var layer = e.target;
                 layer.setStyle({
-                    opacity: 0.5,
+                    opacity: 0.3,
                     weight: 3
                 });
                 if (L.popup != undefined)
                     popup.remove();
             });
+            // @ts-ignore Property 'line' does not exist on type 'LeafletEvent'.
             e.line.on('click', function (e) {
                 emit('setRoute',route);
             });
@@ -301,7 +314,6 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
             name = gpx.value .get_name();
         }
 
-
         // if this is a new route, get some details from the GPX to hand back to the app
 
         if (route.distance === 0 || isNaN(route.distance) || route.dest === '' || (route.climbing === 0 && elev_gain > 0)) {
@@ -329,29 +341,35 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
     popupAnchor:  [-3, -7] 
 });
   
-  function updateMarker(latlng: L.LatLngExpression ) {
+function updateMarker(latlng: L.LatLngExpression ) {
     if (map === null)
         return;
     if (bikeMarker != null) {
         map.removeLayer(bikeMarker);
     }
     bikeMarker = new L.Marker(latlng, {icon: bikeIcon}).addTo(map);
-  }
-
+}
+const mapHeight= computed(() => {
+    return mobile.value? {'height': '30vh'} : {'height': '70vh'} 
+})
+const profileHeight= computed(() => {
+    return mobile.value ? {'height': '18vh'} : {'height': '30vh'}
+})
 
 </script>
 
 <template>
-    <div id="mapContainer"></div> 
+    <div id="mapContainer" :style="{...mapHeight}"></div> 
     <v-row>
-        <v-col cols="1" class="mt-10 mb-5">
+        <v-col cols="2" class="mt-2">
             <v-btn stacked variant="outlined" color="blue"
             v-if="gpx != undefined" 
             :prepend-icon="mdiRoutes"
              @click="Routes.downloadGpx(props.routes.find(r => r.highlighted))" >Get GPX</v-btn>
         </v-col>
-        <v-col cols="11" class="pa-0 ma-0">
+        <v-col cols="10" class="pa-0 ma-0">
             <Profile v-if="chosenGPX" 
+            :height = "profileHeight"
                 :gpx ="chosenGPX"
                 :latlngs = "chosenLatLngs"
                 :user = "props.user"
@@ -360,6 +378,3 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
         </v-col>
     </v-row>
 </template>
-<style>
-#mapContainer { height: 75vh; }
-</style>
