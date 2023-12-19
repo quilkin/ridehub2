@@ -36,22 +36,23 @@
   const meText = 'me';
   const mePlusText = 'me+';
   const leaveReserveText = 'UnReserve';
-  const editRideText = 'Edit/Cancel';
+  //const editRideText = 'Edit/Cancel';
   let buttonText = joinText;
   let spacesLeft = 0;
   let numberOfRiders = 0;
 
   onMounted(() => {
-
+    participants.unshift(ride.leaderName);
     numberOfRiders = participants.length;
-    participants.push('Leader: ' + ride.leaderName);
+   // participants.push('Leader: ' + ride.leaderName);
    // spacesLeft = ride.groupSize - numberOfRiders - 1; // allow for ride leader!
     if (props.reserves.length > 0) {
         participants.push(" (full): Reserves: ");
         for (const reserve of props.reserves)
             participants.push(reserve);
     }
-    else if (numberOfRiders ==0 ) {
+    else if (numberOfRiders < 2 ) {
+        // i.e. only the leader
         participants.push('No riders (yet)');
     }
     // else {
@@ -67,17 +68,21 @@
             buttonText = mePlusText;
         }
     }
-    else if (props.reserves.includes(rider)) {
+    else if (props.reserves.includes('+' + rider)) {
         // member is on reserve list for this ride
         buttonText = leaveReserveText;
     }
     else if (participants.length >= ride.groupSize) {     
         buttonText = reserveText;
     }
-    else if (rider === ride.leaderName || props.user.role>1) {
-        // can edit your own ride, but not join it
-        buttonText = editRideText;
-    }
+    // else if (rider === ride.leaderName || props.user.role>1) {
+    //     // can add a guest, but not join your own ride
+    //     buttonText = meText;
+    //     if (participants.includes(rider + '+')) {
+    //         // guest aleady added
+    //         buttonText = mePlusText;
+    //     }
+    // }
   });
 
   async function checkLogin() {
@@ -93,10 +98,10 @@
   async function OK2Join(ride : Ride, rider : string) {
     
     const cannotJoin = ", and cannot join more than one ride each day";
-    if (ride.leaderName === rider) {
-        await Message("You cannot join your own ride!!");
-        return false;
-    }
+    // if (ride.leaderName === rider && buttonText != reserveText) {
+    //     await Message("You cannot join your own ride!!");
+    //     return false;
+    // }
     for (const already of props.already) {
       if (already.reservedToDest.length > 0 && already.reservedOnDate == ride.date) {
           await Message("You are aleady reserved for " + already.reservedToDest + cannotJoin);
@@ -106,7 +111,7 @@
           await Message("You are aleady listed for " + already.ridingToDest + cannotJoin);
           return false;
       }
-      else if (already.leadingToDest.length > 0 && already.leadingOnDate == ride.date) {
+      else if (already.leadingToDest.length > 0 && already.leadingOnDate == ride.date && buttonText != reserveText) {
           await Message("You are aleady leading " + already.leadingToDest + cannotJoin);
           return false;
       }
@@ -114,20 +119,23 @@
     return true;
   };
 
-  async function joinRide() {
-  
-    if (buttonText === editRideText) {
+  function editRide() {
         emit('editRide',ride);
         detailsActive.value = false;
-        return;
-    }
+  }
+  async function joinRide() {
+  
+    // if (buttonText === editRideText) {
+    //     emit('editRide',ride);
+    //     detailsActive.value = false;
+    //     return;
+    // }
     if (buttonText === joinText) {
         if (await OK2Join(ride, rider)) {
             await rideData.saveParticipant(ride.rideID, rider, props.dest);
         }
         else return;
     }
-
     else if (buttonText === reserveText) {
         if (await OK2Join(ride, rider) === true) {
             await rideData.saveReserveParticipant(ride.rideID, rider);
@@ -135,10 +143,10 @@
         else return;
     }
     else if (buttonText === meText) {
-        await rideData.meParticipant(ride.rideID, rider);
+        await rideData.meParticipant(ride.rideID, rider, ride.leaderName);
     }
     else if (buttonText === mePlusText) {
-        await rideData.mePlusParticipant(ride.rideID, rider);
+        await rideData.mePlusParticipant(ride.rideID, rider, ride.leaderName);
 
     }
     else if (buttonText === leaveReserveText) {
@@ -160,6 +168,15 @@ function joinStr() {
     if (props.user.name === ride.leaderName)
         return "Edit + more";
     return "Join + more"
+}
+function riderList() {
+    let list ='';
+    participants.forEach((p)=> {
+        list += p;
+        list += ', ';
+    })
+    list += ' [' + (ride.groupSize - numberOfRiders) + ' spaces left]'
+    return list;
 }
 
 </script>
@@ -197,25 +214,18 @@ function joinStr() {
             <v-col cols="9" class="mt-n4"><v-card-text> {{ ride.meetingAt + ' @ ' + TimesDates.fromIntTime(ride.time)}}   </v-card-text></v-col>
         </v-row>
         <v-row no-gutters>
-            <v-col cols="3" class="mt-n4"><v-chip class="mt-3">Group Size</v-chip></v-col>
-            <v-col cols="9" class="mt-n4"><v-card-text> {{ ride.groupSize + ' riders: (' + (ride.groupSize - numberOfRiders - 1) + ' spaces left)'}}   </v-card-text></v-col>
+            <v-col cols="3" class="mt-n4"><v-chip class="mt-3">Riders</v-chip></v-col>
+            <!-- <v-col cols="9" class="mt-n4"><v-card-text> {{ ride.groupSize + ' riders: (' + (ride.groupSize - numberOfRiders - 1) + ' spaces left)'}}   </v-card-text></v-col> -->
+            <v-col cols="9" class="mt-n4"><v-card-text> {{ riderList()}}   </v-card-text></v-col>
         </v-row>
 
-        <v-menu activator="#rider-list">
-            <v-list>
-                <v-list-item
-                v-for="(item, index) in participants"
-                :key="index"
-                :value="index"
-                >
-                <v-list-item-title>{{ item }}</v-list-item-title>
-                </v-list-item>
-            </v-list>
-        </v-menu>
+
         <v-card-actions>
-            <v-btn variant="elevated" color="blue" id="rider-list"  >Rider list</v-btn>
+            <v-btn v-if="(rider === ride.leaderName || props.user.role>1)"
+                variant="elevated" color="blue" id="edit" @click="editRide()"
+                > Edit/Cancel</v-btn>
+
             <v-btn variant="elevated" color="blue" id="join" @click="joinRide()">{{buttonText}}</v-btn>
-     
             <v-btn 
                 @click.prevent="Routes.downloadGpx(props.route)"
                 variant="elevated" color="blue" 

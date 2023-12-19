@@ -231,7 +231,7 @@ const tabWidth= computed(() => {
       color="blue"
       show-arrows
       stacked
-      height="60px"
+      height="8vh"
       :grow="mobile===false"
       @update:model-value="tabChanged"
       >

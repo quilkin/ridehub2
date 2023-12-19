@@ -173,10 +173,10 @@ async function deleteRide()
 {
   await YesNo('Delete this ride, are you sure?', async ()=> {
     await Alert('Deleting ride','Please inform any riders that have signed up','using the WhatsApp RideInfo group','info','OK');
-    const res = await myFetch(apiMethods.deleteRide,thisRide.rideID);
+    const res = await myFetch(apiMethods.deleteRide,thisRide);
     if (res != null) {
       if (res == 'OK') {
-        await Message('You have deleted this ride');
+        await Alert('You have deleted this ride','Notifications will be sent to any signed-up riders','','info','OK');
       }
       else {
         await AlertError(res,'Ride may not be deleted');
@@ -243,18 +243,27 @@ async function submit() {
               await Message(res);
       }
     }
+    //let emailRequired = false;
     if (newRide == false && currentRoute.value.id != thisRide.routeID) {
       routeID = currentRoute.value.id;
       // todo: need to warn riders that route has changed
-      
-      await Alert('Route has changed','Please inform any riders that have signed up','using the WhatsApp RideInfo group','info','OK');
+      thisRide.emailRequired = true;
+      //await Alert('Route has changed','Please inform any riders that have signed up','using the WhatsApp RideInfo group','info','OK');
     }
     if (newRide == false && thisRide.date != TimesDates.toIntDays(date.value)) {
       // todo: need to warn riders that route has changed
-      
-      await Alert('Ride date has changed','Please inform any riders that have signed up','using the WhatsApp RideInfo group','info','OK');
+      thisRide.emailRequired = true;
+      //await Alert('Ride date has changed','Please inform any riders that have signed up','using the WhatsApp RideInfo group','info','OK');
     }
+    if (newRide == false && thisRide.time != parseInt(hour.value)* 60 + parseInt(minute.value)) {
+      // todo: need to warn riders that route has changed
+      thisRide.emailRequired = true;
+      //await Alert('Ride date has changed','Please inform any riders that have signed up','using the WhatsApp RideInfo group','info','OK');
+    }
+    if (thisRide.emailRequired) {
+      await Alert('Ride details have changed','Notifications will be sent to any signed-up riders','','info','OK');
     
+    }
     thisRide.leaderName = props.user.name;
     thisRide.date = TimesDates.toIntDays(date.value);
     //thisRide.time = date.value.getHours() * 60 + date.value.getMinutes();

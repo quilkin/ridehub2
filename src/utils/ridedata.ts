@@ -72,12 +72,16 @@ const rideData = {
             }
         });
     },
-    meParticipant: async function (rideID : number, rider : string) {
+    meParticipant: async function (rideID : number, rider : string, leader : string) {
         await chooseFromTwo(
             "You are signed up for this ride: what do you want to do?",
             "Leave the ride",
             "Add a guest rider",
             async ()=> {
+                if (rider===leader) {
+                    await Message("You cannot leave your own ride");
+                    return;
+                }
                 const pp = new Participant(rider, rideID);
                 const response = await myFetch(apiMethods.leavePpt, pp);
                 if (!response ) 
@@ -104,7 +108,7 @@ const rideData = {
             });
       
     },
-    mePlusParticipant: async function (rideID : number, rider : string) {
+    mePlusParticipant: async function (rideID : number, rider : string, leader : string) {
         var guest = rider + '+';
         await chooseFromTwo(
             "You have signed a guest for this ride: what do you want to do?",
@@ -124,6 +128,10 @@ const rideData = {
                     }
                 },
                 async ()=> {
+                    if (rider===leader) {
+                        await Message("You cannot leave your own ride");
+                        return;
+                    }
                     var pp = new Participant(guest, rideID);
                     var response = await myFetch(apiMethods.leavePpt, pp);
                     if (!response ) 

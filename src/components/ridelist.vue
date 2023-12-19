@@ -254,7 +254,7 @@ async function viewRoute(index : number) {
     showTooltips.value = false;
 }
 const listHeight= computed(() => {
-  return mobile.value ? '38vh':'80vh';
+  return mobile.value ? '40vh':'80vh';
 })
 const listItemLines= computed(() => {
   return mobile.value ? 'two':'three';
@@ -329,3 +329,12 @@ const listItemLines= computed(() => {
   </v-container>
 </template>
 
+<style>
+
+.v-container {
+    padding: 1vh 1vw;
+    /* min-width: 70px; */
+    /* min-width: 20vw; */
+  }
+
+</style>

@@ -1,4 +1,4 @@
-import { apiMethods } from '../../../ridehub-common';
+import { apiMethods } from '../../../ridehub-server/src/common/apimethods'
 import  { Alert, AlertError,CloseAlert } from './alert'
 
 function serviceBase() : string {
