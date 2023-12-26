@@ -75,7 +75,7 @@ export const gpxRules = [
 export const descriptionRules = [ 
                             (value: string) => !!value || 'Required.', 
                             (value: string) => {
-                                if (value.length >= 10 && value.length <= 100) return true
-                                return 'Desciption should be between 10 and 100 characters'
+                                if (value.length >= 10 && value.length <= 200) return true
+                                return 'Desciption should be between 10 and 200 characters'
                                 },
                             ];

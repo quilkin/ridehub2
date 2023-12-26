@@ -116,9 +116,21 @@ function updateRoutes() {
             --numOfRoutes;
         }
 
+    // put highlighted route at end so it shows up best over others
+    var highlightedIndex = props.routes.findIndex(route => {
+        return route.highlighted === true;
+    })
+    var highlighted = props.routes.find(route => {
+        return route.highlighted === true;
+    })
+    if (highlightedIndex >= 0 && highlighted) {
+        props.routes.splice(highlightedIndex,1);
+        props.routes.push(highlighted)
+    }
+
     let index = 0;
     for (const route of  props.routes) {
-        if (route.hasGPX)
+        if (route.hasGPX) 
             showRoute(route,numOfRoutes,index++);
         else {
             chosenGPX.value = null;
@@ -203,7 +215,7 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
 // listedRoute is true only if the route has already been added to the list of routes
     const listedRoute  : boolean = (route.id>0);
     let colour = routeColour(index);
-    let lineOpacity = 0.6;
+    let lineOpacity = 0.4;
 
     if (route.highlighted)
     {
@@ -278,7 +290,7 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
             e.line.on('mouseout', function (e: { target: any; }) {
                 var layer = e.target;
                 layer.setStyle({
-                    opacity: 0.3,
+                    opacity: lineOpacity,
                     weight: 3
                 });
                 if (L.popup != undefined)

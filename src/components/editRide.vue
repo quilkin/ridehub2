@@ -333,6 +333,8 @@ function newRouteList(routes : Route[]) {
   emit('newRouteList',routes);
 }
 function routeChosen(route : Route) {
+  if (route.id === 0)
+    props.newRoute.hasGPX = false;
   routeHasBeenChosen.value = true;
   currentRoute.value = route;
   update();
