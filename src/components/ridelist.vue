@@ -92,9 +92,10 @@ async function getData() {
   const routeIDs: number[] = [];
 
   try {
-
+    //let intDate = TimesDates.toIntDays(props.date);
+    //console.log('date: ' + props.date + ' ' + intDate)
     rideDates = [];
-    rides.value   = await myFetch(apiMethods.getRides,TimesDates.toIntDays(props.date));
+    rides.value   = await myFetch(apiMethods.getRides,TimesDates.toIntDays(props.date)-1);
    // rides.value   = await myFetch(apiMethods.getRides,TimesDates.toIntDays(props.date),true);
     if (!rides.value  )  throw new Error(`Cannot get rides`);
 
@@ -209,8 +210,10 @@ function createRideList() {
 var prevDate = 'x';
 var thisDate = '';
 function dateTitleReqd(date : number, index: number) {
-  if (index==0)
-   return true;
+  if (index==0) {
+    prevDate = 'x';
+    return true;
+  }
   thisDate = TimesDates.StrFromIntDays(date);
   if (thisDate != prevDate) {
     prevDate = thisDate;

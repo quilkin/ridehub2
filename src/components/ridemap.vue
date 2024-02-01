@@ -97,7 +97,7 @@ onBeforeUnmount(() => {
 })
 
 function updateRoutes() {
-
+console.log('update routes');
     mapItems.forEach((item) => {
         item.remove();
     });
@@ -116,17 +116,19 @@ function updateRoutes() {
             --numOfRoutes;
         }
 
-    // put highlighted route at end so it shows up best over others
+    
     var highlightedIndex = props.routes.findIndex(route => {
         return route.highlighted === true;
     })
     var highlighted = props.routes.find(route => {
         return route.highlighted === true;
     })
-    if (highlightedIndex >= 0 && highlighted) {
-        props.routes.splice(highlightedIndex,1);
-        props.routes.push(highlighted)
-    }
+    // put highlighted route at end so it shows up best over others
+    // no, causes other issues
+    // if (highlightedIndex >= 0 && highlighted) {
+    //     props.routes.splice(highlightedIndex,1);
+    //     props.routes.push(highlighted)
+    // }
 
     let index = 0;
     for (const route of  props.routes) {

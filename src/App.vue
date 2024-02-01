@@ -49,6 +49,7 @@ function editRide(ride : Ride)
   currentRide.value = ride;
   switchTab(Tabs.newRide);
   editing.value = true;
+
 }
 function checkLogIn()
 {
@@ -128,6 +129,7 @@ function highlightRoute(r : Route ) {
 }
 function chooseRouteFromList()
 {
+  ++routeListChanged.value;
   switchTab(Tabs.routes);
 }
 

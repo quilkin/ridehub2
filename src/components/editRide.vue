@@ -447,7 +447,7 @@ function speedLabel() {
               </v-col>
               <v-col cols="3"  class="mt-6" >
                   <v-text-field variant="outlined" density="compact" v-model="speedStr"  :rules="speedRules"  :label="speedLabel()" 
-                  hint="Suggested speed. May depend on riders present"  />
+                  hint="Suggested speed. You can enter a range, e.g. 18-20"  />
               </v-col>
 
             </v-row>

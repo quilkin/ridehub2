@@ -1,6 +1,6 @@
 <script setup lang="ts">
 
-import { ref ,onMounted, computed,type Ref } from 'vue'
+import { ref ,onMounted, computed, onUpdated, watch, type Ref } from 'vue'
 import { myFetch } from '@/utils/fetch'
 import { apiMethods} from '../../../ridehub-server/src/common/apimethods'
 import { User } from '../../../ridehub-server/src/common/user'
@@ -52,6 +52,9 @@ onMounted(() => {
     updateList();
     
 })
+// onUpdated(() => {
+//   console.log("routelist updated");
+// })
 async function updateList(getData : boolean = true)
 {
     function DestinationString(dest : string) {
