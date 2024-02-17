@@ -79,7 +79,7 @@ async function readSuccess(event: ProgressEvent<FileReader>) {
     emit('routeChosen',newRoute)
 
   })
-
+  
 }
 
 </script>

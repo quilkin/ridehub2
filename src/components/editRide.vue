@@ -43,8 +43,10 @@ const maxRiders = ref(10);
 const minSpeed = ref();
 const maxSpeed = ref();
 const speedStr = ref(' ');
+const showDate = ref(0);
 
 let newRide = true;
+let newRouteForThisRide = false;
 //let newRoute : Route ;
 let thisRide : Ride;
 const hour=ref('');
@@ -67,6 +69,7 @@ onBeforeMount(async() => {
     // editing existing ride
     currentRoute.value.id = props.ride.routeID;
     newRide = false;
+    newRouteForThisRide = false;
   }
   routeHasBeenChosen.value = false;
   thisRide = props.ride;
@@ -84,14 +87,17 @@ function update() {
         AlertError('Internal error','invalid user or ride data');
         return;
     } 
-    currentRoute.value = new Route();
+    //currentRoute.value = new Route();
 
     thisRide = props.ride;
     date.value = TimesDates.fromIntDays(thisRide.date);
     if (thisRide.rideID > 0) {
       // editing ride
+      let gpx = currentRoute.value.route;
       currentRoute.value  = Routes.findRoute(thisRide.routeID);
+      currentRoute.value.route = gpx;
       if (currentRoute.value.id > 0) {
+        routeHasBeenChosen.value = true;
         destination.value = currentRoute.value.dest;
         distance.value = currentRoute.value.distance;
 
@@ -101,7 +107,8 @@ function update() {
       
     }
     else {
-      if (props.routeFromList.id > 0) {
+      currentRoute.value = new Route();
+        if (props.routeFromList.id > 0) {
         routeHasBeenChosen.value = true;
         currentRoute.value = props.routeFromList;
         destination.value = currentRoute.value.dest;
@@ -124,6 +131,7 @@ function update() {
       date.value.setDate(date.value.getDate() + daysToAdd);
       date.value.setHours(9);
     }
+    ++showDate.value;
     units.value = props.user.units;
     userName.value = props.user.name;
     description.value = thisRide.description;
@@ -144,9 +152,9 @@ function update() {
     meetingAt.value = thisRide.meetingAt;
 
       // starttime is stored as total number of minutes
-    hour.value = (startTime.value / 60).toString();
+    hour.value = Math.floor((startTime.value / 60)).toString();
     if (hour.value.length == 1) hour.value = '0' + hour.value;
-    minute.value = (startTime.value % 15).toString();
+    minute.value = (startTime.value % 60).toString();
     if (minute.value.length == 1) minute.value = '0' + minute.value;
 
     if (props.user.role > 1)
@@ -215,7 +223,7 @@ async function submit() {
       thisRide.maxSpeed = Math.round(thisRide.maxSpeed*1.6);
       distance.value = Math.round(distance.value*1.6);
     }
-    if (thisRide.routeID == 0 /* && newRoute != null  && newRoute.hasGPX */) {
+    if (thisRide.routeID == 0 || newRouteForThisRide) {
       //  need to save the route first
       let newRoute : Route = currentRoute.value;
       if (newRoute.id === 0 && newRoute.hasGPX===false) {
@@ -224,6 +232,9 @@ async function submit() {
         newRoute.dest = destination.value;
         newRoute.distance = distance.value;
 
+      }
+      else if (newRouteForThisRide) {
+        newRoute.hasGPX = true;
       }
       newRoute.owner = props.user.name;
       const res = await myFetch(apiMethods.saveRoute,newRoute);
@@ -340,6 +351,10 @@ function routeChosen(route : Route) {
   update();
 }
 function showUploadedRoute(r : Route) {
+  routeHasBeenChosen.value = true;
+  currentRoute.value = r;
+  newRouteForThisRide = true;
+  //update();
   emit('showUploadedRoute',r);
   //if (thisRide)
    // thisRide.routeID = r.id;
@@ -415,6 +430,7 @@ function speedLabel() {
               </v-col> -->
               <v-col cols="6" class="mt-n6" >
                     <DateSelector :icon="false" 
+                    :key="showDate"
                       :dates="ridedates"
                       :text="TimesDates.dateString(date)"
                       :date="date"
