@@ -47,6 +47,7 @@ const showDate = ref(0);
 
 let newRide = true;
 let newRouteForThisRide = false;
+let changedRouteForThisRide = false;
 //let newRoute : Route ;
 let thisRide : Ride;
 const hour=ref('');
@@ -70,6 +71,7 @@ onBeforeMount(async() => {
     currentRoute.value.id = props.ride.routeID;
     newRide = false;
     newRouteForThisRide = false;
+    changedRouteForThisRide = false;
   }
   routeHasBeenChosen.value = false;
   thisRide = props.ride;
@@ -254,6 +256,10 @@ async function submit() {
               await Message(res);
       }
     }
+    else if (changedRouteForThisRide) {
+      currentRoute.value = props.routeFromList; 
+
+    }
     //let emailRequired = false;
     if (newRide == false && currentRoute.value.id != thisRide.routeID) {
       routeID = currentRoute.value.id;
@@ -350,6 +356,10 @@ function routeChosen(route : Route) {
   currentRoute.value = route;
   update();
 }
+function chooseRouteFromList() {
+  changedRouteForThisRide = true;
+  emit('chooseRouteFromList');
+}
 function showUploadedRoute(r : Route) {
   routeHasBeenChosen.value = true;
   currentRoute.value = r;
@@ -375,7 +385,7 @@ function speedLabel() {
         :existing-route="currentRoute"
         @route-chosen="routeChosen"
         @show-route="showRoute"
-        @choose-route-from-list="emit('chooseRouteFromList')"
+        @choose-route-from-list="chooseRouteFromList"
         @show-uploaded-route="showUploadedRoute"
       
       >
