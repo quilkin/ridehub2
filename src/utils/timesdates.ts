@@ -16,7 +16,8 @@ const TimesDates = {
         // return number of whole days since 01/01/1970
         var value = time.valueOf();
         value /= 86400000;
-        return parseInt(value.toFixed(0));  
+        //return parseInt(value.toFixed(0));  
+        return Math.floor(value);
     },
     dateString: function (time : Date | undefined) {
         if (time === undefined) {
