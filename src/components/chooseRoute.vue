@@ -117,7 +117,10 @@ async function readSuccess(event: ProgressEvent<FileReader>) {
                   ></v-file-input> 
               </v-col>
               <v-col cols = "4" class="mt-6" >
-                  <v-btn color="blue" class="ma-2"  variant="outlined" @click="loadGpx">Load into RideHub</v-btn>
+                  <v-btn
+                   color="blue" class="ma-2"  variant="outlined" @click="loadGpx"
+                   title="Please ensure that file name is correct, it cannot be edited later"
+                   >Load into RideHub</v-btn>
               </v-col>
             </v-row>
 
@@ -125,7 +128,13 @@ async function readSuccess(event: ProgressEvent<FileReader>) {
                 @click="emit('routeChosen',props.existingRoute)"
                 >  
                 Have a simple ride to somewhere, with no defined route</v-btn>
-
+            <v-card-text v-if="props.existingRoute.id===0">
+               Or.....:
+            </v-card-text>
+            <v-btn block class="pa-2 ma-1" color="darkblue" variant="outlined"
+                @click="props.existingRoute.distance=0; emit('routeChosen',props.existingRoute)"
+                >  
+                List another type of event</v-btn>
             
           </v-row>
     </v-card>

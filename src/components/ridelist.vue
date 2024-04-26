@@ -235,10 +235,10 @@ async function viewRoute(index : number) {
     }
     currentRoute = Routes.findRoute(ride.routeID);
   // currentRideIndex = index;
-    if (currentRoute.id == 0) {
-      AlertError('internal problem','Route not found for this ride');
-      return;
-    }
+    // if (currentRoute.id == 0) {
+    //   AlertError('internal problem','Route not found for this ride');
+    //   return;
+    // }
     //emit('updateRideIndex',index);
     // if (currentRoute.hasGPX==false)
     // {
@@ -252,7 +252,9 @@ async function viewRoute(index : number) {
     //     currentRoute.route = gpxData.route;
     //   }
     // }
-    emit('showRoute',currentRoute,true);
+    if (currentRoute.id > 0) {
+      emit('showRoute',currentRoute,true);
+    }
     // no need to show tooltip again?
     showTooltips.value = false;
 }
@@ -289,10 +291,11 @@ const listItemLines= computed(() => {
       </v-list-item-title>
       <v-row  no-gutters>
         <v-col cols="2" sm="1">
-          <v-chip size="small" color="blue" variant="outlined">{{ TimesDates.fromIntTime( ride.time) }}</v-chip>
-        </v-col>
+          <v-chip size="small" color="blue" variant="outlined">{{ TimesDates.fromIntTime( ride.time) }}</v-chip>        </v-col>
         <v-col cols="6" sm="3">
-          <v-chip size="small" variant='elevated' color="blue"  title="Click to show route on map">
+          <v-chip size="small"   variant="elevated"
+            :color="distanceStr[i]==='?'?'indigo':'blue'"
+            :title="climbingStr[i]===''?'No route map available':'Click to show route on map'">
             <span class="text-truncate" style="width:170px" >{{ destination[i]  }}</span>
           </v-chip>
         </v-col>

@@ -203,7 +203,7 @@ function riderList() {
             <v-col cols="3"><v-chip v-if="(speedStr().length > 0)" class="mt-3">Speed</v-chip></v-col>
             <v-col cols="3"><v-card-text > {{ speedStr() }}   </v-card-text></v-col>
         </v-row>
-        <v-row no-gutters>
+        <v-row no-gutters v-if="props.route.distance > 0" >
             <v-col cols="3" class="mt-n4"><v-chip class="mt-3">Distance</v-chip></v-col>
             <v-col cols="3" class="mt-n4"><v-card-text > {{ routeFuncs.distanceStr(props.route,props.user.units) }}   </v-card-text></v-col>
             <v-col cols="3" class="mt-n4"><v-chip v-if="props.route.climbing > 0" class="mt-3">Climbing</v-chip></v-col>
@@ -214,7 +214,7 @@ function riderList() {
             <v-col cols="9" class="mt-n4"><v-card-text> {{ ride.meetingAt + ' @ ' + TimesDates.fromIntTime(ride.time)}}   </v-card-text></v-col>
         </v-row>
         <v-row no-gutters>
-            <v-col cols="3" class="mt-n4"><v-chip class="mt-3">Riders</v-chip></v-col>
+            <v-col cols="3" class="mt-n4"><v-chip class="mt-3">{{props.route.distance > 0? 'Riders':'Participants'  }}</v-chip></v-col>
             <!-- <v-col cols="9" class="mt-n4"><v-card-text> {{ ride.groupSize + ' riders: (' + (ride.groupSize - numberOfRiders - 1) + ' spaces left)'}}   </v-card-text></v-col> -->
             <v-col cols="9" class="mt-n4"><v-card-text> {{ riderList()}}   </v-card-text></v-col>
         </v-row>

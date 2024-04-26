@@ -53,6 +53,8 @@ export const ridersRules = [
 export const speedRules = [ 
                             (value: string) => !!value || 'Required.', 
                             (value: string) => {
+                                if (value==='0')
+                                    return true;
                                 const speeds = rideData.stringToSpeeds(value);
                                 if (speeds.length< 2)
                                     return 'Please use a small range, e.g. 16-18';

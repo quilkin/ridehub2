@@ -40,8 +40,8 @@ const description = ref ('');
 const date = ref(new Date());
 const startTime = ref(540);  // default start at 9 am
 const maxRiders = ref(10);
-const minSpeed = ref();
-const maxSpeed = ref();
+const minSpeed = ref(0);
+const maxSpeed = ref(0);
 const speedStr = ref(' ');
 const showDate = ref(0);
 
@@ -109,22 +109,22 @@ function update() {
       
     }
     else {
-      currentRoute.value = new Route();
-        if (props.routeFromList.id > 0) {
+      distance.value = currentRoute.value.distance;
+      //currentRoute.value = new Route();
+      if (props.routeFromList.id > 0) {
         routeHasBeenChosen.value = true;
         currentRoute.value = props.routeFromList;
         destination.value = currentRoute.value.dest;
-        distance.value = currentRoute.value.distance;
         showRoute(currentRoute.value, true);
       }
       else if (props.newRoute.hasGPX) {
         routeHasBeenChosen.value = true;
         currentRoute.value = props.newRoute;
         destination.value = currentRoute.value.dest;
-        distance.value = currentRoute.value.distance;
       }
       else {
         currentRoute.value.id = 0;
+
       }
    //   newRide = true;
         // default to have ride on a Sunday at 9am
@@ -214,11 +214,11 @@ async function submit() {
       thisRide.minSpeed =  speeds[0];
       thisRide.maxSpeed =  speeds[1];
     }
-    else {
+    else if (distance.value > 0) {
       await AlertError('Speed','Invalid average speed');
       return;
     }
-    if (props.user.units=='m' && props.user.role < 2) {
+    if (distance.value > 0 && props.user.units=='m' && props.user.role < 2) {
        // store as km, not miles, so adjust
       // but if admin is adjusting someone else's ride, leave this alone
       thisRide.minSpeed = Math.round(thisRide.minSpeed*1.6);
@@ -268,12 +268,12 @@ async function submit() {
       //await Alert('Route has changed','Please inform any riders that have signed up','using the WhatsApp RideInfo group','info','OK');
     }
     if (newRide == false && thisRide.date != TimesDates.toIntDays(date.value)) {
-      // todo: need to warn riders that route has changed
+      // todo: need to warn riders that date has changed
       thisRide.emailRequired = true;
       //await Alert('Ride date has changed','Please inform any riders that have signed up','using the WhatsApp RideInfo group','info','OK');
     }
     if (newRide == false && thisRide.time != parseInt(hour.value)* 60 + parseInt(minute.value)) {
-      // todo: need to warn riders that route has changed
+      // todo: need to warn riders that time has changed
       thisRide.emailRequired = true;
       //await Alert('Ride date has changed','Please inform any riders that have signed up','using the WhatsApp RideInfo group','info','OK');
     }
@@ -283,6 +283,7 @@ async function submit() {
     }
     thisRide.leaderName = props.user.name;
     thisRide.date = TimesDates.toIntDays(date.value);
+ 
     //thisRide.time = date.value.getHours() * 60 + date.value.getMinutes();
     thisRide.time = parseInt(hour.value)* 60 + parseInt(minute.value);
     thisRide.description = description.value;
@@ -379,7 +380,7 @@ function speedLabel() {
     <v-card class="pa-3" >
     
       <v-card-title class="headline black" primary-title>
-        {{newRide? 'Plan to lead a ride':'Edit your ride'}}
+        {{newRide? 'Plan to lead a ride or event':'Edit your ride or Event'}}
       </v-card-title>
       <ChooseRoute v-if="routeHasBeenChosen==false"
         :existing-route="currentRoute"
@@ -408,18 +409,18 @@ function speedLabel() {
             </v-row>
             <v-row >
               <v-col cols="6"   >
-                  <v-text-field density="compact" variant="outlined" label="Destination" 
+                  <v-text-field density="compact" variant="outlined" :label="currentRoute.distance>0? 'Destination':'Event'" 
                     v-model="destination"
                     :rules="destinationRules"
 
                     hint='Where are you riding to? Coffee stop?'/>
               </v-col>
-              <v-col cols="6"   >
+              <v-col cols="6"  v-if="currentRoute.distance>0" >
                   <v-text-field density="compact"   variant="outlined" label="Approx Distance" 
                    v-model="distance"
                    :suffix="props.user.units==='k'?'km':'miles'"
                    :rules="distanceRules"
-                   :disabled="currentRoute.distance>0" 
+                   :disabled="currentRoute.hasGPX" 
                    hint="A rough indication, need not be exact"/>
               </v-col>
             </v-row>
@@ -450,7 +451,7 @@ function speedLabel() {
               <v-col cols="3" class="mt-n6"  >
                   <v-select density="compact" variant="underlined" v-model="hour"
                       label="Hour"
-                    :items="['06', '07', '08', '09', '10', '11','12', '13','14', '15','16','17', '18']"
+                    :items="['06', '07', '08', '09', '10', '11','12', '13','14', '15','16','17', '18','19', '20']"
                   ></v-select>
             </v-col>
               <v-col cols="3" class="mt-n6" >
@@ -463,15 +464,21 @@ function speedLabel() {
             </v-row>
         
             <v-row   no-gutters>
-              <v-col cols="6"  class="mt-6" >
-                  <v-text-field variant="outlined" density="compact" v-model="meetingAt"  :rules="meetingRules"  label="Starting At" 
+              <v-col cols="6"  class="mt-6" v-if="currentRoute.distance>0">
+                  <v-text-field variant="outlined" density="compact" v-model="meetingAt"  :rules="meetingRules"
+                      label="Starting At"
                       hint="Please be precise if ride is not starting at the usual place" />
               </v-col>
-              <v-col cols="3"  class="mt-6" >
+              <v-col cols="6"  class="mt-6" v-else>
+                  <v-text-field variant="outlined" density="compact" v-model="meetingAt"  :rules="meetingRules"
+                      label='Location'
+                      hint="Where this event is being held (or started)" />
+              </v-col>
+              <v-col v-if="currentRoute.distance>0" cols="3"  class="mt-6" >
                   <v-text-field variant="outlined" density="compact" v-model="maxRiders"  :rules="ridersRules"  label="Max riders" 
                    hint="Limit rider numbers if you don't want a big group" />
               </v-col>
-              <v-col cols="3"  class="mt-6" >
+              <v-col v-if="currentRoute.distance>0" cols="3"  class="mt-6" >
                   <v-text-field variant="outlined" density="compact" v-model="speedStr"  :rules="speedRules"  :label="speedLabel()" 
                   hint="Suggested speed. You can enter a range, e.g. 18-20"  />
               </v-col>
@@ -482,13 +489,14 @@ function speedLabel() {
   
           <v-row >
             <v-col  v-if="!newRide">
-              <v-btn block color="blue"    @click="deleteRide()">Delete Ride</v-btn>
+              <v-btn v-if = "currentRoute.distance>0" block color="blue"    @click="deleteRide()">Delete Ride</v-btn>
+              <v-btn v-else block color="blue"    @click="deleteRide()">Delete Event</v-btn>
             </v-col>
             <v-col>
               <v-btn block color="blue"  variant="outlined" @click="cancel()" >Cancel Edit</v-btn>
             </v-col>
             <v-col  v-if="routeHasBeenChosen">
-              <v-btn block color="blue" type="submit"  >{{newRide? 'Save ride':'Save edits'}}</v-btn>
+              <v-btn block color="blue" type="submit"  >{{newRide? (currentRoute.distance===0? 'Save Event':'Save ride'):'Save edits'}}</v-btn>
             </v-col>
           </v-row>
         </v-form>
