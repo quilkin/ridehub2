@@ -3,6 +3,8 @@ import rideData from '@/utils/ridedata'
 export const nameRules =   [ 
                             (value: string) => !!value || 'Required.', 
                             (value: string) => {
+                                if (value.includes(' ')) return 'No spaces in username please'
+                                 if (value.includes("'")) return 'No apostrophes in username please'
                                 if (value.length >= 3) return true
                                 return 'Username is 3 to 10 characters.'
                                 },
@@ -25,6 +27,7 @@ export const emailRules = [
 export const destinationRules =   [ 
                             (value: string) => !!value || 'Required.', 
                             (value: string) => {
+                                if (value.includes("'")) return 'No apostrophes in destination please'
                                 if (value.length >= 3 && value.length <= 30) return true
                                 return 'Destination should be 3 to 30 characters. More info can be entered into the ride deatils'
                                 },
@@ -39,6 +42,7 @@ export const distanceRules = [
 export const meetingRules = [ 
                             (value: string) => !!value || 'Required.', 
                             (value: string) => {
+                                if (value.includes("'")) return 'No apostrophes  please'
                                 if (value.length >= 3 && value.length <= 30) return true
                                 return 'Meeting place should be 3 to 30 characters'
                                 },
@@ -77,6 +81,7 @@ export const gpxRules = [
 export const descriptionRules = [ 
                             (value: string) => !!value || 'Required.', 
                             (value: string) => {
+                                if (value.includes("'")) return 'No apostrophes in description please'
                                 if (value.length >= 10 && value.length <= 200) return true
                                 return 'Desciption should be between 10 and 200 characters'
                                 },

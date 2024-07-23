@@ -5,8 +5,8 @@ function serviceBase() : string {
   
   if (process.env.NODE_ENV !== 'development')
        return "../";
-  //return "http://192.168.1.210:3000/";
-  return "https://ridehub2.truro.cc/"
+  return "http://192.168.1.210:3000/";
+  //return "https://ridehub2.truro.cc/"
 
 
 }
