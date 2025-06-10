@@ -7,13 +7,14 @@ import RideList from './components/ridelist.vue'
 import DateSelector  from './components/dateSelector.vue'
 import Help from './components/help.vue'
 import RouteList from './components/routeList.vue'
+import Stats from './components/stats.vue'
 import { Route } from '../../ridehub-server/src/common/route'
 import { Ride} from '../../ridehub-server/src/common/ride'
 import { User} from '../../ridehub-server/src/common/user'
 import { Message } from './utils/alert'
 import { Tabs } from './utils/tabs'
 import type { Map } from 'leaflet';
-import { mdiCalendarMonth, mdiAccountEdit ,mdiBike,mdiCoffee, mdiHelp, mdiMap , mdiDoorOpen} from '@mdi/js'
+import { mdiCalendarMonth, mdiAccountEdit ,mdiBike,mdiCoffee, mdiHelp, mdiMap , mdiDoorOpen, mdiFormatListNumberedRtl} from '@mdi/js'
 
 const currentTab = ref(Tabs.account);
 const currentUser = ref(new User('',''));
@@ -243,6 +244,7 @@ const tabWidth= computed(() => {
       <!-- <v-tab :value=Tabs.coffee>    <v-icon :icon="mdiCoffee"/>             Coffee</v-tab>
       <v-tab :value=Tabs.library>   <v-icon :icon="mdiBookOpenPageVariant"/>Library</v-tab> -->
       <v-tab :value=Tabs.account :style="{...tabWidth}">    <v-icon :icon="mdiAccountEdit"/>        Account</v-tab>
+      <v-tab :value=Tabs.stats :style="{...tabWidth}">    <v-icon :icon="mdiFormatListNumberedRtl"/>        Stats</v-tab>
       <v-tab :value=Tabs.help :style="{...tabWidth}">      <v-icon :icon="mdiHelp"/>               Help</v-tab>
       <!-- <v-tab v-if="mobile" :value=Tabs.exit>      <v-icon :icon="mdiDoorOpen"/> Exit</v-tab> -->
     </v-tabs>
@@ -326,6 +328,14 @@ const tabWidth= computed(() => {
         <v-window-item :value=Tabs.help>
           <v-container  class="">
             <Help></Help>
+          </v-container>
+        </v-window-item>
+        <v-window-item :value=Tabs.stats>
+          <v-container  class="">
+            <Stats
+            :user="currentUser"
+            >
+            </Stats>
           </v-container>
         </v-window-item>
       </v-window>

@@ -33,6 +33,21 @@ export async function AlertError(
     showConfirmButton: true
   }).then();
 }
+
+export async function LongMessage(
+  title: string,
+  text: string,
+) {
+
+  await Swal.fire({
+    title: title,
+    text: text,
+    width: '250px',
+    confirmButtonText: 'OK',
+    showConfirmButton: true
+  }).then();
+}
+
 export function CloseAlert() {
   Swal.close();
 }

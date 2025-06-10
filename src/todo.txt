@@ -5,3 +5,13 @@ tree-shaking?
 clear map if no route for selected ride
  maybe add a special secret button to allow change of leader?
  miles/km still not correct when saving ride in miles - only with admin login
+ don't allow duplicate login name when chaning account details
+
+-----------------------------------------------------------
+how to run client:
+terminal: npm run dev
+browser: localhost:5173
+-------------------------------------------------------------
+how to build / run server:
+terminal: tsc
+terminal: node dist\app.js

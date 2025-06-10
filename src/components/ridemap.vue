@@ -18,6 +18,7 @@ import Routes  from '@/utils/routes'
 import { mdiRoutes} from '@mdi/js'
 import type { LineString } from 'geojson';
 import { useDisplay } from 'vuetify'
+import { AlertError, LongMessage } from '../utils/alert'
 const { mobile } = useDisplay();
 
 
@@ -369,7 +370,17 @@ const mapHeight= computed(() => {
 const profileHeight= computed(() => {
     return mobile.value ? {'height': '18vh'} : {'height': '30vh'}
 })
-
+async function touristTrophy() {
+    const res : string[] = await myFetch(apiMethods.touristTrophy,0);
+    if (res === null) 
+        return;
+    if (res.length > 0) {
+      LongMessage('Tourist Trophy',res);
+    }
+    else {
+      AlertError('File error','Cannot get results, sorry');
+    }
+}
 </script>
 
 <template>
@@ -380,6 +391,10 @@ const profileHeight= computed(() => {
             v-if="gpx != undefined" 
             :prepend-icon="mdiRoutes"
              @click="Routes.downloadGpx(props.routes.find(r => r.highlighted))" >Get GPX</v-btn>
+            <v-btn variant="outlined" color="blue"
+            v-if="gpx != undefined" 
+   
+             @click="touristTrophy()" >Most rides?</v-btn>
         </v-col>
         <v-col cols="10" class="pa-0 ma-0">
             <Profile v-if="chosenGPX" 
