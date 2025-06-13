@@ -123,6 +123,11 @@
         emit('editRide',ride);
         detailsActive.value = false;
   }
+  async function removeRider(remove: string) {
+    await rideData.leaveParticipant(ride.rideID, remove,rider);
+    emit("participantsUpdated");
+  }
+
   async function joinRide() {
   
     // if (buttonText === editRideText) {
@@ -158,6 +163,18 @@
 
 }
 
+function rideTimePassed() : boolean {
+    let now = new Date();
+    let rideDate = ride.date;
+    let nowDate = TimesDates.toIntDays(now);
+    if (nowDate > rideDate)
+        return true;
+    if (nowDate === rideDate) {
+        if (now.getHours() > ride.time / 60)
+            return true;
+    }
+    return false;
+}
 
 function speedStr() {
     let speeds = rideData.speedsToString(ride.minSpeed,ride.maxSpeed,props.user.units);
@@ -221,11 +238,27 @@ function riderList() {
 
 
         <v-card-actions>
-            <v-btn v-if="(rider === ride.leaderName || props.user.role>1)"
+            <v-btn v-if="((rider === ride.leaderName || props.user.role>1) && rideTimePassed()==false)"
                 variant="elevated" color="blue" id="edit" @click="editRide()"
                 > Edit/Cancel</v-btn>
+            <v-btn v-if="((rider === ride.leaderName || props.user.role>1) && rideTimePassed())"
+                variant="elevated" color="blue" id="edit"
+                > Remove rider
+                <v-menu activator="parent">
+                    <v-list>
+                        <v-list-item
+                            v-for="(pp, index) in participants"
+                            :key="index"
+                            :value="index"
+                            @click="removeRider(pp)"
+                        >
+                            <v-list-item-title>{{ pp }}</v-list-item-title>
+                        </v-list-item>
+                    </v-list>
+                </v-menu>
+            </v-btn>
 
-            <v-btn variant="elevated" color="blue" id="join" @click="joinRide()">{{buttonText}}</v-btn>
+            <v-btn v-if="(rideTimePassed()==false)" variant="elevated" color="blue" id="join" @click="joinRide()">{{buttonText}}</v-btn>
             <v-btn 
                 @click.prevent="Routes.downloadGpx(props.route)"
                 variant="elevated" color="blue" 

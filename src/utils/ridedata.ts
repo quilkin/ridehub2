@@ -172,14 +172,21 @@ const rideData = {
         });
 
     },
-    leaveParticipant: async function (rideID : number, rider : string) {
-        await YesNo("Leave this ride?", async ()=> {
+    leaveParticipant: async function (rideID : number, rider : string, remover: string = '') {
+        let beingRemoved: Boolean = (remover.length > 0);
+        await YesNo(beingRemoved? `Remove '${rider}' from this ride?` : "Leave this ride?", async ()=> {
             const pp = new Participant(rider, rideID);
             const response = await myFetch(apiMethods.leavePpt, pp);
             if (!response ) 
-                await  AlertError('server error', 'could not leave ride');
+                await  AlertError('server error', 'could not leave ride, sorry');
             else if (response === 'OK') {
-                await Message("You have left this ride");
+                if (beingRemoved) {
+                    await Message(`'${rider}' was removed from this ride`);
+                    // add an entry into the log file (in case of mis-use)
+                   await myFetch(apiMethods.logAction,`'${rider}' was removed from ride ${rideID} by ${remover}`);
+                }
+                else
+                 await Message("You have left this ride");
             }
             else {
                 await Message(response);

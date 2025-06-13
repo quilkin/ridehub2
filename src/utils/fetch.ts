@@ -22,7 +22,7 @@ export async function myFetch(url : String, data : Object | null)  {
         body: bodyData
     }
     
-    console.log('fetch: ' + url)
+    console.log('fetch: ' +  bodyData)
     const fullUrl =  serviceBase() +  url;
     // if (url.includes(apiMethods.login)) {
     //   alert(fullUrl);
