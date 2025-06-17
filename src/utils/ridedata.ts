@@ -172,7 +172,7 @@ const rideData = {
         });
 
     },
-    leaveParticipant: async function (rideID : number, rider : string, remover: string = '') {
+    leaveParticipant: async function (rideID : number, rider : string, remover: string = '', dest: string  = "") {
         let beingRemoved: Boolean = (remover.length > 0);
         await YesNo(beingRemoved? `Remove '${rider}' from this ride?` : "Leave this ride?", async ()=> {
             const pp = new Participant(rider, rideID);
@@ -183,7 +183,7 @@ const rideData = {
                 if (beingRemoved) {
                     await Message(`'${rider}' was removed from this ride`);
                     // add an entry into the log file (in case of mis-use)
-                   await myFetch(apiMethods.logAction,`'${rider}' was removed from ride ${rideID} by ${remover}`);
+                   await myFetch(apiMethods.logAction,`'${rider}' was removed from ride ${rideID} (${dest}) by ${remover}`);
                 }
                 else
                  await Message("You have left this ride");

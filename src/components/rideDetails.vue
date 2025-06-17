@@ -124,7 +124,7 @@
         detailsActive.value = false;
   }
   async function removeRider(remove: string) {
-    await rideData.leaveParticipant(ride.rideID, remove,rider);
+    await rideData.leaveParticipant(ride.rideID, remove,rider, props.route.dest);
     emit("participantsUpdated");
   }
 

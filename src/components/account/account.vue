@@ -2,7 +2,7 @@
 <script setup lang="ts">
 
 import { ref, onBeforeMount, onUpdated } from 'vue'
-import {nameRules, emailRules} from '../../utils/rules'
+import {nameRules, emailRules, pwRules} from '../../utils/rules'
 import { myFetch } from '@/utils/fetch'
 import { apiMethods } from '../../../../ridehub-server/src/common/apimethods'
 import { User } from '../../../../ridehub-server/src/common/user'
@@ -108,7 +108,7 @@ function cancel() {
           </v-row>
           <v-row  no-gutters>
             <v-col   class="pa-1"  >
-              <v-text-field v-model="password1" :append-inner-icon="showPass ? mdiEye : mdiEyeOff"
+              <v-text-field v-model="password1" :rules="pwRules" :append-inner-icon="showPass ? mdiEye : mdiEyeOff"
                 @click:append-inner="showPass = !showPass"   :type="showPass ? 'text' : 'password'" 
                 label="Password" placeholder="******"  
                 hint="Leave blank if you don't want to change" persistent-hint>
