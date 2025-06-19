@@ -1,15 +1,19 @@
 <script setup lang="ts">
-  import { ref, type Ref } from 'vue'
-  import { mdiCalendarMonth } from '@mdi/js'
-   import DatePicker from '@vuepic/vue-datepicker';
-  import '@vuepic/vue-datepicker/dist/main.css';
+
+/**
+ * Select a date using vuepic/vue-datepicker library 
+ */
+import { ref, type Ref } from 'vue'
+//import { mdiCalendarMonth } from '@mdi/js'
+import DatePicker from '@vuepic/vue-datepicker';
+import '@vuepic/vue-datepicker/dist/main.css';
 import TimesDates from '@/utils/timesdates';
   
   const props = defineProps<{
     date : Date,
     text : string,
     icon: boolean ,
-    dates : number[]
+    dates : number[],  /*  dates already having rides */
     }>()
   const emit = defineEmits(['newDate']);
   const workingDate = ref(props.date);
@@ -18,7 +22,7 @@ import TimesDates from '@/utils/timesdates';
       emit("newDate",workingDate.value);
   }
 
- // const startTime = ref({ hours: 9, minutes: 0 });
+ 
   const highlightedDates = ref() as Ref<Date[]>;
   highlightedDates.value = [];
   props.dates.forEach((intDate)=> {
@@ -29,10 +33,6 @@ import TimesDates from '@/utils/timesdates';
     const day = date.getDate();
     const month = date.toLocaleString('default', { month: 'short' });
     const year = date.getFullYear();
-    // const hrs = date.getHours().toString().padStart(2,'0');
-   // const mins = date.getMinutes().toString().padStart(2,'0');
-
-   // return `${day} ${month} ${year} at ${hrs}:${mins}`;
     return `${day} ${month} ${year}`;
 }
 
@@ -41,15 +41,6 @@ import TimesDates from '@/utils/timesdates';
 
 <template>
   <div class="text-center">
-    <!-- <v-btn class="pa-2 ma-2" size='large'  variant=outlined  >
-      <v-icon start v-if="props.icon" :icon="mdiCalendarMonth">  </v-icon>
-        {{props.text}}
-      <v-dialog
-        v-model="datePickerActive"
-        activator="parent"
-        width="auto"
-        content-class="datepicker-dialog"
-      > -->
         <DatePicker
            locale="en-UK"
            auto-apply
@@ -64,15 +55,6 @@ import TimesDates from '@/utils/timesdates';
            :min-date="new Date()"
            :highlight="highlightedDates"
            :six-weeks="true"   />
-      <!-- </v-dialog>
-    </v-btn> -->
   </div>
 </template>
   
-<!-- <style scoped>
-  .v-dialog  :deep(.datepicker-dialog) {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-  } 
-</style>-->

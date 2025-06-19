@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import {  ref, onMounted,computed, onBeforeUpdate, type Ref} from 'vue'
 
-import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, PointElement, CategoryScale, LinearScale, Filler,
-     type ChartData, type ChartOptions, type Chart } from 'chart.js'
+import { Chart as ChartJS, Title, Tooltip, Legend, LineElement, BarElement,PointElement, CategoryScale, LinearScale, Filler,
+     type ChartData, type ChartOptions, type Chart, 
+     type ChartEvent} from 'chart.js'
 import { getRelativePosition } from 'chart.js/helpers';
 import { Line } from 'vue-chartjs'
+import { Bar } from 'vue-chartjs'
 
 import type { GPX } from 'leaflet'
 import { User  } from '../../../ridehub-server/src/common/user'
@@ -29,25 +31,23 @@ const profileData   = ref({
         // dummy distance/height data 
         labels: [ { data: [10,20,39] } ],
         datasets: [ { data: [50, 150, 100] } ]
-    }) as Ref<ChartData>;
+    }) as Ref<any>;      /* should be Ref<ChartOptions but leads to TS error */
       
 const profileOptions  = ref( {
           responsive: true,
           maintainAspectRatio: true
-    }) as Ref<ChartOptions>;
+    }) as Ref<any>;  /* should be Ref<ChartData but leads to TS error */
 
 
 
-ChartJS.register(Title, Tooltip, Legend, PointElement, LineElement, CategoryScale, LinearScale, Filler);
+ChartJS.register(Title, Tooltip, Legend, PointElement, LineElement, BarElement, CategoryScale, LinearScale, Filler);
 
 onMounted(() => {
-    //console.log('Profile mounted')
     if ( props.gpx != null) {
          showProfile(props.gpx,props.latlngs);
      }
 })
 onBeforeUpdate(() => {
-    //console.log('Profile updated')
         if ( props.gpx != null) {
          showProfile(props.gpx,props.latlngs);
      }
@@ -150,7 +150,7 @@ function showProfile(gpx : GPX, latlngs : L.LatLng[] | L.LatLng[][] | L.LatLng[]
 
             }
         },
-        onHover: (e) => {
+        onHover: (e: Event | ChartEvent | TouchEvent | MouseEvent) => {
             if (profile.value === null)
                 return;
             // @ts-ignore Type 'ChartData<keyof ChartTypeRegistry, (number | [number, number] | Point | BubbleDataPoint | null)[], unknown>' is not assignable to type 'ChartData<"line", (number | Point | null)[], unknown>'.
@@ -163,7 +163,6 @@ function showProfile(gpx : GPX, latlngs : L.LatLng[] | L.LatLng[][] | L.LatLng[]
             const dataX = thisChart.scales.x.getValueForPixel(canvasPosition.x);
             const indexX = Math.round(dataX *  points / maxDistance); 
             if (indexX >= 0 && indexX < points) {
-                //console.log(indexX);
                 const latlng =  json_latlng[indexX];
 
                 // send to map for animation.....
@@ -175,26 +174,24 @@ function showProfile(gpx : GPX, latlngs : L.LatLng[] | L.LatLng[][] | L.LatLng[]
 
 };
 
-// const profileHeight= computed(() => {
-//   return mobile.value ? '8vh':'40vh';
-// })
+
 </script>
 
 <template>
-    <!-- <v-container class="chart-container"> -->
+
     <v-container :style="props.height">
       <Line
         ref="profile"
         :data = "profileData"
         :options = "profileOptions"
       />
+        <!-- <Bar
+        ref="profile"
+        :data = "profileData"
+        :options = "profileOptions"
+      /> -->
 
     </v-container>
 </template>
 
-<!-- <style>
-.chart-container {
-    height: 25vh;
 
-}
-</style> -->

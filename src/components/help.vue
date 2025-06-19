@@ -1,6 +1,8 @@
 <script setup lang="ts">
 
-
+/**
+ * a simple help page - not ineractive
+ */
 </script>
 
 

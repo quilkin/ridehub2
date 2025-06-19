@@ -1,4 +1,8 @@
 <script setup  lang="ts">
+
+/**
+ * Display a list of rides for the next two months
+ */
 import { ref, onBeforeMount, computed, type Ref } from 'vue'
 import { myFetch } from '@/utils/fetch'
 import { apiMethods } from '../../../ridehub-server/src/common/apimethods'
@@ -9,7 +13,6 @@ import { User } from '../../../ridehub-server/src/common/user'
 import  routeFuncs  from '../utils/routeFuncs'
 import { Already} from '../utils/already'
 import { AlertError, Message } from '../utils/alert'
-//import { User } from '../utils/user'
 import Routes  from '../utils/routes'
 import RideDetails from './rideDetails.vue'
 import rideData from '@/utils/ridedata'
@@ -22,7 +25,6 @@ const { mobile } = useDisplay();
 const props = defineProps<{
   date : Date
   user : User
- // rideIndex : number
 }>()
 
 const emit = defineEmits(['showRoute','gotRides','logIn','editRide','participantsUpdated','updateRideIndex','newDate']);
@@ -56,16 +58,8 @@ onBeforeMount(async() => {
   if (rides.value.length == 0)
     return;
   createRideList();
-//viewRoute(props.rideIndex);
  
 });
-// onUpdated(async() => {
-
-//   await getData();
-//   createRideList();
-//   viewRoute(0);
-
-// });
 
 function initialiseArrays() {
   rides.value =         [] as Ride[];
@@ -79,24 +73,27 @@ function initialiseArrays() {
   rideSpeed.value =     [] as string[];
 }
 
+/**
+ * don't want to try to display any data until its all ready
+ * * @param i index of data in the tables
+ */
 function allDataLoaded(i : number) {
   if (participants.value[i] && reserves.value[i] && destination.value[i] )
     return true;
   return false;
 }
 
+/**
+ * Get all the rides, routes and participant lists from the database
+ */
 async function getData() {
 
-  //var intdays = TimesDates.toIntDays(props.date);
   const rideIDs: number[] = [];
   const routeIDs: number[] = [];
 
   try {
-    //let intDate = TimesDates.toIntDays(props.date);
-    //console.log('date: ' + props.date + ' ' + intDate)
     rideDates = [];
     rides.value   = await myFetch(apiMethods.getRides,TimesDates.toIntDays(props.date)-1);
-   // rides.value   = await myFetch(apiMethods.getRides,TimesDates.toIntDays(props.date),true);
     if (!rides.value  )  throw new Error(`Cannot get rides`);
 
     if (rides.value.length == 0)
@@ -111,15 +108,14 @@ async function getData() {
         routeIDs.push(ride.routeID);
         rideDates.push(ride.date);
     });
-   // emit('newRideDates');
-    // to start with, just get routes for displayed rides
+
+    // to start with, get routes for displayed rides
     currentRouteList = await Routes.getRoutesByID(routeIDs);
     if (currentRouteList === null)    throw new Error(`Cannot get routes`);
 
     emit('gotRides',currentRouteList, rideDates);
 
     const ppts = await myFetch(apiMethods.getPpts, rideIDs);
-    //if (ppts === undefined)    throw new Error(`Cannot get participants`);
     if (!ppts )    throw new Error(`Cannot get participants`);
    
     for (let index in rideIDs)
@@ -146,34 +142,40 @@ async function getData() {
     const err = e as Error;
    await  AlertError('Unsuccessful',err.message);
   }
-}   
+}
+
+/**
+ * convert ride speed (kph) into a displayable string, depending on user's preference
+ * @param ride ride to display speed for
+ */
 function speedStr(ride : Ride) {
     let speeds = rideData.speedsToString(ride.minSpeed,ride.maxSpeed,props.user.units);
     if (speeds =='') return '';
     return speeds + (props.user.units=='k'?' kph':' mph');
 }
 
+/**
+ * does what is says on the tin
+ */
 function createRideList() {
 
     rides.value.forEach((ride,index) => {
       const route  = Routes.findRoute(ride.routeID);
       if (route.id > 0)
       {
-        // console.log('createRideList route id: ' + route.id );
         destination.value[index] = route?.dest;
         climbingStr.value[index] = routeFuncs.climbingStr(route,props.user.units);
         distanceStr.value[index] = routeFuncs.distanceStr(route,props.user.units);
         climbingColour.value[index] = routeFuncs.climbingColour(route);
         rideSpeed.value[index] = speedStr(ride);
-                // not alowed by Typescript but this gives three states without defining an enum!
+        // not alowed by Typescript but this gives three states without defining an enum!
         // @ts-ignore
         route.highlighted = undefined;
       }
     });
 
     // now see if this rider is already booked on a ride for this date
-
-    
+    // see 'Already' for more info
     if (props.user !== undefined && props.user.role > 0) {
         let riderName = props.user.name;
         rides.value.forEach((ride,index) => {
@@ -199,16 +201,22 @@ function createRideList() {
             const err = e as Error;
             AlertError('Unsuccessful',err.message);
           }
-        
         });
     }
     if (rides.value.length>0)
       viewRoute(0);
  }
 
-
+ // global vars needed just for date functions
 var prevDate = 'x';
 var thisDate = '';
+const workingDate = ref(props.date);
+
+/**
+ * Calculate if a new date is required in the rides list (sometimes there is more than one ride on a certian date)
+ * @param date 
+ * @param index 
+ */
 function dateTitleReqd(date : number, index: number) {
   if (index==0) {
     prevDate = 'x';
@@ -222,11 +230,18 @@ function dateTitleReqd(date : number, index: number) {
   return false;
 }
 
-const workingDate = ref(props.date);
+/**
+ * used by the template to determine if a new date should be displayed
+ */
 function newDate() {
     changeDate.value = false;
     emit("newDate",workingDate.value);
-  }
+}
+
+/**
+ * Initiate showing one of the routes listed in the rides list
+ * @param index which ride
+ */
 async function viewRoute(index : number) {
     const ride : Ride = rides.value[index];
     if (ride === null || ride==undefined) {
@@ -234,30 +249,17 @@ async function viewRoute(index : number) {
       return;
     }
     currentRoute = Routes.findRoute(ride.routeID);
-  // currentRideIndex = index;
-    // if (currentRoute.id == 0) {
-    //   AlertError('internal problem','Route not found for this ride');
-    //   return;
-    // }
-    //emit('updateRideIndex',index);
-    // if (currentRoute.hasGPX==false)
-    // {
-    // //  Message('No map available for this ride');
 
-    // }
-    // else if (currentRoute.route == null || currentRoute.route.length < 100) {
-    //   // don't yet have the GPX data
-    //   let gpxData  = await myFetch(apiMethods.getGpx, currentRoute.id);
-    //   if (gpxData != null) {
-    //     currentRoute.route = gpxData.route;
-    //   }
-    // }
     if (currentRoute.id > 0) {
       emit('showRoute',currentRoute,true);
     }
     // no need to show tooltip again?
     showTooltips.value = false;
 }
+
+/**
+ * variations for phone (mobile) / PC screen displays
+ */
 const listHeight= computed(() => {
   return mobile.value ? '40vh':'80vh';
 })
@@ -339,8 +341,6 @@ const listItemLines= computed(() => {
 
 .v-container {
     padding: 1vh 1vw;
-    /* min-width: 70px; */
-    /* min-width: 20vw; */
   }
 
 </style>

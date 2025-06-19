@@ -1,5 +1,10 @@
 
 <script setup lang="ts">
+
+/**
+ * Display the map for a collection of routes, and the gradient profile for a selected route
+ * Uses leafletjs
+ */
 import {  ref, watch,onMounted,onBeforeUnmount, computed, type Ref} from 'vue'
 import { type Map } from 'leaflet';
 import "leaflet/dist/leaflet.css";
@@ -9,7 +14,6 @@ import 'leaflet-gpx';
 import 'leaflet-polylineDecorator';
 import { myFetch } from '@/utils/fetch'
 import { apiMethods } from '../../../ridehub-server/src/common/apimethods'
-import { Ride } from '../../../ridehub-server/src/common/ride'
 import { Route} from '../../../ridehub-server/src/common/route'
 import { User } from '../../../ridehub-server/src/common/user'
 import Profile from './profile.vue'
@@ -18,38 +22,38 @@ import Routes  from '@/utils/routes'
 import { mdiRoutes} from '@mdi/js'
 import type { LineString } from 'geojson';
 import { useDisplay } from 'vuetify'
-import { AlertError, LongMessage } from '../utils/alert'
+
 const { mobile } = useDisplay();
 
 
 const props = defineProps<{
   routes : Route[]   // one of which (current route?) may be highlighted
-updates : number;
+  updates : number;
   user : User
-  map : Map | null
+  map : Map | null  // see leafletjs.com
 }>()
 
 const emit = defineEmits(['defineMap','updateRouteInfo','setRoute']);
 
 var map: Map | null = null;
-const mapMessage = ref('');
-const gpx = ref() as Ref<L.GPX>;
-const chosenGPX = ref() as Ref<L.GPX | null>;
-let bikeMarker : L.Marker;
+const mapMessage = ref('');                     // title overlaid on map
+const gpx = ref() as Ref<L.GPX>;                // .gpx file for each route to be displayed
+const chosenGPX = ref() as Ref<L.GPX | null>;   // .gpx file for the highlighted route
+let bikeMarker : L.Marker;                      // for animation when traversing the route
 let mapTitle: L.Layer | ({ onAdd: () => HTMLDivElement; } & L.Control) | null;
-let mapKey = 0;
-const latlngs = ref() as Ref<L.LatLng[] | L.LatLng[][] | L.LatLng[][][]>;
-const chosenLatLngs = ref() as Ref<L.LatLng[] | L.LatLng[][] | L.LatLng[][][]>;
+const latlngs = ref() as Ref<L.LatLng[] | L.LatLng[][] | L.LatLng[][][]>;       // position array for each route
+const chosenLatLngs = ref() as Ref<L.LatLng[] | L.LatLng[][] | L.LatLng[][][]>; // position array for selected route
 let routeLine: L.Polyline<LineString, any>;
 let numOfRoutes = 0;
-let bounds: L.LatLngBounds | null;
-let mapItems : L.Layer[] = [];
-//let showProfile = false;
+let bounds: L.LatLngBounds | null;              // determin egeographic extent of map shown
 let newBounds = ref(0)
-let cornwallBounds : L.LatLngBounds;
+let mapItems : L.Layer[] = [];                  // all things displayed on the map
+let cornwallBounds : L.LatLngBounds;            // localization. Todo: move localized const data elsewhere
 
 
-
+/**
+ * See leafletjs.com for more info
+ */
 function setupMap() {
     console.log('set up map: routes: ' + props.routes.length)
     if (map != null) {
@@ -58,6 +62,7 @@ function setupMap() {
     }
     latlngs.value = [];
 
+    // localization. Todo: move localized const data elsewhere
     // showing Cornwall
     let topLeft = L.latLng(50.55, -5.65);
     let bottomright = L.latLng(49.95, -4.55);
@@ -77,8 +82,7 @@ function setupMap() {
     map.fitBounds(cornwallBounds).setZoom(9);
 
     emit('defineMap',map);
-    //window.dispatchEvent(new Event('resize'));
-     
+      
 }
 
 onMounted(() => {
@@ -88,6 +92,10 @@ onMounted(() => {
     newBounds.value = 0;
     
 })
+
+/**
+ * get rid of map items before displaying a new one
+ */
 onBeforeUnmount(() => {
     if (mapTitle != null) {
          mapTitle.remove()
@@ -98,7 +106,7 @@ onBeforeUnmount(() => {
 })
 
 function updateRoutes() {
-console.log('update routes');
+
     mapItems.forEach((item) => {
         item.remove();
     });
@@ -143,22 +151,29 @@ console.log('update routes');
     window.dispatchEvent(new Event('resize'));
  }
 
+ /**
+  * Need to redraw map if a new route is added
+  */
 watch(() => props.routes,  () => {
   console.log('ridemap: route list changed');
   updateRoutes();
   }
 )
 
+/**
+ * Need to redraw map if the highlighted route is changed
+ */
 watch(() => props.updates,  () => {
   console.log('ridemap: updates changed');
   updateRoutes();
-}
+    }
 )
 
 
 /**
- * increase map bounds to accommodate latest track
- * @param bounds 
+ * increase geographic map boundary to accommodate latest track
+ * @param newBounds 
+ * @param hightlighted 
  */
 function adjustBounds(newBounds: L.LatLngBounds, hightlighted : boolean) {
 
@@ -178,11 +193,14 @@ function adjustBounds(newBounds: L.LatLngBounds, hightlighted : boolean) {
     }
 
 }
+
+/**
+ *   This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
+    https://stackoverflow.com/questions/1484506/random-color-generator
+ * @param index which route to colour
+ */
 function routeColour(index: number) {
-    // This function generates vibrant, "evenly spaced" colours (i.e. no clustering). This is ideal for creating easily distinguishable vibrant markers in Google Maps and other apps.
-    // Adam Cole, 2011-Sept-14
-    // https://stackoverflow.com/questions/1484506/random-color-generator
-    
+  
     var r=0, g=0, b=0;
     var h = index / numOfRoutes;
     var i = ~~(h * 6);
@@ -201,6 +219,13 @@ function routeColour(index: number) {
     return c;
 }
 
+/**
+ * Show one route (track) on the map
+ * (note that we have some 'ts-ignore' statements here - leafletjs doesn't seem to be 100% typescript compliant)
+ * @param route which route to show
+ * @param numOfRoutes total number of rotes being shown (nneded to correctly display the highlighted route )
+ * @param index just increments for each route shown
+ */
 function showRoute(route : Route , numOfRoutes: number, index: number)
 {
     if (route.miniroute === '') {
@@ -319,8 +344,7 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
 
         const distance = Math.floor(gpx.value .get_distance() / 1000);
         const elev_gain = Math.floor(gpx.value .get_elevation_gain());
-        //var elev_loss = Math.floor(gpx.value .get_elevation_loss());
-
+        
         var name = '';
 
         if (route !== null)
@@ -329,8 +353,7 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
             name = gpx.value .get_name();
         }
 
-        // if this is a new route, get some details from the GPX to hand back to the app
-
+        // if this is a new route, get some details from the GPX to hand back to the app / database
         if (route.distance === 0 || isNaN(route.distance) || route.dest === '' || (route.climbing === 0 && elev_gain > 0)) {
             route.distance = distance;
             route.dest = name;
@@ -346,7 +369,9 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
     );
   }    
 
-
+/**
+ * animation shown on map as user tarverses the gradient profile with mouse
+ */
   const bikeIcon = L.icon({
     iconUrl:        bike,
     iconSize:     [40, 35], 
@@ -356,6 +381,10 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
     popupAnchor:  [-3, -7] 
 });
   
+/**
+ * 
+ * @param latlng where to place the bike icon animation 
+ */
 function updateMarker(latlng: L.LatLngExpression ) {
     if (map === null)
         return;
@@ -364,23 +393,17 @@ function updateMarker(latlng: L.LatLngExpression ) {
     }
     bikeMarker = new L.Marker(latlng, {icon: bikeIcon}).addTo(map);
 }
+
+/**
+ * sizes depend on phone (mobile) or PC screen displays
+ */
 const mapHeight= computed(() => {
     return mobile.value? {'height': '30vh'} : {'height': '70vh'} 
 })
 const profileHeight= computed(() => {
     return mobile.value ? {'height': '18vh'} : {'height': '30vh'}
 })
-// async function touristTrophy() {
-//     const res : string[] = await myFetch(apiMethods.touristTrophy,0);
-//     if (res === null) 
-//         return;
-//     if (res.length > 0) {
-//       LongMessage('Tourist Trophy',res);
-//     }
-//     else {
-//       AlertError('File error','Cannot get results, sorry');
-//     }
-// }
+
 </script>
 
 <template>

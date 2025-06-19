@@ -1,9 +1,12 @@
-// reqpassword.vue
 
 <script setup lang="ts">
+
+/**
+ * Code for a user to request a new password
+ */
 import { ref } from 'vue'
 import {emailRules} from '../../utils/rules'
-import { myFetch } from '@/utils/fetch'
+import { myFetch } from '../../utils/fetch'
 import { apiMethods } from '../../../../ridehub-server/src/common/apimethods'
 import  { Alert} from '../../utils/alert'
 

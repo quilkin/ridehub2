@@ -1,8 +1,12 @@
 <script setup lang="ts">
+
+/**
+ * Code for allowing a new user to sign up to RideHub
+ */
 import { ref, onBeforeMount } from 'vue'
 
 import {nameRules,pwRules,emailRules} from '../../utils/rules'
-import { myFetch } from '@/utils/fetch'
+import { myFetch } from '../../utils/fetch'
 import { apiMethods } from '../../../../ridehub-server/src/common/apimethods'
 import { Alert } from '../../utils/alert'
 import { mdiEye } from '@mdi/js'
@@ -20,9 +24,7 @@ const signupForm = ref();
 
 const emit = defineEmits(['doneSignUp'])
 
-// onBeforeMount(() => {
-//   console.log('signup starting');
-//   })
+
 const pwConfirmRules  = [
 
   (value: string) => {

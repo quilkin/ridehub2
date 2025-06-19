@@ -11,7 +11,7 @@
   import rideData  from '../utils/ridedata'
   import routeFuncs  from '../utils/routeFuncs'
   //import { Route } from '@/utils/route'
-  import Routes  from '@/utils/routes'
+  import Routes  from '../utils/routes'
   import { mdiBike } from '@mdi/js'
 
   const props = defineProps<{ 

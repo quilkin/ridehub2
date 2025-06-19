@@ -1,9 +1,13 @@
 <script setup lang="ts">
+
+/**
+ * Log in to a user's Ridehub account
+ */
+
 import { ref, onBeforeMount} from 'vue'
 // @ts-ignore
 import { nameRules,pwRules} from '../../utils/rules'
-//import { User } from '../../utils/user'
-import { myFetch } from '@/utils/fetch'
+import { myFetch } from '../../utils/fetch'
 import { apiMethods} from '../../../../ridehub-server/src/common/apimethods'
 import { User } from '../../../../ridehub-server/src/common/user'
 import { Alert, AlertError } from '../../utils/alert'
@@ -38,10 +42,6 @@ async function submit() {
         window.localStorage.password = pass;
       }
     let user = new User(username,pass);
-    // myFetch('testpost',0)
-    //   .then((response) => {
-    //     alert(response);
-    //   });
         
     myFetch(apiMethods.login,user)
       .then((response) => {
@@ -76,7 +76,6 @@ function signup() {
 
 }
 function guest() {
-  console.log('guest visit')
   emit('guestVisit');
 
 }
@@ -84,10 +83,10 @@ function forgot() {
   emit("forgotPass");
 
 }
-function crash() {
-  myFetch('crashtest1',null);
-  setTimeout(function() { myFetch('test',null); }, 5000);
-}
+// function crash() {
+//   myFetch('crashtest1',null);
+//   setTimeout(function() { myFetch('test',null); }, 5000);
+// }
 </script>
 
 <template>

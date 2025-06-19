@@ -1,6 +1,9 @@
 
 <script setup lang="ts">
 
+/**
+ * Create a new ride or edit an existing one
+ */
 import { ref, type Ref, onBeforeMount, onMounted, onBeforeUpdate} from 'vue'
 import { destinationRules, distanceRules, meetingRules, ridersRules, speedRules, gpxRules, descriptionRules} from '../utils/rules'
 
@@ -11,22 +14,18 @@ import { Route } from '../../../ridehub-server/src/common/route'
 import { User  } from '../../../ridehub-server/src/common/user'
 import { Alert, Message, YesNo, AlertError } from '../utils/alert'
 import Routes  from '../utils/routes'
-import RouteList from './routeList.vue'
 import TimesDates  from '../utils/timesdates'
 import DateSelector  from './dateSelector.vue'
 import ChooseRoute from './chooseRoute.vue'
-import { watch } from 'vue'
 import rideData from '@/utils/ridedata'
-import { mdiRoutes} from '@mdi/js'
-import { mdiCalendarMonth } from '@mdi/js'
-
 import { useDisplay } from 'vuetify'
-const { mobile } = useDisplay();
+
+//const { mobile } = useDisplay();
 
 const userName = ref('');
 const destination = ref('');
 const leader = ref('');
-const gpxfiles= ref() as Ref<File[]>;
+//const gpxfiles= ref() as Ref<File[]>;
 const distance = ref(0);
 const rideDialog = ref(false);
 const rideForm = ref();
@@ -45,14 +44,14 @@ const maxSpeed = ref(0);
 const speedStr = ref(' ');
 const showDate = ref(0);
 
-let newRide = true;
+let newRide = true;     // false for editing an existing one
 let newRouteForThisRide = false;
 let changedRouteForThisRide = false;
-//let newRoute : Route ;
 let thisRide : Ride;
 const hour=ref('');
 const minute=ref('');
 const members= ref() as Ref<string[]>;
+/* possible outcomes of this edit */
 const emit = defineEmits(['doneRideEdit','showRoute','logIn','newRouteList','chooseRouteFromList','showUploadedRoute']);
 
 const props = defineProps<{
@@ -64,7 +63,6 @@ const props = defineProps<{
 }>()
 
 onBeforeMount(async() => {
-  console.log('edit - before mount');
   currentRoute.value = new Route();
   if (props.ride.rideID> 0) {
     // editing existing ride
@@ -78,18 +76,19 @@ onBeforeMount(async() => {
 })
 
 onBeforeUpdate(async() => {
-  console.log('edit - before update');
   routeHasBeenChosen.value = false;
   update();
 })
 
+/**
+ * update the page with new values
+ */
 function update() {
     if (props.user === undefined || props.ride === undefined)
     {
         AlertError('Internal error','invalid user or ride data');
         return;
     } 
-    //currentRoute.value = new Route();
 
     thisRide = props.ride;
     date.value = TimesDates.fromIntDays(thisRide.date);
@@ -108,9 +107,8 @@ function update() {
       date.value.setMinutes(thisRide.time % 60);
       
     }
-    else {
+    else {   // new ride
       distance.value = currentRoute.value.distance;
-      //currentRoute.value = new Route();
       if (props.routeFromList.id > 0) {
         routeHasBeenChosen.value = true;
         currentRoute.value = props.routeFromList;
@@ -122,12 +120,12 @@ function update() {
         currentRoute.value = props.newRoute;
         destination.value = currentRoute.value.dest;
       }
-      else {
+      else {  //  ride has not been furnished with a route
         currentRoute.value.id = 0;
 
       }
-   //   newRide = true;
-        // default to have ride on a Sunday at 9am
+
+      // default to have ride on a Sunday at 9am
       const day = date.value.getDay();
       const daysToAdd = 7-day;
       date.value.setDate(date.value.getDate() + daysToAdd);
@@ -146,8 +144,6 @@ function update() {
     leader.value = thisRide.leaderName;
     if (props.user.units=='m') {
       // stored as km, not miles, so adjust
-     // if (minSpeed.value != undefined) minSpeed.value = Math.round(minSpeed.value/1.6);
-     // if (maxSpeed.value != undefined) maxSpeed.value = Math.round(maxSpeed.value/1.6);
       distance.value = Math.round(distance.value/1.6);
     }
     speedStr.value = rideData.speedsToString(minSpeed.value,maxSpeed.value,props.user.units);
@@ -160,6 +156,7 @@ function update() {
     if (minute.value.length == 1) minute.value = '0' + minute.value;
 
     if (props.user.role > 1)
+    // admins can edit others' rides, so need a list of all signups to choose from
        getMembers();
    
 }
@@ -167,6 +164,10 @@ function cancel() {
     rideDialog.value = false;
     emit('doneRideEdit');
 }
+
+/**
+ * Get a list of all users, so one can be chosen by admins
+ */
 async function getMembers() {
   const logins : User[] = await myFetch(apiMethods.getLogins,0);
   if (logins != null) {
@@ -197,6 +198,9 @@ async function deleteRide()
   })
 }
 
+/**
+ * Submit the new data for validation
+ */
 async function submit() {
   if (rideForm.value == null) 
     return;
@@ -230,7 +234,6 @@ async function submit() {
       let newRoute : Route = currentRoute.value;
       if (newRoute.id === 0 && newRoute.hasGPX===false) {
         // new ride without a route
-        // newRoute = new Route();
         newRoute.dest = destination.value;
         newRoute.distance = distance.value;
 
@@ -241,7 +244,7 @@ async function submit() {
       newRoute.owner = props.user.name;
       const res = await myFetch(apiMethods.saveRoute,newRoute);
       if (res===null)
-        return;
+        return;   // todo:: this doesn't look right
       const id = parseInt(res);
       if (Number.isInteger(id)) {
    
@@ -260,31 +263,23 @@ async function submit() {
       currentRoute.value = props.routeFromList; 
 
     }
-    //let emailRequired = false;
+
     if (newRide == false && currentRoute.value.id != thisRide.routeID) {
       routeID = currentRoute.value.id;
-      // todo: need to warn riders that route has changed
       thisRide.emailRequired = true;
-      //await Alert('Route has changed','Please inform any riders that have signed up','using the WhatsApp RideInfo group','info','OK');
     }
     if (newRide == false && thisRide.date != TimesDates.toIntDays(date.value)) {
-      // todo: need to warn riders that date has changed
       thisRide.emailRequired = true;
-      //await Alert('Ride date has changed','Please inform any riders that have signed up','using the WhatsApp RideInfo group','info','OK');
     }
     if (newRide == false && thisRide.time != parseInt(hour.value)* 60 + parseInt(minute.value)) {
-      // todo: need to warn riders that time has changed
       thisRide.emailRequired = true;
-      //await Alert('Ride date has changed','Please inform any riders that have signed up','using the WhatsApp RideInfo group','info','OK');
     }
     if (thisRide.emailRequired) {
       await Alert('Ride details have changed','Notifications will be sent to any signed-up riders','','info','OK');
-    
+      // notifications will be handled by the server
     }
     thisRide.leaderName = props.user.name;
     thisRide.date = TimesDates.toIntDays(date.value);
- 
-    //thisRide.time = date.value.getHours() * 60 + date.value.getMinutes();
     thisRide.time = parseInt(hour.value)* 60 + parseInt(minute.value);
     thisRide.description = description.value;
     thisRide.groupSize = maxRiders.value;
@@ -295,7 +290,7 @@ async function submit() {
      if (newRide) {
       const res = await myFetch(apiMethods.saveRide,thisRide);
       if (res === null) 
-        return;
+        return;   // ??? is this correct ???
       const id = parseInt(res);
       if (Number.isInteger(id)) {
         await Message('Ride has been saved');
@@ -323,21 +318,24 @@ async function submit() {
 
 }
 
+/**
+ * (emit a message to) display the ride's route on the map
+ * @param route 
+ * @param chosen ???? always true???
+ */
 function showRoute(route : Route, chosen: boolean) {
-  if (chosen)
-    console.log(`chosen route: ${route.dest}`);
-  else
-    console.log(`show route: ${route.dest}`);
+  // if (chosen)
+  //   console.log(`chosen route: ${route.dest}`);
+  // else
+  //   console.log(`show route: ${route.dest}`);
 
   route.highlighted = true;
-  // setTimeout(()=> {   // todo: why a timeout????
-  //   emit('showRoute',route,chosen);
-  // },500)
+ 
   emit('showRoute',route,chosen);
   destination.value = route.dest;
   distance.value = route.distance;
   currentRoute.value = route;
-  //showRouteList.value = !chosen;
+
   if (thisRide)
     thisRide.routeID = route.id;
 
@@ -347,9 +345,9 @@ function newDate(newDate : Date) {
   date.value = newDate;
 }
 
-function newRouteList(routes : Route[]) {
-  emit('newRouteList',routes);
-}
+// function newRouteList(routes : Route[]) {
+//   emit('newRouteList',routes);
+// }
 function routeChosen(route : Route) {
   if (route.id === 0)
     props.newRoute.hasGPX = false;
@@ -365,10 +363,8 @@ function showUploadedRoute(r : Route) {
   routeHasBeenChosen.value = true;
   currentRoute.value = r;
   newRouteForThisRide = true;
-  //update();
+ 
   emit('showUploadedRoute',r);
-  //if (thisRide)
-   // thisRide.routeID = r.id;
 }
 function speedLabel() {
   return props.user.units==='k'?'km/hr':'mph';
@@ -517,5 +513,3 @@ function speedLabel() {
 
 </style>
 
-
-../utils/classes/ride

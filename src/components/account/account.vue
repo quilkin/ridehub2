@@ -1,9 +1,12 @@
 
 <script setup lang="ts">
+/**
+ * Code to deal with a user who wants to change account details
+ */
 
 import { ref, onBeforeMount, onUpdated } from 'vue'
 import {nameRules, emailRules, pwRules} from '../../utils/rules'
-import { myFetch } from '@/utils/fetch'
+import { myFetch } from '../../utils/fetch'
 import { apiMethods } from '../../../../ridehub-server/src/common/apimethods'
 import { User } from '../../../../ridehub-server/src/common/user'
 import { Alert, AlertError } from '../../utils/alert'
@@ -41,6 +44,9 @@ onBeforeMount(async() => {
 
   })
 
+  /**
+   * submit the form for changing account details
+   */
 async function submit() {
   if (accountForm.value != null) {
   const {valid} = await accountForm.value.validate()

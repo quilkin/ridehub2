@@ -1,5 +1,8 @@
 <script setup lang="ts">
 
+/**
+ * Page for allowing users to choose a route - eitehr a predefine done, or to upload a new one
+ */
 import { ref, type Ref, watch, onMounted, onBeforeMount} from 'vue'
 import { gpxRules} from '../utils/rules'
 import { mdiRoutes} from '@mdi/js'
@@ -19,12 +22,10 @@ const emit = defineEmits(['routeChosen','showRoute','chooseRouteFromList','showU
 const showFileUpload = ref(false);
 let routeXML='' ;
 
-// onBeforeMount(() => {
-//   console.log('choose Route before mount: ' + props.existingRoute.id);
-// })
-// onMounted(() => {
-//   console.log('choose Route mounted: ' + props.existingRoute.id);
-// })
+
+/**
+ * Get a .gpx file from somewhere, to be displayed in list of routes
+ */
 function loadGpx() {
   try {
     const file = gpxfiles.value[0];
@@ -35,10 +36,13 @@ function loadGpx() {
   } catch (error) {
     
   }
-
    
 }
 
+/**
+ * Action to take after reading a .gpx file
+ * @param event the file read event
+ */
 async function readSuccess(event: ProgressEvent<FileReader>) {
   if (event.target === null) {
     AlertError('File error','Cannot read file');
@@ -69,7 +73,6 @@ async function readSuccess(event: ProgressEvent<FileReader>) {
     }
   }
   let newRoute = new Route();
-  //const route = new Route();
   newRoute.hasGPX = true;
   newRoute.route = routeXML;
 

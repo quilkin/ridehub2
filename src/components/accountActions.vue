@@ -1,14 +1,18 @@
 <script setup lang="ts">
+
+/**
+ * Controlling the four sub-views under ./account
+ */
 import { ref, onMounted, onUpdated } from 'vue'
 import signup from './account/Signup.vue'
 import login from './account/login.vue'
 import account from './account/account.vue'
 import reqpass from './account/reqpassword.vue'
-import { myFetch } from '@/utils/fetch'
+import { myFetch } from '../utils/fetch'
 import { apiMethods} from '../../../ridehub-server/src/common/apimethods'
 import { User } from '../../../ridehub-server/src/common/user'
 import { Message, AlertError } from '../utils/alert'
-import { Events } from '../utils/events'
+//import { Events } from '../utils/events'
 
 const props = defineProps<{
   user : User
@@ -31,6 +35,7 @@ onMounted(async() => {
 
   currentUser = props.user;
   // check for (and act on) any URL params for registration
+  // when app is accessed automatically from registration or 'forgot pw' emails
   let urlParams = new URLSearchParams(window.location.search);
   const username = urlParams.get('user');
   const regcode = urlParams.get('regcode');
@@ -45,8 +50,6 @@ onMounted(async() => {
   else if (props.user != undefined)
         status.value =  props.user.role>0 ? Status.loggedIn : Status.loggingIn;
 
-        // const response = await myFetch('test',null);
-        // alert(response);
   })
   onUpdated(() => {
         if (updated) 
@@ -63,22 +66,27 @@ onMounted(async() => {
 const emit = defineEmits(['doneLogin','doneAccount','logout'])
 
 function loggedIn(user : User) {
-  emit('doneLogin',user);
+        emit('doneLogin',user);
 }
 function doneAccount() {
-        //status.value =  currentUser.role>0 ? Status.loggedIn : Status.loggingIn;
         emit('doneAccount',props.user);
 }
+
+/**
+ * will be called automaticfally when user clciks link in registration email
+ * @param user the rider's username
+ * @param regcode the unique code sent in the email
+ */
 async function completeRegistration(user: string,regcode: string) {
         var creds = { name: user, code: regcode };
         const res = await myFetch(apiMethods.register, creds);
         if (res===null)
                 await AlertError("Credentials","Invalid username , code or email");
-        else if (res.substring(0, 9) === "Thank you")           //"Thank you, you have now registered"
+        else if (res.substring(0, 9) === "Thank you")           //"Thank you, you have now registered" sent from server
         {
                 await Message("Thank you, you can now log in");
-                //status.value = Status.loggingIn;
-                          // close current page and re-open, in normal fashion (i.e.no attributes)
+                
+        // close current page and re-open, in normal fashion (i.e.no URL parameters)
                 let thisWindow = window.location.href;
                 let qmark = thisWindow.indexOf('?');
                 thisWindow = thisWindow.substring(0,qmark-1);
@@ -88,6 +96,11 @@ async function completeRegistration(user: string,regcode: string) {
         }
 
 }
+
+/**
+ * will be called automaticfally when user clciks link in 'lost password' email
+ * @param lostPWuser 
+ */
 async function resetAccount(lostPWuser : string) {
         // get user's details
         // server will check that timeout hasn't expired
@@ -96,10 +109,6 @@ async function resetAccount(lostPWuser : string) {
         if (user != null) {
 
                 success = true;
-                //passwordReset = true;
-                // remainder of res has login id
-                // const userID = result.substring(2);
-                // const id = parseInt(userID);
                 await Message(`OK ${user.name}, now please set new password`);
                 currentUser = user;
                 status.value = Status.acccountPage;
