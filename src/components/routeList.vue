@@ -1,17 +1,15 @@
 <script setup lang="ts">
 
-import { ref ,onMounted, computed, onUpdated, watch, type Ref } from 'vue'
-import { myFetch } from '@/utils/fetch'
-import { apiMethods} from '../../../ridehub-server/src/common/apimethods'
+/**
+ * A list of existing routes (GPX tracks) to chose from
+ */
+import { ref ,onMounted, computed, type Ref } from 'vue'
 import { User } from '../../../ridehub-server/src/common/user'
 import { Route } from '../../../ridehub-server/src/common/route'
 import { AlertError} from '../utils/alert'
-//import { User } from '../utils/user'
-//import { Route } from '../utils/route'
 import Routes  from '../utils/routes'
 import  routeFuncs  from '../utils/routeFuncs'
 import { mdiBike } from '@mdi/js'
-
 import { useDisplay } from 'vuetify'
 
 const minRouteLength = ref(0);
@@ -19,7 +17,6 @@ const alphaOrder = ref(1);
 const maxRouteLength = ref(50);
 const routeList= ref() as Ref<Route[]>;
 const chosenRoute = ref() as Ref<Route>;
-//const menuOpen = ref(true);
 const destinationStr = ref() as Ref<string[]>;
 const distanceStr = ref() as Ref<string[]>;
 const climbingStr = ref() as Ref<string[]>;
@@ -34,7 +31,7 @@ let climbingReverse = false;
 
 const props = defineProps<{
   user : User
-  // called from the 'all routes' page , not from ride edit
+  // id true, called from the 'all routes' page , not from ride edit
   allRoutes : boolean
 }>()
 
@@ -52,15 +49,11 @@ onMounted(() => {
     updateList();
     
 })
-// onUpdated(() => {
-//   console.log("routelist updated");
-// })
+
 async function updateList(getData : boolean = true)
 {
     function DestinationString(dest : string) {
       let str = (dest.length >= 30) ? dest.slice(0, 29) + '...' : dest;
-      // reove any silly characters
-      //str = str.replace(/[^0-9a-z ]/gi, '');
       return str;
     }
     if (getData) {
@@ -85,8 +78,6 @@ async function updateList(getData : boolean = true)
     emit('newRouteList',routeList.value);
 }
 
-
-
 async function viewRoute( index : number, chosen : boolean) {
  
   console.log('viewRoute: chosen? ' + chosen);
@@ -95,31 +86,15 @@ async function viewRoute( index : number, chosen : boolean) {
     AlertError('internal problem','Route not found');
     return;
   }
-  // if (route.route != null && route.route.length > 100) {
-  //   console.log('route gpx aleady in store');
-  //   emit('showRoute',route,chosen);
-  // }
-  // else {
-    emit('showRoute',route,chosen,props.allRoutes);
-
-    // const gpxdata  = await myFetch(apiMethods.getGpx, route.id);
-    // if (gpxdata != null) {
-
-    //     route.route = gpxdata.route;
-    //     emit('showRoute',route,chosen);
-    // }
-//}
+  emit('showRoute',route,chosen,props.allRoutes);
   chosenRoute.value = route;
 }
 
-// async function routeChosen(index : number)
-// {   
-//     await viewRoute(index);
-//     if (chosenRoute.value != null) {
-//        emit("routeChosen",chosenRoute.value);
-//     }
-// }
-
+/**
+ * arrange list in order of route distance
+ * @param min minimum distance to show
+ * @param max max distance to show
+ */
 function changeDistance(min: number,max: number)
 {
     minRouteLength.value = min;
@@ -129,6 +104,11 @@ function changeDistance(min: number,max: number)
     distanceReverse = !distanceReverse;
     emit('newRouteList',routeList.value);
 }
+
+/**
+ * arrange list in alphabetic order, distance or climbing. Reverse order when relative button clicked
+ * @param alpha 
+ */
 function changeOrder(alpha: number) {
     alphaOrder.value = alpha;
     routeList.value = Routes.filteredList(minRouteLength.value,maxRouteLength.value,alphaOrder.value,alphaReverse);
@@ -173,9 +153,7 @@ const listHeight= computed(() => {
           >
         </v-col>
       </v-row>
-
           <v-list density="compact"  :height="listHeight">
-            <!-- <v-list density="compact"  style="height: 50vh;"> -->
             <v-list-item class="pa-0" density="compact" 
                 v-for="(item, i) in routeList" :key="i"  :value="i" :active="item === chosenRoute">
                     <v-row  no-gutters    >
@@ -188,9 +166,7 @@ const listHeight= computed(() => {
                           <v-col cols="1">
                             <v-btn size="x-small" height="20" :icon="mdiBike" @click.prevent="viewRoute(i,true)" ></v-btn>
                           </v-col>
-                        <!-- <v-col cols="2" title="climbing"> <small v-bind:style="{'color': climbingColour[i]}"><b>&uarr;&darr;</b>{{ climbingStr[i] }}</small></v-col>
-                        <v-col cols="1" title="climb ratio: metres climb per km riding"><small v-bind:style="{'color': climbingColour[i]}"> {{ climbingRatio[i] }}</small></v-col> -->
-                    </v-row>
+                     </v-row>
             </v-list-item>
           </v-list>
 
@@ -198,10 +174,7 @@ const listHeight= computed(() => {
 </template>
 
 <style scoped>
-/* .v-list {
-  height: 450px;
-  overflow-y: auto;
-} */
+
 .v-list-item {
   min-height: 10px !important;
   padding-top: 0;

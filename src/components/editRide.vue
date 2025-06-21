@@ -14,11 +14,11 @@ import { Route } from '../../../ridehub-server/src/common/route'
 import { User  } from '../../../ridehub-server/src/common/user'
 import { Alert, Message, YesNo, AlertError } from '../utils/alert'
 import Routes  from '../utils/routes'
-import TimesDates  from '../utils/timesdates'
+import { TimesDates} from '../../../ridehub-server/src/common/timesdates'
 import DateSelector  from './dateSelector.vue'
 import ChooseRoute from './chooseRoute.vue'
 import rideData from '@/utils/ridedata'
-import { useDisplay } from 'vuetify'
+
 
 //const { mobile } = useDisplay();
 
@@ -34,7 +34,7 @@ const currentRoute = ref() as Ref<Route >;
 const routeHasBeenChosen = ref(false);
 const units = ref('k');
 
-const meetingAt = ref ('Lemon Quay, Truro');
+const meetingAt = ref ('');
 const description = ref ('');
 const date = ref(new Date());
 const startTime = ref(540);  // default start at 9 am

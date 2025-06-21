@@ -7,6 +7,13 @@ import { AlertError, YesNo, Message, chooseFromTwo} from './alert'
 
 const rideData = {
 
+    /**
+     * Convert stored ride speed (which can be a single value, or a range) to a displayed string
+     * @param min 
+     * @param max 
+     * @param units 
+     * @returns 
+     */
     speedsToString: function(min:number,max:number,units:string) {
 
         // make a 'from-to' text for max and min average speeds, e.g. 18-20 kph
@@ -25,6 +32,12 @@ const rideData = {
         return speedStr ;
 
     },
+
+    /**
+     * Convert an entered string to a stored ride speed (which can be a single value, or a range) 
+     * @param str 
+     * @returns 
+     */
     stringToSpeeds: function(str : string) : number[]{
         let min=0, max=0;
            // enumerate the min-max speed string
@@ -40,8 +53,15 @@ const rideData = {
  
         return [min,max];
     },
+
+    /**
+     * Save a participant rider to a ride
+     * @param rideID 
+     * @param rider 
+     * @param dest 
+     */
     saveParticipant: async function (rideID : number, rider : string, dest : string) {
-        //var list = "";
+        
         await YesNo(dest + ": Join this ride?",async ()=> {
 
             const pp = new Participant(rider, rideID);
@@ -56,6 +76,12 @@ const rideData = {
             }
         });
     },
+
+    /**
+     * Put a rider on the reserve list for this ride
+     * @param rideID 
+     * @param rider 
+     */
     saveReserveParticipant: async function (rideID : number, rider : string) {
         //var list = "";
         await YesNo("Ride is full, Would you like to be on a  reserve list?", async ()=> {
@@ -72,6 +98,13 @@ const rideData = {
             }
         });
     },
+
+    /**
+     * Allow a rider to remove themselves from the ride, or add a guest
+     * @param rideID 
+     * @param rider 
+     * @param leader 
+     */
     meParticipant: async function (rideID : number, rider : string, leader : string) {
         await chooseFromTwo(
             "You are signed up for this ride: what do you want to do?",
@@ -94,7 +127,7 @@ const rideData = {
                 }
             },
             async ()=> {
-                // var guest = rider + '+';
+                
                 const pp = new Participant(rider + '+', rideID);
                 const response = await myFetch(apiMethods.savePpt, pp);
                 if (!response ) 
@@ -108,6 +141,13 @@ const rideData = {
             });
       
     },
+
+    /**
+     * Allow rider to remove a guest rider
+     * @param rideID 
+     * @param rider 
+     * @param leader 
+     */
     mePlusParticipant: async function (rideID : number, rider : string, leader : string) {
         var guest = rider + '+';
         await chooseFromTwo(
@@ -156,6 +196,11 @@ const rideData = {
         )
     },
 
+    /**
+     * Allow a rider to add a guest to the ride
+     * @param rideID 
+     * @param rider 
+     */
     saveGuest: async function (rideID : number, rider : string) {
         await YesNo("Join a guest for this ride?Are you sure?",  async ()=> {
             //var guest = rider + '+';
@@ -172,6 +217,14 @@ const rideData = {
         });
 
     },
+
+    /**
+     * Alow a rider to leave the ride
+     * @param rideID 
+     * @param rider 
+     * @param remover 
+     * @param dest 
+     */
     leaveParticipant: async function (rideID : number, rider : string, remover: string = '', dest: string  = "") {
         let beingRemoved: Boolean = (remover.length > 0);
         await YesNo(beingRemoved? `Remove '${rider}' from this ride?` : "Leave this ride?", async ()=> {
@@ -194,6 +247,12 @@ const rideData = {
         });
  
     },
+
+    /**
+     * Allow a rider to emove their guest from the ride
+     * @param rideID 
+     * @param rider 
+     */
     leaveGuest: async function (rideID : number, rider : string) {
         //var guest = rider + '+';
         await YesNo("Remove guest from this ride?", async ()=> {
@@ -209,6 +268,12 @@ const rideData = {
                 }
             });
     },
+
+    /**
+     * 
+     * @param rideID Allow a rider to remove both tehmsle and their guest
+     * @param rider 
+     */
     leaveBoth: async function (rideID : number, rider : string) {
         // var guest = rider + '+';
         await YesNo("Remove you and your guest from this ride?", async ()=> {

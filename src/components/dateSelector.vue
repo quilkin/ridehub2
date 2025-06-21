@@ -7,7 +7,7 @@ import { ref, type Ref } from 'vue'
 //import { mdiCalendarMonth } from '@mdi/js'
 import DatePicker from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
-import TimesDates from '@/utils/timesdates';
+import { TimesDates} from '../../../ridehub-server/src/common/timesdates'
   
   const props = defineProps<{
     date : Date,

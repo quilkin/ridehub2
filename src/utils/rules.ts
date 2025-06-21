@@ -1,3 +1,7 @@
+
+/**
+ * Rules checking for form input fields
+ */
 import rideData from '@/utils/ridedata'
 
 export const nameRules =   [ 

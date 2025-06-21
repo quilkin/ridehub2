@@ -1,10 +1,14 @@
 <script setup lang="ts">
+
+/**
+ * Main app file 
+ * Create and control tabs, call child components
+ */
 import { ref, computed, type Ref } from 'vue'
 import accountActions from './components/accountActions.vue'
 import RideEdit from './components/editRide.vue'
 import RideMap from './components/ridemap.vue'
 import RideList from './components/ridelist.vue'
-import DateSelector  from './components/dateSelector.vue'
 import Help from './components/help.vue'
 import RouteList from './components/routeList.vue'
 import Stats from './components/stats.vue'
@@ -14,13 +18,13 @@ import { User} from '../../ridehub-server/src/common/user'
 import { Message } from './utils/alert'
 import { Tabs } from './utils/tabs'
 import type { Map } from 'leaflet';
-import { mdiCalendarMonth, mdiAccountEdit ,mdiBike,mdiCoffee, mdiHelp, mdiMap , mdiDoorOpen, mdiFormatListNumberedRtl} from '@mdi/js'
+import { mdiCalendarMonth, mdiAccountEdit ,mdiBike,mdiCoffee, mdiHelp, mdiMap , mdiFormatListNumberedRtl} from '@mdi/js'
+import { Localise } from '@/utils/localise';
 
 const currentTab = ref(Tabs.account);
 const currentUser = ref(new User('',''));
 const ridesDate = ref(new Date());
 const currentRouteList = ref() as Ref<Route[]>
-const currentRideIndex = ref(0);
 const newRoute = ref(new Route());
 const routeFromList = ref(new Route() );
 const currentRide = ref(new Ride());
@@ -52,6 +56,10 @@ function editRide(ride : Ride)
   editing.value = true;
 
 }
+
+/**
+ * This may be redundant; users mow need to log in when app starts
+ */
 function checkLogIn()
 {
 
@@ -65,34 +73,31 @@ function checkLogIn()
     return true;
 }
 
+/**
+ * After successful login, regsiter current user and go to calendar page (rides list)
+ * @param user 
+ */
 function doneLogin(user : User) {
   if (user===null || user==undefined)
     return;
 
-  if (user.role==0)
-  {
-    console.log("guest user");
-  }
-  else {
-    console.log("login by " + user.name);
-  }
+  // if (user.role==0)
+  // {
+  //   console.log("guest user");
+  // }
+  // else {
+  //   console.log("login by " + user.name);
+  // }
   currentUser.value = user;
   switchTab(Tabs.calendar);
   ++routeListChanged.value;
-  // if (mobile.value) {
-  //   var elem = document.documentElement;
-  //   if (elem.requestFullscreen) {
-  //   elem.requestFullscreen();
-  //   } 
-  // }
-  // else if (elem.webkitRequestFullscreen) { /* Safari */
-  //   elem.webkitRequestFullscreen();
-  // } else if (elem.msRequestFullscreen) { /* IE11 */
-  //   elem.msRequestFullscreen();
-  // }
+
 }
 
-
+/**
+ * After making changes to a user's account details
+ * @param user 
+ */
 function doneAccount(user : User) {
   currentUser.value = user;
      switchTab(Tabs.calendar);
@@ -136,9 +141,12 @@ function chooseRouteFromList()
 
 function newRouteList(routes : Route[]) {
   currentRouteList.value = routes;
- // ++routelistChanged.value;
 }
 
+/**
+ * Called when user has uploaded a new route
+ * @param r 
+ */
 function showUploadedRoute(r : Route) {
   currentRouteList.value = [];
   currentRouteList.value.push(r);
@@ -158,22 +166,31 @@ function showRouteFromList(r : Route, chosen : boolean) {
         switchTab(Tabs.newRide);
       }
     }
-  //else {
     highlightRoute(r);
-  //}
+
 }
+
+/**
+ * Called from Ride List when all route data has been downloaded
+ * @param routes routes for the rides
+ * @param dates rides between these dates
+ */
 function gotRides(routes : Route[], dates : number[] ) {
     currentRouteList.value = routes;
     rideDates = dates;
 }
 
-
+/**
+ * Called when the user chooses a new start date for the rides list
+ * @param date First date for the rides list
+ */
 function newDate(date : Date) {
   ridesDate.value = date;
   ++rideListChanged.value;
 }
+
 function tabChanged() {
-  console.log('tab: '+ currentTab.value);
+
   if (currentTab.value === Tabs.exit) {
     //window.close();
     if (document.exitFullscreen) {
@@ -184,6 +201,7 @@ function tabChanged() {
   if (currentTab.value === Tabs.newRide) {
     routeFromList.value = new Route();
     currentRide.value = new Ride();
+    currentRide.value.meetingAt = Localise.meetingPoint;
     // force just one (empty) route into ridemap
      currentRouteList.value = [];
     currentRouteList.value.push(new Route());
@@ -203,8 +221,9 @@ function tabChanged() {
 function defineMap(newmap : Map) {
   map = newmap;
 }
+
 /**
- * this route has just had destination and distanceinfo extracted from its GPX file, via ridemap
+ * this route has just had destination and distance info extracted from its GPX file, via ridemap
  */
 function updateRouteInfo(r : Route) {
   newRoute.value = currentRouteList.value[0];
@@ -246,7 +265,7 @@ const tabWidth= computed(() => {
       <v-tab :value=Tabs.account :style="{...tabWidth}">    <v-icon :icon="mdiAccountEdit"/>        Account</v-tab>
       <v-tab :value=Tabs.stats :style="{...tabWidth}">    <v-icon :icon="mdiFormatListNumberedRtl"/>        Stats</v-tab>
       <v-tab :value=Tabs.help :style="{...tabWidth}">      <v-icon :icon="mdiHelp"/>               Help</v-tab>
-      <!-- <v-tab v-if="mobile" :value=Tabs.exit>      <v-icon :icon="mdiDoorOpen"/> Exit</v-tab> -->
+
     </v-tabs>
 
       <v-window v-model="currentTab">
@@ -265,9 +284,7 @@ const tabWidth= computed(() => {
                  @new-date="newDate"
                  >
                 </RideList>
-                
             </v-container>
-
         </v-window-item>
 
         <v-window-item :value=Tabs.routes>
@@ -302,12 +319,13 @@ const tabWidth= computed(() => {
           </v-container>
         </v-window-item>
         
+        <!-- These two pages (coffee and llibrary) were in original app but haven't been implemented in the Vue version -->
+
         <!-- <v-window-item :value=Tabs.coffee>
           <v-container   class="tab-item-wrapper">
           Coffee  stops - not yet implemented in this version
           </v-container>
         </v-window-item>
-
 
         <v-window-item :value=Tabs.library>
           <v-container class="tab-item-wrapper">
@@ -362,8 +380,6 @@ const tabWidth= computed(() => {
 }
 .v-btn--stacked.v-tab.v-btn {
     padding: 0 4px;
-    /* min-width: 70px; */
-    /* min-width: 20vw; */
   }
 .v-btn {
   text-transform: none;

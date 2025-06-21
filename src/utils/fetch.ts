@@ -1,14 +1,14 @@
-import { apiMethods } from '../../../ridehub-server/src/common/apimethods'
+/**
+ * Fetching / sending data between client (this app) and server
+ */
 import  { Alert, AlertError,CloseAlert } from './alert'
 
 function serviceBase() : string {
   
   if (process.env.NODE_ENV !== 'development')
-       return "../";
-  return "http://192.168.1.210:3000/";
-  //return "https://ridehub2.truro.cc/"
-
-
+       return "../";                    // relative path of server file (app.js)
+  return "http://192.168.1.210:3000/";  // development server address
+ 
 }
 
 export async function myFetch(url : String, data : Object | null)  {
@@ -25,9 +25,6 @@ export async function myFetch(url : String, data : Object | null)  {
     
     const fullUrl =  serviceBase() +  url;
     console.log('fetch: ' +  bodyData );
-    // if (url.includes(apiMethods.login)) {
-    //   alert(fullUrl);
-    // }
     let res;
 
     try {

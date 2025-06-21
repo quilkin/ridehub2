@@ -1,3 +1,8 @@
+/**
+ * Various modal dialogs based on the SweetAlert library
+ */
+
+
 import Swal, { type SweetAlertIcon } from 'sweetalert2'
 
 export async function Alert(
@@ -58,6 +63,12 @@ export async function Message(
 ) {
    await Swal.fire(title).then();
 }
+
+/**
+ * wait for user to accept or declne message in modal window
+ * @param title 
+ * @param yesfunc what to do if answered yes
+ */
 export async function YesNo(
   title: string,
   yesfunc: (() => void) | undefined 
@@ -78,12 +89,20 @@ export async function YesNo(
         } 
     })
 }
+
+/**
+ * Wait for user to choose between two options
+ * @param title 
+ * @param choice1 option 1
+ * @param choice2 option 2
+ * @param func1 what do do if option 1 is chosen
+ * @param func2 what do do if option 2 is chosen
+ */
 export async function chooseFromTwo(
   title: string,
   choice1 : string,
   choice2 : string,
-  // func1: (() => Promise<void>) | undefined ,
-  // func2: (() => Promise<void>) | undefined 
+
   func1: (() => void) | undefined ,
   func2: (() => void) | undefined 
 

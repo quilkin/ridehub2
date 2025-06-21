@@ -3,7 +3,6 @@ import { apiMethods } from '../../../ridehub-server/src/common/apimethods'
 import { Route} from '../../../ridehub-server/src/common/route'
 import  routeFuncs  from '../utils/routeFuncs'
 import { Alert, Message} from './alert'
-//import { Route } from './route'
 import {Buffer} from 'buffer'
 
 let routes = [] as Route[];
@@ -58,7 +57,7 @@ const Routes = {
                 routes.push(newRoute);
         });
      },
-    /***
+    /**
      * get routes from database according to a list of route IDs
      * ...but don't add routes already in store
      */
@@ -89,11 +88,6 @@ const Routes = {
         const distanceList : Route[]  = await myFetch(apiMethods.getRoutesByDs,distances);
         if (distanceList  != null) {
             
-            // if (routes.length === 0) {
-            //     Alert( 'Ridehub','No routes found!','','error','OK');
-            //     return null;
-            // }
-            //routes = response;
             distanceList.forEach((route)=> {
                 // get rid of silly characters
                     route.dest = route.dest.replace(/[^0-9a-z ]/gi, '');
@@ -112,13 +106,12 @@ const Routes = {
         const r = routes.find((index) => { return index["id"] === id })
         if (r != undefined)
         {
-            //const route : Route = r;
             return r;
         }
         return new Route();
     },
     downloadGpx: async (route: Route | undefined) => {
-        //let gpx: string = route.route;
+
         if (route == undefined) {
             await Message('Sorry, route not found for download');
             return;

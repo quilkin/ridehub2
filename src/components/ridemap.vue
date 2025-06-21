@@ -22,6 +22,7 @@ import Routes  from '@/utils/routes'
 import { mdiRoutes} from '@mdi/js'
 import type { LineString } from 'geojson';
 import { useDisplay } from 'vuetify'
+import { Localise } from '@/utils/localise';
 
 const { mobile } = useDisplay();
 
@@ -48,7 +49,7 @@ let numOfRoutes = 0;
 let bounds: L.LatLngBounds | null;              // determin egeographic extent of map shown
 let newBounds = ref(0)
 let mapItems : L.Layer[] = [];                  // all things displayed on the map
-let cornwallBounds : L.LatLngBounds;            // localization. Todo: move localized const data elsewhere
+let mapBounds : L.LatLngBounds;                 // localization. 
 
 
 /**
@@ -62,11 +63,10 @@ function setupMap() {
     }
     latlngs.value = [];
 
-    // localization. Todo: move localized const data elsewhere
-    // showing Cornwall
-    let topLeft = L.latLng(50.55, -5.65);
-    let bottomright = L.latLng(49.95, -4.55);
-    cornwallBounds = L.latLngBounds(topLeft,bottomright);
+
+    let topLeft = L.latLng(Localise.topLeft.lat,Localise.topLeft.lng);
+    let bottomright = L.latLng(Localise.botRight.lat,Localise.botRight.lng);
+    mapBounds = L.latLngBounds(topLeft,bottomright);
 
     map = L.map('mapContainer', {
         zoomControl: false ,
@@ -79,7 +79,7 @@ function setupMap() {
         minZoom: 8,
         attribution: '© OpenStreetMap'
     }).addTo(map);
-    map.fitBounds(cornwallBounds).setZoom(9);
+    map.fitBounds(mapBounds).setZoom(9);
 
     emit('defineMap',map);
       
@@ -180,11 +180,11 @@ function adjustBounds(newBounds: L.LatLngBounds, hightlighted : boolean) {
     if (hightlighted === false)
             return;
     if (hightlighted ===undefined ) {
-        // show all routes and set bounds to fit all, if they are in Cornwall
+        // show all routes and set bounds to fit all, if they are in our map area 
         if (bounds === null)
             bounds = newBounds;
-        else if (newBounds.overlaps(cornwallBounds) )
-        // don't expand to show routes not starting in Cornwall
+        else if (newBounds.overlaps(mapBounds) )
+        // don't expand to show routes not starting in our map area
             bounds.extend(newBounds);
     }
     else if (hightlighted) {
@@ -370,7 +370,7 @@ function showRoute(route : Route , numOfRoutes: number, index: number)
   }    
 
 /**
- * animation shown on map as user tarverses the gradient profile with mouse
+ * animation shown on map as user traverses the gradient profile with mouse
  */
   const bikeIcon = L.icon({
     iconUrl:        bike,

@@ -8,8 +8,6 @@ import * as directives from 'vuetify/directives'
 import { aliases, mdi } from "vuetify/iconsets/mdi-svg";
 import './assets/main.css'
 
-//import   { DatePicker}  from 'v-calendar';
-
 const vuetify = createVuetify({
     icons: {
         defaultSet: "mdi",

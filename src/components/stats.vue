@@ -1,5 +1,9 @@
 <script setup lang="ts">
 
+/**
+ * Display a  page of statistics, e.g. how many rides have been done by members
+ * 
+ */
 import { ref ,onMounted, computed, onUpdated, watch, type Ref } from 'vue'
 import { myFetch } from '@/utils/fetch'
 import { apiMethods} from '../../../ridehub-server/src/common/apimethods'
@@ -7,7 +11,7 @@ import { rideCount} from '../../../ridehub-server/src/common/participant'
 import { User } from '../../../ridehub-server/src/common/user'
 import { AlertError} from '../utils/alert'
 import { useDisplay } from 'vuetify'
-import  TimesDates  from '../utils/timesdates'
+import { TimesDates} from '../../../ridehub-server/src/common/timesdates'
 
 const riderList= ref() as Ref<rideCount[]>;
 const leaderList= ref() as Ref<rideCount[]>;
@@ -126,10 +130,6 @@ function yearLabel(type: number): string {
 
 <template>
   <v-container  class="pa-0" >
-    <!-- <v-toolbar color="blue-lighten-4">
-      <v-toolbar-title>TCC Tourist Trophy (and Leader Trophy)</v-toolbar-title>
-    </v-toolbar> -->
-    <!-- <v-chip size="large" color="blue">TCC Tourist Trophy (and Leader Trophy)</v-chip> -->
       <v-row>
         <v-col cols="12" class="mt-3">TCC Tourist Trophy (and Leader Trophy) covering the period...</v-col>
       </v-row>
@@ -144,7 +144,6 @@ function yearLabel(type: number): string {
       <v-col class="mr 1">
         <v-chip size="large" color="blue">No. of rides by each rider</v-chip>
           <v-list density="compact" :height="listHeight" >
-            <!-- <v-list density="compact"  style="height: 50vh;"> -->
             <v-list-item  density="compact" base-color="blue"
                 v-for="(item, i) in riderList" :key="i"  :value="i" :active="true">
                     <v-row     >
@@ -173,10 +172,7 @@ function yearLabel(type: number): string {
 </template>
 
 <style scoped>
-/* .v-list {
-  height: 450px;
-  overflow-y: auto;
-} */
+
 .v-list-item {
   min-height: 10px !important;
   padding-top: 0;
