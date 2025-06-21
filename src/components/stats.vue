@@ -15,7 +15,9 @@ import { TimesDates} from '../../../ridehub-server/src/common/timesdates'
 
 const riderList= ref() as Ref<rideCount[]>;
 const leaderList= ref() as Ref<rideCount[]>;
-const thisyear = ref(2025);
+const thisyear = ref(0);
+const displayYear = ref(0);
+let today: Date;
 
 const props = defineProps<{
   // todo: highight current user in lists
@@ -26,6 +28,9 @@ const { mobile } = useDisplay();
 
 onMounted(() => {
     
+    today = new Date();
+    thisyear.value = today.getFullYear();
+    displayYear.value = thisyear.value - 1;
     updateLists('y2d');
     
 })
@@ -41,25 +46,30 @@ function ordinal_suffix_of(i: number) {
 
 async function updateLists(period : string )
 {
-    let today = new Date();
-    thisyear.value = today.getFullYear();
+    // let today = new Date();
+    // thisyear.value = today.getFullYear();
+    // displayYear.value = thisyear.value - 1;
     
     let jan1 =  new Date(thisyear.value,0,1);
     let todate,fromdate;
     if (period == 'y2d') {
       todate = TimesDates.toIntDays(today);
       fromdate = TimesDates.toIntDays(jan1);
+
     }
     else if (period == '3') {
       todate = TimesDates.toIntDays(today);
       fromdate = todate - 91;
     }
-    else // last year
+    else // previous years
     {
       todate = TimesDates.toIntDays(jan1);
-      fromdate = todate-365;
-    }
+      let yearsPassed = thisyear.value - displayYear.value;
+      todate = todate-365*yearsPassed;
+      fromdate = todate - 365;
 
+    }
+  console.log(todate + ' ' + fromdate);
     const res2 : rideCount[] = await myFetch(apiMethods.leaderTrophy,[fromdate,todate]);
     if (res2 === null) 
         return;
@@ -121,11 +131,26 @@ function yearLabel(type: number): string {
   if (type==2)
     return  `${thisyear.value} to date`;
   if (type==1)
-    return `Last Year (${thisyear.value-1} )` ;
+    //return `Last Year (${thisyear.value-1} )` ;
+    return displayYear.value.toString();
   return 'Last 3 months';
 
 }
+function yearRange() {
+  
+  const firstYearWithData = 2021;
+  let years = [];
+  let year = firstYearWithData;
+  while (year < thisyear.value) {
+    years.push(year++);
 
+  }
+  return years;
+}
+function setYear(year : number) {
+  displayYear.value = year;
+  updateLists(year.toString());
+}
 </script>
 
 <template>
@@ -135,7 +160,20 @@ function yearLabel(type: number): string {
       </v-row>
       <v-row no-gutters>
         <v-radio-group class="pa-1" inline v-model="choosePeriod">
-          <v-radio :label=yearLabel(1)  value="last" @click="changePeriod('last')"></v-radio>
+          <v-radio :label=yearLabel(1)  value="last" @click="changePeriod('last')"
+          >
+        <v-menu activator="parent">
+                    <v-list>
+                        <v-list-item
+                            v-for="(index) in (yearRange())"
+                            :key="index"
+                            :value="index"
+                            @click="setYear(index)"
+                        >
+                            <v-list-item-title>{{ index }}</v-list-item-title>
+                        </v-list-item>
+                    </v-list>
+                </v-menu></v-radio>
           <v-radio :label=yearLabel(2) value="y2d" @click="changePeriod('y2d')"></v-radio>
           <v-radio :label=yearLabel(3) value="3" @click="changePeriod('3')"></v-radio>
       </v-radio-group>
