@@ -9,7 +9,7 @@ import { apiMethods } from '../../../ridehub-server/src/common/apimethods'
 import { Ride } from '../../../ridehub-server/src/common/ride'
 import { Route} from '../../../ridehub-server/src/common/route'
 import { TimesDates} from '../../../ridehub-server/src/common/timesdates'
-import { User } from '../../../ridehub-server/src/common/user'
+import { User, Roles } from '../../../ridehub-server/src/common/user'
 import  routeFuncs  from '../utils/routeFuncs'
 import { Already} from '../utils/already'
 import { AlertError, Message } from '../utils/alert'
@@ -176,7 +176,7 @@ function createRideList() {
 
     // now see if this rider is already booked on a ride for this date
     // see 'Already' for more info
-    if (props.user !== undefined && props.user.role > 0) {
+    if (props.user !== undefined && props.user.role > Roles.None) {
         let riderName = props.user.name;
         rides.value.forEach((ride,index) => {
           let ridingAlready = new Already();

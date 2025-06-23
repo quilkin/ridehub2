@@ -10,7 +10,7 @@ import account from './account/account.vue'
 import reqpass from './account/reqpassword.vue'
 import { myFetch } from '../utils/fetch'
 import { apiMethods} from '../../../ridehub-server/src/common/apimethods'
-import { User } from '../../../ridehub-server/src/common/user'
+import { User, Roles} from '../../../ridehub-server/src/common/user'
 import { Message, AlertError } from '../utils/alert'
 //import { Events } from '../utils/events'
 
@@ -48,7 +48,7 @@ onMounted(async() => {
         await resetAccount(userWhoForgotPW);
   }
   else if (props.user != undefined)
-        status.value =  props.user.role>0 ? Status.loggedIn : Status.loggingIn;
+        status.value =  props.user.role>Roles.None ? Status.loggedIn : Status.loggingIn;
 
   })
   onUpdated(() => {
@@ -58,7 +58,7 @@ onMounted(async() => {
         {
                 currentUser = props.user;
                 if (status.value != Status.reqPassword && status.value != Status.signingUp)
-                        status.value =  props.user.role>0. ? Status.loggedIn : Status.loggingIn;
+                        status.value =  props.user.role>Roles.None ? Status.loggedIn : Status.loggingIn;
         }
         updated = true;
   })

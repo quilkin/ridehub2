@@ -11,7 +11,7 @@ import { myFetch } from '@/utils/fetch'
 import { apiMethods } from '../../../ridehub-server/src/common/apimethods'
 import { Ride } from '../../../ridehub-server/src/common/ride'
 import { Route } from '../../../ridehub-server/src/common/route'
-import { User  } from '../../../ridehub-server/src/common/user'
+import { User, Roles  } from '../../../ridehub-server/src/common/user'
 import { Alert, Message, YesNo, AlertError } from '../utils/alert'
 import Routes  from '../utils/routes'
 import { TimesDates} from '../../../ridehub-server/src/common/timesdates'
@@ -155,7 +155,7 @@ function update() {
     minute.value = (startTime.value % 60).toString();
     if (minute.value.length == 1) minute.value = '0' + minute.value;
 
-    if (props.user.role > 1)
+    if (props.user.role > Roles.Rider)
     // admins can edit others' rides, so need a list of all signups to choose from
        getMembers();
    
@@ -222,7 +222,7 @@ async function submit() {
       await AlertError('Speed','Invalid average speed');
       return;
     }
-    if (distance.value > 0 && props.user.units=='m' && props.user.role < 2) {
+    if (distance.value > 0 && props.user.units=='m' && props.user.role < Roles.SiteAdmin) {
        // store as km, not miles, so adjust
       // but if admin is adjusting someone else's ride, leave this alone
       thisRide.minSpeed = Math.round(thisRide.minSpeed*1.6);
@@ -392,7 +392,7 @@ function speedLabel() {
       
           <div  v-if="routeHasBeenChosen" >
           <!-- <v-container  class="pa-0"> -->
-            <v-row v-if="props.user.role>1" >
+            <v-row v-if="props.user.role>Roles.Rider" >
               <!-- only for admin users, to change ride leader -->
               <!-- todo: maybe add a special secret button to override this? -->
               <v-col cols="6"  >

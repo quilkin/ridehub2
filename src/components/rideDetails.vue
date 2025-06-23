@@ -4,7 +4,7 @@
   import { Ride } from '../../../ridehub-server/src/common/ride'
   import { Route} from '../../../ridehub-server/src/common/route'
   import { TimesDates} from '../../../ridehub-server/src/common/timesdates'
-  import { User } from '../../../ridehub-server/src/common/user'
+  import { User, Roles } from '../../../ridehub-server/src/common/user'
   //import { User } from '../utils/user'
   import { Message } from '../utils/alert'
   import { Already} from '../utils/already'
@@ -75,18 +75,11 @@
     else if (participants.length >= ride.groupSize) {     
         buttonText = reserveText;
     }
-    // else if (rider === ride.leaderName || props.user.role>1) {
-    //     // can add a guest, but not join your own ride
-    //     buttonText = meText;
-    //     if (participants.includes(rider + '+')) {
-    //         // guest aleady added
-    //         buttonText = mePlusText;
-    //     }
-    // }
+
   });
 
   async function checkLogin() {
-    if (props.user.role === 0)
+    if (props.user.role === Roles.None)
     {
         // not logged in, not allowed to see details or join a ride
         await Message('You need to sign in to continue');
@@ -238,10 +231,10 @@ function riderList() {
 
 
         <v-card-actions>
-            <v-btn v-if="((rider === ride.leaderName || props.user.role>1) && rideTimePassed()==false)"
+            <v-btn v-if="((rider === ride.leaderName || props.user.role>Roles.Rider) && rideTimePassed()==false)"
                 variant="elevated" color="blue" id="edit" @click="editRide()"
                 > Edit/Cancel</v-btn>
-            <v-btn v-if="((rider === ride.leaderName || props.user.role>1) && rideTimePassed())"
+            <v-btn v-if="((rider === ride.leaderName || props.user.role>Roles.Rider) && rideTimePassed())"
                 variant="elevated" color="blue" id="edit"
                 > Remove rider
                 <v-menu activator="parent">

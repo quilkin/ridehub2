@@ -9,7 +9,7 @@ import { ref, onBeforeMount} from 'vue'
 import { nameRules,pwRules} from '../../utils/rules'
 import { myFetch } from '../../utils/fetch'
 import { apiMethods} from '../../../../ridehub-server/src/common/apimethods'
-import { User } from '../../../../ridehub-server/src/common/user'
+import { User, Roles } from '../../../../ridehub-server/src/common/user'
 import { Alert, AlertError } from '../../utils/alert'
 import { mdiEye } from '@mdi/js'
 import { mdiEyeOff } from '@mdi/js'
@@ -50,7 +50,7 @@ async function submit() {
           if (user != null) {
             
             if (user.id > 0) {
-                if (user.role === 0) {
+                if (user.role === Roles.None) {
                   Alert('Registration','You need to reply to your email to complete registration','','info','OK')
                   return;
                 }

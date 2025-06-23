@@ -14,7 +14,7 @@ import RouteList from './components/routeList.vue'
 import Stats from './components/stats.vue'
 import { Route } from '../../ridehub-server/src/common/route'
 import { Ride} from '../../ridehub-server/src/common/ride'
-import { User} from '../../ridehub-server/src/common/user'
+import { User, Roles} from '../../ridehub-server/src/common/user'
 import { Message } from './utils/alert'
 import { Tabs } from './utils/tabs'
 import type { Map } from 'leaflet';
@@ -63,7 +63,7 @@ function editRide(ride : Ride)
 function checkLogIn()
 {
 
-  if (currentUser.value.role==0)
+  if (currentUser.value.role==Roles.None)
     {
         // not logged in, not allowed to see details or join a ride
         Message('You need to sign in to continue')
