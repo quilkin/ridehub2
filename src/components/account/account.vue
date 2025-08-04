@@ -88,7 +88,12 @@ function cancel() {
     accountDialog.value = false;
     emit('doneAccount');
 }
-
+function membership() {
+    const url: string = `https://membership.truro.cc/?email=${props.user.email}`
+    const newWin = window.open(url, '_blank');
+    if (newWin != null)
+      newWin.focus();
+}
 </script>
 
 <template>
@@ -130,44 +135,31 @@ function cancel() {
           </v-row>
           
           <v-row >
-            <!-- <v-col align="right">
-              Preferred distance units
+            <v-col>
+              <v-row >
+                <v-col class="text-right mt-n2"><v-card-text>Preferred distance units</v-card-text></v-col>
+                <v-col class="mt-n2"><v-radio-group inline v-model="units">
+                  <v-radio label=" km " value="k"></v-radio>
+                  <v-radio label="miles" value="m"></v-radio>
+                </v-radio-group></v-col>
+              </v-row>
+              <v-row >
+                <v-col class="text-right mt-n6"><v-card-text>Show amount of climbing in listings</v-card-text></v-col>
+                <v-col class="mt-n4"><v-radio-group inline v-model="climbing">
+                  <v-radio label="Yes" value="y"></v-radio>
+                  <v-radio label="No" value="n"></v-radio>
+                </v-radio-group></v-col>
+              </v-row>
+              <v-row >
+                <v-col class="text-right mt-n6"><v-card-text>Notify me when a new ride is posted</v-card-text></v-col>
+                <v-col class="mt-n4"><v-radio-group inline v-model="notify">
+                  <v-radio label="Yes" value="y"></v-radio>
+                  <v-radio label="No" value="n"></v-radio>
+                </v-radio-group></v-col>
+              </v-row>
+            </v-col>
+          </v-row>
 
-            </v-col> -->
-            <v-col>
-              Preferred distance units
-              <v-radio-group inline v-model="units">
-                <v-radio label=" km " value="k"></v-radio>
-                <v-radio label="miles" value="m"></v-radio>
-              </v-radio-group>
-            </v-col>
-          </v-row>
-          <v-row >
-            <!-- <v-col align="right">
-              Show amount of climbing in listings
-              <v-chip variant="outlined">Show amount of climbing in listings</v-chip> 
-            </v-col> -->
-            <v-col>
-              Show amount of climbing in listings
-              <v-radio-group inline v-model="climbing">
-                <v-radio label="Yes" value="y"></v-radio>
-                <v-radio label="No" value="n"></v-radio>
-              </v-radio-group>
-            </v-col>
-          </v-row>
-          <v-row >
-            <!-- <v-col align="right">
-              Notify me when a new ride is posted
-            </v-col> -->
-            <v-col>
-              Notify me when a new ride is posted
-              <v-radio-group inline v-model="notify">
-                <v-radio label="Yes" value="y"></v-radio>
-                <v-radio label="No" value="n"></v-radio>
-              </v-radio-group>
-            </v-col>
-          </v-row>
-  
           <v-row >
             <v-col>
               <v-btn block color="blue"  variant="outlined" @click="cancel()" class="mt-2">    Cancel       </v-btn>
@@ -177,6 +169,9 @@ function cancel() {
               <v-btn block color="blue" type="submit"  class="mt-2">   Update your account   </v-btn>
             </v-col>
           </v-row>
+            <v-col>
+              <v-btn block color="green"   @click="membership()" class="mt-2"> Update TCC membership details (link to new page)   </v-btn>
+            </v-col>
         </v-form>
       </v-card-text>
     </v-card>

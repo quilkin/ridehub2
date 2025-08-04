@@ -2,9 +2,10 @@
 
 import { myFetch } from '@/utils/fetch'
 import { apiMethods } from '../../../ridehub-server/src/common/apimethods'
-import { Participant } from '../../../ridehub-server/src/common/participant'
-import { AlertError, YesNo, Message, chooseFromTwo} from './alert'
+import { Participant, rideCount } from '../../../ridehub-server/src/common/participant'
+import { AlertError, YesNo, Message, LongMessage, chooseFromTwo} from './alert'
 
+//let numRides = 0;
 const rideData = {
 
     /**
@@ -54,6 +55,18 @@ const rideData = {
         return [min,max];
     },
 
+
+    // checkRideCount: async function(rider: string)  {
+    //         const counts :rideCount[] = await myFetch(apiMethods.ridecount,rider);
+    //         numRides = counts[0].count;
+    //         const isMember : string = await myFetch(apiMethods.checkMember,rider);
+    //         if (isMember == 'no' && numRides > 1) {
+    //                 await LongMessage('You do not seem to be a member of TCC','Please consider joining before doing more rides with us')
+
+    //         }
+
+    // },
+
     /**
      * Save a participant rider to a ride
      * @param rideID 
@@ -64,12 +77,22 @@ const rideData = {
         
         await YesNo(dest + ": Join this ride?",async ()=> {
 
+            //await this.checkRideCount(rider);
+            const counts :rideCount[] = await myFetch(apiMethods.ridecount,rider);
+            const numRides = counts[0].count;
+            const checkmember : string = await myFetch(apiMethods.checkMember,rider);
+            const isMember = (checkmember == 'yes');
+
             const pp = new Participant(rider, rideID);
             const response = await myFetch(apiMethods.savePpt, pp);
             if (!response ) 
                 await  AlertError('server error', 'could not join ride');
             else if (response =='OK') {
-                await Message("You have been added to this ride");
+                let message2: string = '';
+                if (numRides > 1) message2 =`You have now joined ${numRides} rides from RideHub.`;
+                message2 += isMember? 'Thank you for being a TCC member!':'You do not seem to be a member of TCC. Please consider joining before doing more rides with us';
+                await LongMessage("You have been added to this ride",message2);
+                  
             }
             else {
                 await Message(response);
