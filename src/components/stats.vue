@@ -69,7 +69,7 @@ async function updateLists(period : string )
       fromdate = todate - 365;
 
     }
-  console.log(todate + ' ' + fromdate);
+  //console.log(todate + ' ' + fromdate);
     const res2 : rideCount[] = await myFetch(apiMethods.leaderTrophy,[fromdate,todate]);
     if (res2 === null) 
         return;

@@ -119,7 +119,7 @@ async function resetAccount(lostPWuser : string) {
         }
 }
 function guest() {
-        console.log('guest visit emit donelogin')
+        //console.log('guest visit emit donelogin')
         emit('doneLogin',new User('',''));
 }
 </script>

@@ -80,7 +80,7 @@ async function updateList(getData : boolean = true)
 
 async function viewRoute( index : number, chosen : boolean) {
  
-  console.log('viewRoute: chosen? ' + chosen);
+  //console.log('viewRoute: chosen? ' + chosen);
   const route = routeList.value[index];
   if (route === null || route === undefined) {
     AlertError('internal problem','Route not found');

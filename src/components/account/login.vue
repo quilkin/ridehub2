@@ -54,7 +54,7 @@ async function submit() {
                   Alert('Registration','You need to reply to your email to complete registration','','info','OK')
                   return;
                 }
-                console.log('user: ' + user.name);
+                //console.log('user: ' + user.name);
                 emit('loggedIn',user);
                 return;
 

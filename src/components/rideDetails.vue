@@ -5,8 +5,9 @@
   import { Route} from '../../../ridehub-server/src/common/route'
   import { TimesDates} from '../../../ridehub-server/src/common/timesdates'
   import { User, Roles } from '../../../ridehub-server/src/common/user'
-  //import { User } from '../utils/user'
-  import { Message } from '../utils/alert'
+  import { myFetch } from '../utils/fetch'
+  import { apiMethods} from '../../../ridehub-server/src/common/apimethods'
+  import { LongMessage, Message, YesNo } from '../utils/alert'
   import { Already} from '../utils/already'
   import rideData  from '../utils/ridedata'
   import routeFuncs  from '../utils/routeFuncs'
@@ -120,6 +121,17 @@
     await rideData.leaveParticipant(ride.rideID, remove,rider, props.route.dest);
     emit("participantsUpdated");
   }
+  async function nextOfKin(rider: string, login: string) {
+    
+     await YesNo(`Get contact details for ${rider}, are you sure? (Emergencies only - this action will be recorded)`, async ()=> {
+        let contact = '';
+        contact = await myFetch(apiMethods.getEmergencyContact, rider);
+                await LongMessage(`${contact}`,`Emergency contact for ${rider}`);
+        await myFetch(apiMethods.logAction,`'${rider}'s emergency contact details requested by  ${login}`);
+
+     })
+  
+  }
 
   async function joinRide() {
   
@@ -166,6 +178,14 @@ function rideTimePassed() : boolean {
         if (now.getHours() > ride.time / 60)
             return true;
     }
+    return false;
+}
+function rideIsToday() : boolean {
+    let now = new Date();
+    let rideDate = ride.date;
+    let nowDate = TimesDates.toIntDays(now);
+    if (nowDate == rideDate)
+        return true;
     return false;
 }
 
@@ -257,6 +277,23 @@ function riderList() {
                 variant="elevated" color="blue" 
                 title ="Get this into your PC's download folder so you can load into Garmin etc"
                 > Get GPX </v-btn>
+            <v-btn v-if="rideIsToday()"
+                variant="elevated" color="red" 
+                title ="Find emergency contact details for a rider"
+                > Emergency 
+                <v-menu activator="parent">
+                    <v-list>
+                        <v-list-item
+                            v-for="(pp, index) in participants"
+                            :key="index"
+                            :value="index"
+                            @click="nextOfKin(pp,props.user.name)"
+                        >
+                            <v-list-item-title>{{ pp }}</v-list-item-title>
+                        </v-list-item>
+                    </v-list>
+                </v-menu>
+            </v-btn>
             <v-col class="text-right">
                 <v-btn variant="outlined" text="OK" color="blue" @click="detailsActive = false"></v-btn>
             </v-col>

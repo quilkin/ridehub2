@@ -24,7 +24,7 @@ export async function myFetch(url : String, data : Object | null)  {
     
     
     const fullUrl =  serviceBase() +  url;
-    console.log('fetch: ' +  bodyData );
+    //console.log('fetch: ' +  bodyData );
     let res;
 
     try {

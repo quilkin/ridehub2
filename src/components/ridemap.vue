@@ -56,7 +56,7 @@ let mapBounds : L.LatLngBounds;                 // localization.
  * See leafletjs.com for more info
  */
 function setupMap() {
-    console.log('set up map: routes: ' + props.routes.length)
+    //console.log('set up map: routes: ' + props.routes.length)
     if (map != null) {
         map.off();
         map.remove();
@@ -155,7 +155,7 @@ function updateRoutes() {
   * Need to redraw map if a new route is added
   */
 watch(() => props.routes,  () => {
-  console.log('ridemap: route list changed');
+  //console.log('ridemap: route list changed');
   updateRoutes();
   }
 )
@@ -164,7 +164,7 @@ watch(() => props.routes,  () => {
  * Need to redraw map if the highlighted route is changed
  */
 watch(() => props.updates,  () => {
-  console.log('ridemap: updates changed');
+  //console.log('ridemap: updates changed');
   updateRoutes();
     }
 )
