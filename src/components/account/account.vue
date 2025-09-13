@@ -170,7 +170,7 @@ function membership() {
             </v-col>
           </v-row>
             <v-col>
-              <v-btn block color="green"   @click="membership()" class="mt-2"> Update TCC membership details (link to new page)   </v-btn>
+              <v-btn block color="green"   @click="membership()" class="mt-2"> Update TCC membership details / add emergency contact  </v-btn>
             </v-col>
         </v-form>
       </v-card-text>

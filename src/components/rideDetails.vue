@@ -7,12 +7,11 @@
   import { User, Roles } from '../../../ridehub-server/src/common/user'
   import { myFetch } from '../utils/fetch'
   import { apiMethods} from '../../../ridehub-server/src/common/apimethods'
-  import { LongMessage, Message, YesNo } from '../utils/alert'
+  import { LongMessage, Message, YesNo, chooseFromTwo } from '../utils/alert'
   import { Already} from '../utils/already'
   import rideData  from '../utils/ridedata'
   import routeFuncs  from '../utils/routeFuncs'
-  //import { Route } from '@/utils/route'
-  import Routes  from '../utils/routes'
+    import Routes  from '../utils/routes'
   import { mdiBike } from '@mdi/js'
 
   const props = defineProps<{ 
@@ -121,25 +120,36 @@
     await rideData.leaveParticipant(ride.rideID, remove,rider, props.route.dest);
     emit("participantsUpdated");
   }
-  async function nextOfKin(rider: string, login: string) {
-    
-     await YesNo(`Get contact details for ${rider}, are you sure? (Emergencies only - this action will be recorded)`, async ()=> {
-        let contact = '';
-        contact = await myFetch(apiMethods.getEmergencyContact, rider);
-                await LongMessage(`${contact}`,`Emergency contact for ${rider}`);
-        await myFetch(apiMethods.logAction,`'${rider}'s emergency contact details requested by  ${login}`);
-
-     })
-  
+  async function getContacts(rider: string, login: string) {
+    let contact = ['','',''];
+    contact = await myFetch(apiMethods.getEmergencyContact, rider);
+    let riderphone = contact[0];
+    let nokName = contact[1];
+    let nokphone = contact[2];
+    if (riderphone != null) riderphone = riderphone.replace(/\s/g, ''); else riderphone = 'unknown';
+    if (nokphone != null) nokphone = nokphone.replace(/\s/g, ''); else nokphone = 'unknown';
+            await chooseFromTwo(
+            "Get contact number for...",
+            "This rider",
+            "This rider's emergency contact",
+            async ()=> {
+                await YesNo(`Getphone number for ${rider}, are you sure? (this action will be recorded to avoid mis-use)`, async ()=> {
+                await LongMessage(`<a href="tel:${riderphone}">${riderphone}</a>`,`Contact number for ${rider}`);
+                await myFetch(apiMethods.logAction,`'${rider}'s phone number requested by  ${login}`);
+                })
+            },
+            async ()=> {
+                await YesNo(`Get contact details for ${rider}, are you sure? (Emergencies only - this action will be recorded)`, async ()=> {
+                await LongMessage(`<a href="tel:${nokphone}">${nokphone}</a>`,`Emergency contact for ${rider} is ${nokName}`);
+                await myFetch(apiMethods.logAction,`'${rider}'s emergency contact details requested by  ${login}`);
+                })
+            }
+        )
   }
 
+  
   async function joinRide() {
   
-    // if (buttonText === editRideText) {
-    //     emit('editRide',ride);
-    //     detailsActive.value = false;
-    //     return;
-    // }
     if (buttonText === joinText) {
         if (await OK2Join(ride, rider)) {
             await rideData.saveParticipant(ride.rideID, rider, props.dest);
@@ -188,7 +198,13 @@ function rideIsToday() : boolean {
         return true;
     return false;
 }
+/**
+ * Is the person using the app also a participant in this ride?
+ */
+function userIsRiding() : boolean {
+    return (participants.includes(props.user.name)) ;
 
+}
 function speedStr() {
     let speeds = rideData.speedsToString(ride.minSpeed,ride.maxSpeed,props.user.units);
     if (speeds =='') return '';
@@ -277,17 +293,18 @@ function riderList() {
                 variant="elevated" color="blue" 
                 title ="Get this into your PC's download folder so you can load into Garmin etc"
                 > Get GPX </v-btn>
-            <v-btn v-if="rideIsToday()"
+            <v-btn v-if="userIsRiding() && rideIsToday()"
                 variant="elevated" color="red" 
-                title ="Find emergency contact details for a rider"
-                > Emergency 
+                title ="Find contact details for a rider"
+                > Contact 
+                
                 <v-menu activator="parent">
                     <v-list>
                         <v-list-item
                             v-for="(pp, index) in participants"
                             :key="index"
                             :value="index"
-                            @click="nextOfKin(pp,props.user.name)"
+                            @click="getContacts(pp,props.user.name)"
                         >
                             <v-list-item-title>{{ pp }}</v-list-item-title>
                         </v-list-item>
