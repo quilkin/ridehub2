@@ -79,7 +79,7 @@ const rideData = {
 
             //await this.checkRideCount(rider);
             const counts :rideCount[] = await myFetch(apiMethods.ridecount,rider);
-            const numRides = counts[0].count;
+            const numRides = counts.length > 0? counts[0].count : 0;
             const checkmember : string = await myFetch(apiMethods.checkMember,rider);
             const isMember = (checkmember == 'yes');
 

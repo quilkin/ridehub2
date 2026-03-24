@@ -64,7 +64,7 @@ async function updateLists(period : string )
     else // previous years
     {
       todate = TimesDates.toIntDays(jan1);
-      let yearsPassed = thisyear.value - displayYear.value;
+      let yearsPassed = thisyear.value - displayYear.value - 1;
       todate = todate-365*yearsPassed;
       fromdate = todate - 365;
 
