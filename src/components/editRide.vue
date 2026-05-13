@@ -287,31 +287,27 @@ async function submit() {
     thisRide.routeID = routeID;
     thisRide.leaderName = leader.value;
 
-     if (newRide) {
-      const res = await myFetch(apiMethods.saveRide,thisRide);
-      if (res === null) 
-        return;   // ??? is this correct ???
-      const id = parseInt(res);
-      if (Number.isInteger(id)) {
-        await Message('Ride has been saved');
-      }
-      else {
-        await AlertError('Save Ride Error',res);
-        return;
-      }
+    let res = null;
+
+    if (newRide) 
+      res =await myFetch(apiMethods.saveRide,thisRide);
+    else
+      res = await myFetch(apiMethods.editRide,thisRide);
+    
+    if (res === null) {
+      await AlertError('Save Ride Error','Could not contact server');
+      return;  
+    }
+    const id = parseInt(res);
+    if (Number.isInteger(id)) {
+      await Message('Ride has been saved');
     }
     else {
-      const res = await myFetch(apiMethods.editRide,thisRide);
-      if (res === null) 
-        return;
-      if (res=="OK") {
-        await Message('Edited ride has been saved');
-      }
-      else {
-        await AlertError('Save Ride Error',res);
-        return;
-      }
+      await AlertError('Save Ride Error',res.toString());
+      return;
     }
+    
+
     rideDialog.value = false;
     emit('doneRideEdit');
   })

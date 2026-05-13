@@ -18,30 +18,29 @@ const loginForm = ref();
 const userOrEmail = ref('');
 const password = ref('');
 const showPass = ref(false);
-const remember = ref(false);
+//const remember = ref(false);
 
 const emit = defineEmits(['loggedIn','signUp','forgotPass','guestVisit'])
 
-onBeforeMount( () => {
-   if (window.localStorage.username !== undefined && window.localStorage.password !== undefined) {
-    if (window.localStorage.username !== 'undefined' && window.localStorage.password !== 'undefined') {
-            userOrEmail.value = window.localStorage.username;
-            password.value = window.localStorage.password;
-            remember.value = true;
-        }
-      }
-  })
+onBeforeMount(() => {
+  const storedUsername = window.localStorage.getItem('username');
+  if (storedUsername) {
+    userOrEmail.value = storedUsername;
+    //remember.value = true;
+  }
+})
 
 async function submit() {
   const {valid} = await loginForm.value?.validate()
   if (valid) {
     const username = userOrEmail.value;
     const pass = password.value;
-    if (remember.value) {
-        window.localStorage.username = username;
-        window.localStorage.password = pass;
-      }
-    let user = new User(username,pass);
+    //if (remember.value) {
+      window.localStorage.setItem('username', username);
+    //} else {
+    //  window.localStorage.removeItem('username');
+    //}
+    let user = new User(username, pass);
         
     myFetch(apiMethods.login,user)
       .then((response) => {
@@ -97,27 +96,21 @@ function forgot() {
     </v-card-title>
     <v-card-text class="pa-2">
       <v-form @submit.prevent="submit" ref="loginForm">
-        <v-text-field v-model="userOrEmail"  :rules="nameRules" autocapitalize="off"
+        <v-text-field v-model="userOrEmail" name="username" autocomplete="username" :rules="nameRules" autocapitalize="off"
          label="User name or email" hint="Username will be 3 to 10 characters">
         </v-text-field>
-        <v-text-field v-model="password" :append-inner-icon="showPass ? mdiEye : mdiEyeOff"
+        <v-text-field v-model="password" name="password" autocomplete="current-password" :append-inner-icon="showPass ? mdiEye : mdiEyeOff"
           @click:append-inner="showPass = !showPass"   :type="showPass ? 'text' : 'password'" 
-          hint="password will be at least 6 characters"
+          hint="Password will be at least 6 characters"
           :rules="pwRules"  label="Password">
         </v-text-field>
 
-        <v-checkbox v-if="remember===false" 
-          v-model="remember"
-          label="Remember me on this browser"
-          value="false"
-        ></v-checkbox>
         <v-btn color="blue" type="submit" block class="mt-2">    Sign in     </v-btn>
 
         <v-btn color="blue" variant="outlined" @click="signup()" block class="mt-2">   No account? Sign up    </v-btn>
         <v-btn color="blue" variant="outlined" @click="guest()" block class="mt-2">      Continue as a guest   </v-btn>
         <v-btn color="blue" variant="outlined" @click="forgot()" block class="mt-2">      Forgot password?   </v-btn>
-        <!-- <v-btn color="blue" @click="crash()" block class="mt-2">   Crash test!   </v-btn>
-         -->
+
       </v-form>
     </v-card-text>
   </v-card>

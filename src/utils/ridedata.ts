@@ -85,9 +85,9 @@ const rideData = {
 
             const pp = new Participant(rider, rideID);
             const response = await myFetch(apiMethods.savePpt, pp);
-            if (!response ) 
-                await  AlertError('server error', 'could not join ride');
-            else if (response =='OK') {
+            if (!response.success ) 
+                await  AlertError(response.data, 'could not join ride');
+            else if (response.data === 'OK') {
                 let message2: string = '';
                 if (numRides > 1) message2 =`You have now joined ${numRides} rides from RideHub.`;
                 message2 += isMember? 'Thank you for being a TCC member!':'You do not seem to be a member of TCC. Please consider joining before doing more rides with us';
@@ -95,7 +95,7 @@ const rideData = {
                   
             }
             else {
-                await Message(response);
+                await Message(response.data);
             }
         });
     },

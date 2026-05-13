@@ -34,7 +34,11 @@ export async function myFetch(url : String, data : Object | null)  {
         res = await fetch(fullUrl);
 
       if (res.ok) {
-        return await res.json();
+        const result = await res.json();
+        if (result.success) {
+          return result.data;
+        }
+        else return result;   // for case when result isn't wrapped in object
       }
 
       let error = res.statusText;
