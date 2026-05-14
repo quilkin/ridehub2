@@ -56,17 +56,6 @@ const rideData = {
     },
 
 
-    // checkRideCount: async function(rider: string)  {
-    //         const counts :rideCount[] = await myFetch(apiMethods.ridecount,rider);
-    //         numRides = counts[0].count;
-    //         const isMember : string = await myFetch(apiMethods.checkMember,rider);
-    //         if (isMember == 'no' && numRides > 1) {
-    //                 await LongMessage('You do not seem to be a member of TCC','Please consider joining before doing more rides with us')
-
-    //         }
-
-    // },
-
     /**
      * Save a participant rider to a ride
      * @param rideID 
@@ -85,18 +74,18 @@ const rideData = {
 
             const pp = new Participant(rider, rideID);
             const response = await myFetch(apiMethods.savePpt, pp);
-            if (!response.success ) 
-                await  AlertError(response.data, 'could not join ride');
-            else if (response.data === 'OK') {
+            if (!response)
+                console.log('no response from server');
+            else if (!response.success ) 
+                await  AlertError(response.message, 'could not join ride');
+            else  {
                 let message2: string = '';
                 if (numRides > 1) message2 =`You have now joined ${numRides} rides from RideHub.`;
                 message2 += isMember? 'Thank you for being a TCC member!':'You do not seem to be a member of TCC. Please consider joining before doing more rides with us';
                 await LongMessage("You have been added to this ride",message2);
                   
             }
-            else {
-                await Message(response.data);
-            }
+
         });
     },
 
@@ -111,14 +100,12 @@ const rideData = {
             //var reserve = '+' + rider;
             const pp = new Participant('+' + rider, rideID);
             const response = await myFetch(apiMethods.savePpt, pp);
-            if (!response ) 
-                await  AlertError('server error', 'could not reserve ride');
-            else if (response === 'OK') {
+            if (!response.success ) 
+                await  AlertError(response.message, 'Could not reserve ride');
+            else{
                 await Message("You have been added to reserve list for this ride");
             }
-            else {
-                await Message(response);
-            }
+ 
         });
     },
 
@@ -140,27 +127,25 @@ const rideData = {
                 }
                 const pp = new Participant(rider, rideID);
                 const response = await myFetch(apiMethods.leavePpt, pp);
-                if (!response ) 
-                    await  AlertError('server error', 'could not leave ride');
-                else if (response === 'OK') {
+                if (!response)
+                    console.log('no response from server');
+                else if (!response.success ) 
+                    await  AlertError(response.message, 'could not leave ride');
+                else  {
                     await Message("You have left this ride");
                 }
-                else {
-                    await Message(response);
-                }
+  
             },
             async ()=> {
                 
                 const pp = new Participant(rider + '+', rideID);
                 const response = await myFetch(apiMethods.savePpt, pp);
-                if (!response ) 
-                    await  AlertError('server error', 'could not add guest to ride');
-                else if (response === 'OK') {
+                if (!response.success ) 
+                    await  AlertError(response.message, 'could not add guest to ride');
+                else {
                     await Message("A guest has been added to this ride. Guest will need to complete a guest form at the start");
                 }
-                else {
-                    await Message(response);
-                }
+
             });
       
     },
@@ -182,13 +167,11 @@ const rideData = {
                 const pp = new Participant(guest, rideID);
                 const response = await myFetch(apiMethods.leavePpt, pp);
                 if (!response ) 
-                    await  AlertError('server error', ' guest could not leave ride');
-                else if (response === 'OK') {
+                    await  AlertError(response.message, ' guest could not leave ride');
+                else  {
                     await Message("Your guest has left this ride");
                     }
-                    else {
-                        await Message(response);
-                    }
+
                 },
                 async ()=> {
                     if (rider===leader) {
@@ -197,23 +180,19 @@ const rideData = {
                     }
                     var pp = new Participant(guest, rideID);
                     var response = await myFetch(apiMethods.leavePpt, pp);
-                    if (!response ) 
-                        await  AlertError('server error', 'could not leave ride');
-                    else if (response === 'OK') {
+                    if (!response.success ) 
+                        await  AlertError(response.message, 'could not leave ride');
+                    else {
                         pp = new Participant(rider, rideID);
                         response = await myFetch(apiMethods.leavePpt, pp);
                         if (!response ) 
-                            await  AlertError('server error', 'could not leave ride');
-                        else if (response === 'OK') {
+                            await  AlertError(response.message, 'could not leave ride');
+                        else  {
                                 await Message("You have both left this ride");
                             }
-                            else {
-                                await Message(response);
-                            }
+
                         }
-                    else {
-                        await Message(response);
-                    }
+
                 }
 
         )
@@ -229,14 +208,12 @@ const rideData = {
             //var guest = rider + '+';
             const pp = new Participant(rider + '+', rideID);
             const response = await myFetch(apiMethods.savePpt, pp);
-            if (!response ) 
-                await  AlertError('server error', 'guest could not join ride');
-            else if (response === 'OK') {
+            if (!response.success ) 
+                await  AlertError(response.message, 'guest could not join ride');
+            else {
                 await Message("A guest has been added to this ride. Guest will need to complete a guest form at the start");
             }
-            else {
-                await Message(response);
-            }
+
         });
 
     },
@@ -253,9 +230,9 @@ const rideData = {
         await YesNo(beingRemoved? `Remove '${rider}' from this ride?` : "Leave this ride?", async ()=> {
             const pp = new Participant(rider, rideID);
             const response = await myFetch(apiMethods.leavePpt, pp);
-            if (!response ) 
-                await  AlertError('server error', 'could not leave ride, sorry');
-            else if (response === 'OK') {
+            if (!response.success ) 
+                await  AlertError(response.message, 'could not leave ride, sorry');
+            else  {
                 if (beingRemoved) {
                     await Message(`'${rider}' was removed from this ride`);
                     // add an entry into the log file (in case of mis-use)
@@ -264,9 +241,7 @@ const rideData = {
                 else
                  await Message("You have left this ride");
             }
-            else {
-                await Message(response);
-            }
+
         });
  
     },
@@ -281,14 +256,12 @@ const rideData = {
         await YesNo("Remove guest from this ride?", async ()=> {
             const pp = new Participant(rider + '+', rideID);
             const response = await myFetch(apiMethods.leavePpt, pp);
-            if (!response ) 
-                await  AlertError('server error', 'guest could not leave ride');
-            else if (response === 'OK') {
+            if (!response.success ) 
+                await  AlertError(response.message, 'guest could not leave ride');
+            else {
                 await Message("Your guest has left this ride");
                 }
-                else {
-                    await Message(response);
-                }
+
             });
     },
 
@@ -302,23 +275,19 @@ const rideData = {
         await YesNo("Remove you and your guest from this ride?", async ()=> {
             var pp = new Participant(rider + '+', rideID);
             var response = await myFetch(apiMethods.leavePpt, pp);
-            if (!response ) 
-                await  AlertError('server error', 'could not leave ride');
-            else if (response === 'OK') {
+            if (!response.success ) 
+                await  AlertError(response.message, 'could not leave ride');
+            else {
                 pp = new Participant(rider, rideID);
                 response = await myFetch(apiMethods.leavePpt, pp);
-                if (!response ) 
-                    await  AlertError('server error', 'could not leave ride');
-                else if (response === 'OK') {
+                if (!response.success ) 
+                    await  AlertError(response.message, 'could not leave ride');
+                else{
                         await Message("You have both left this ride");
                     }
-                    else {
-                        await Message(response);
-                    }
+
                 }
-            else {
-                await Message(response);
-            }
+
         });
     }
 

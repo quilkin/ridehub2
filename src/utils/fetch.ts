@@ -35,10 +35,10 @@ export async function myFetch(url : String, data : Object | null)  {
 
       if (res.ok) {
         const result = await res.json();
-        if (result.success) {
+        if (result.success && result.data) {
           return result.data;
         }
-        else return result;   // for case when result isn't wrapped in object
+        else return result;   // for case when result isn't wrapped in object or no data property
       }
 
       let error = res.statusText;

@@ -3,7 +3,7 @@
 /**
  * Display a list of rides for the next two months
  */
-import { ref, onBeforeMount, computed, type Ref } from 'vue'
+import { ref, onBeforeMount, onBeforeUpdate, computed, type Ref } from 'vue'
 import { myFetch } from '@/utils/fetch'
 import { apiMethods } from '../../../ridehub-server/src/common/apimethods'
 import { Ride } from '../../../ridehub-server/src/common/ride'
@@ -60,7 +60,13 @@ onBeforeMount(async() => {
   createRideList();
  
 });
-
+onBeforeUpdate(async() => {
+  initialiseArrays();
+  await getData();
+  if (rides.value.length == 0)
+    return;
+  createRideList();
+})
 function initialiseArrays() {
   rides.value =         [] as Ride[];
   participants.value =  [] as string[][];
@@ -154,6 +160,16 @@ function speedStr(ride : Ride) {
     return speeds + (props.user.units=='k'?' kph':' mph');
 }
 
+function getDestination(ride : Ride) {
+  if (ride.dest === undefined || ride.dest === '' || ride.dest === 'see routeID')
+  {  
+    const route = Routes.findRoute(ride.routeID);
+    if (route.id > 0)
+        return route?.dest;
+  }
+  return ride.dest;
+}
+
 /**
  * does what is says on the tin
  */
@@ -163,7 +179,7 @@ function createRideList() {
       const route  = Routes.findRoute(ride.routeID);
       if (route.id > 0)
       {
-        destination.value[index] = route?.dest;
+        destination.value[index] = getDestination(ride);
         climbingStr.value[index] = routeFuncs.climbingStr(route,props.user.units);
         distanceStr.value[index] = routeFuncs.distanceStr(route,props.user.units);
         climbingColour.value[index] = routeFuncs.climbingColour(route);

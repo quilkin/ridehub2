@@ -95,11 +95,15 @@ function update() {
     if (thisRide.rideID > 0) {
       // editing ride
       let gpx = currentRoute.value.route;
+      if (thisRide.dest === '' || thisRide.dest === 'see routeID')
+        destination.value = currentRoute.value.dest;
+      else 
+        destination.value = thisRide.dest;
       currentRoute.value  = Routes.findRoute(thisRide.routeID);
       currentRoute.value.route = gpx;
       if (currentRoute.value.id > 0) {
         routeHasBeenChosen.value = true;
-        destination.value = currentRoute.value.dest;
+        
         distance.value = currentRoute.value.distance;
 
       }
@@ -112,13 +116,13 @@ function update() {
       if (props.routeFromList.id > 0) {
         routeHasBeenChosen.value = true;
         currentRoute.value = props.routeFromList;
-        destination.value = currentRoute.value.dest;
+        //destination.value = currentRoute.value.dest;
         showRoute(currentRoute.value, true);
       }
       else if (props.newRoute.hasGPX) {
         routeHasBeenChosen.value = true;
         currentRoute.value = props.newRoute;
-        destination.value = currentRoute.value.dest;
+        //destination.value = currentRoute.value.dest;
       }
       else {  //  ride has not been furnished with a route
         currentRoute.value.id = 0;
@@ -282,6 +286,8 @@ async function submit() {
     thisRide.date = TimesDates.toIntDays(date.value);
     thisRide.time = parseInt(hour.value)* 60 + parseInt(minute.value);
     thisRide.description = description.value;
+    thisRide.dest = destination.value;
+  
     thisRide.groupSize = maxRiders.value;
     thisRide.meetingAt = meetingAt.value;
     thisRide.routeID = routeID;
@@ -299,7 +305,7 @@ async function submit() {
       return;  
     }
     const id = parseInt(res);
-    if (Number.isInteger(id)) {
+    if (Number.isInteger(id) || res === "OK") {
       await Message('Ride has been saved');
     }
     else {
