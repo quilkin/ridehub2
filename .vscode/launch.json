@@ -5,6 +5,7 @@
     "version": "0.2.0",
     "configurations": [
 
+
         {
             "type": "firefox",
             "request": "launch",
@@ -13,15 +14,20 @@
             "webRoot": "${workspaceFolder}",
            
           },
-
+  {
+            "type": "msedge",
+            "request": "launch",
+            "name": "Launch Edge",
+            "url": "http://localhost:5173",
+            "webRoot": "${workspaceFolder}"
+            },
         {
             "type": "chrome",
             "request": "launch",
             "name": "Launch Chrome against localhost",
             "timeout": 20000,
-            //"url": "http://localhost:5173?pwuser=TT-list&regcode=43D8D3F2FD02BF91D4F3756091F824DC862F338D18F698B237C5FD9F5059F53B",
-            "url": "http://localhost:5173",
-            //"url": "http://localhost:5173/?user=testuser&regcode=4CE5EE899B5BB4BCE0C7CAF6C5E77D318918B22C7012AC715C29B52E7F06B49A",
+            
+            "url": "http://localhost:5173/",
             "webRoot": "${workspaceFolder}",
             "skipFiles": [
                 "${workspaceFolder}/node_modules/**/*.js",
